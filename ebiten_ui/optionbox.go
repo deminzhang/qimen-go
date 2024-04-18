@@ -9,20 +9,21 @@ import (
 )
 
 const (
-	checkBoxWidth       = 16
-	checkBoxPaddingLeft = 8
+	optionBoxWidth       = 16
+	optionBoxPaddingLeft = 8
 )
 
-type CheckBox struct {
+type OptionBox struct {
 	BaseUI
 	X    int
 	Y    int
 	Text string
 
-	checked   bool
-	mouseDown bool
+	selected    bool
+	mouseDown   bool
+	optionGroup map[*OptionBox]struct{}
 
-	onCheckChanged func(c *CheckBox)
+	onSelect func(c *OptionBox)
 
 	UIImage          *ebiten.Image
 	ImageRect        image.Rectangle
@@ -30,28 +31,35 @@ type CheckBox struct {
 	ImageRectMark    image.Rectangle
 }
 
-func NewCheckBox(x, y int, text string) *CheckBox {
-	return &CheckBox{
+func NewOptionBox(x, y int, text string) *OptionBox {
+	return &OptionBox{
 		BaseUI: BaseUI{Visible: true},
 		X:      x,
 		Y:      y,
 		Text:   text,
 
 		UIImage:          GetDefaultUIImage(),
-		ImageRect:        imageSrcRects[imageTypeCheckBox],
-		ImageRectPressed: imageSrcRects[imageTypeCheckBoxPressed],
-		ImageRectMark:    imageSrcRects[imageTypeCheckBoxMark],
+		ImageRect:        imageSrcRects[imageTypeOptionBox],
+		ImageRectPressed: imageSrcRects[imageTypeOptionBoxPressed],
+		ImageRectMark:    imageSrcRects[imageTypeOptionBoxMark],
 	}
-
 }
 
-func (c *CheckBox) width() int {
+func MakeOptionBoxGroup(a ...*OptionBox) {
+	g := map[*OptionBox]struct{}{}
+	for _, o := range a {
+		g[o] = struct{}{}
+		o.optionGroup = g
+	}
+}
+
+func (c *OptionBox) width() int {
 	b, _ := font.BoundString(uiFont, c.Text)
 	w := (b.Max.X - b.Min.X).Ceil()
 	return checkBoxWidth + checkBoxPaddingLeft + w
 }
 
-func (c *CheckBox) Update() {
+func (c *OptionBox) Update() {
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
 		if c.X <= x && x < c.X+c.width() && c.Y <= y && y < c.Y+checkBoxWidth {
@@ -61,30 +69,27 @@ func (c *CheckBox) Update() {
 		}
 	} else {
 		if c.mouseDown {
-			c.checked = !c.checked
-			if c.onCheckChanged != nil {
-				c.onCheckChanged(c)
-			}
+			c.setSelected(true)
 		}
 		c.mouseDown = false
 	}
 }
 
-func (c *CheckBox) Draw(dst *ebiten.Image) {
+func (c *OptionBox) Draw(dst *ebiten.Image) {
 	if !c.Visible {
 		return
 	}
-	r := image.Rect(c.X, c.Y, c.X+checkBoxWidth, c.Y+checkBoxWidth)
+	r := image.Rect(c.X, c.Y, c.X+optionBoxWidth, c.Y+optionBoxWidth)
 	if c.mouseDown {
 		drawNinePatches(dst, c.UIImage, r, c.ImageRectPressed)
 	} else {
 		drawNinePatches(dst, c.UIImage, r, c.ImageRect)
 	}
-	if c.checked {
+	if c.selected {
 		drawNinePatches(dst, c.UIImage, r, c.ImageRectMark)
 	}
 
-	x := c.X + checkBoxWidth + checkBoxPaddingLeft
+	x := c.X + optionBoxWidth + optionBoxPaddingLeft
 	y := (c.Y + 16) - (16-uiFontMHeight)/2
 	if c.Disabled {
 		text.Draw(dst, c.Text, uiFont, x, y, color.Gray16{Y: 0x8888})
@@ -93,14 +98,31 @@ func (c *CheckBox) Draw(dst *ebiten.Image) {
 	}
 }
 
-func (c *CheckBox) SetChecked(b bool) {
-	c.checked = b
+func (c *OptionBox) setSelected(b bool) {
+	if b {
+		if c.optionGroup != nil {
+			for box, _ := range c.optionGroup {
+				if box != c {
+					box.selected = false
+				}
+			}
+		}
+		c.selected = true
+		if c.onSelect != nil {
+			c.onSelect(c)
+		}
+	} else {
+		c.selected = false
+	}
 }
 
-func (c *CheckBox) Checked() bool {
-	return c.checked
+func (c *OptionBox) Select() {
+	c.setSelected(true)
+}
+func (c *OptionBox) Selected() bool {
+	return c.selected
 }
 
-func (c *CheckBox) SetOnCheckChanged(f func(c *CheckBox)) {
-	c.onCheckChanged = f
+func (c *OptionBox) SetOnSelect(f func(c *OptionBox)) {
+	c.onSelect = f
 }

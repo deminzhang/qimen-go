@@ -50,7 +50,7 @@ func NewInputBox(rect image.Rectangle) *InputBox {
 		Editable: true,
 		//default resource
 		UIImage:   GetDefaultUIImage(),
-		ImageRect: image.Rect(0, 16, 16, 32),
+		ImageRect: imageSrcRects[imageTypeTextBox],
 	}
 }
 

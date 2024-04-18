@@ -30,9 +30,10 @@ type UIQiMen struct {
 	textHourRB  *ebiten_ui.InputBox
 	textJu      *ebiten_ui.InputBox
 
-	cbTypeRoll  *ebiten_ui.CheckBox
-	cbTypeFly   *ebiten_ui.CheckBox
-	cbTypeAmaze *ebiten_ui.CheckBox
+	opTypeRoll  *ebiten_ui.OptionBox
+	opTypeFly   *ebiten_ui.OptionBox
+	opTypeAmaze *ebiten_ui.OptionBox
+	//cbXXX       *ebiten_ui.CheckBox
 
 	btnCalc      *ebiten_ui.Button
 	btnPreHour2  *ebiten_ui.Button
@@ -68,9 +69,9 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.inputSHour = ebiten_ui.NewInputBox(image.Rect(px0+72*3, py0, px0+72*3+64, py0+h))
 	p.inputSMin = ebiten_ui.NewInputBox(image.Rect(px0+72*4, py0, px0+72*4+64, py0+h))
 	p.btnCalc = ebiten_ui.NewButton(image.Rect(px0+72*5, py0, px0+72*5+64, py0+h), "排局")
-	p.cbTypeRoll = ebiten_ui.NewCheckBox(px0+72*6, py0, qimen.QMType[0])
-	p.cbTypeFly = ebiten_ui.NewCheckBox(px0+72*7, py0, qimen.QMType[1])
-	p.cbTypeAmaze = ebiten_ui.NewCheckBox(px0+72*8, py0, qimen.QMType[2])
+	p.opTypeRoll = ebiten_ui.NewOptionBox(px0+72*6, py0+8, qimen.QMType[0])
+	p.opTypeFly = ebiten_ui.NewOptionBox(px0+72*7, py0+8, qimen.QMType[1])
+	p.opTypeAmaze = ebiten_ui.NewOptionBox(px0+72*8, py0+8, qimen.QMType[2])
 
 	py0 += 32
 	p.textLYear = ebiten_ui.NewInputBox(image.Rect(px0, py0, px0+64, py0+h))
@@ -131,9 +132,9 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.AddChild(p.inputSHour)
 	p.AddChild(p.inputSMin)
 	p.AddChild(p.btnCalc)
-	p.AddChild(p.cbTypeRoll)
-	p.AddChild(p.cbTypeFly)
-	p.AddChild(p.cbTypeAmaze)
+	p.AddChild(p.opTypeRoll)
+	p.AddChild(p.opTypeFly)
+	p.AddChild(p.opTypeAmaze)
 
 	p.AddChild(p.textLYear)
 	p.AddChild(p.textLMonth)
@@ -148,12 +149,11 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.AddChild(p.textHourRB)
 	p.AddChild(p.textJu)
 
-	p.cbTypeRoll.SetChecked(false)
-	p.cbTypeFly.SetChecked(false)
-	p.cbTypeAmaze.SetChecked(true)
-	p.cbTypeRoll.Disabled = true
-	p.cbTypeFly.Disabled = true
-	p.cbTypeAmaze.Disabled = true
+	ebiten_ui.MakeOptionBoxGroup(p.opTypeRoll, p.opTypeFly, p.opTypeAmaze)
+	p.opTypeAmaze.Select()
+	p.opTypeRoll.Disabled = true
+	p.opTypeFly.Disabled = true
+	//p.opTypeAmaze.Disabled = true
 
 	p.inputSYear.MaxChars = 4
 	p.inputSMonth.MaxChars = 2

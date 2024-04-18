@@ -1,11 +1,13 @@
 package ebiten_ui_test
 
 import (
+	"github.com/hajimehoshi/ebiten/v2"
 	"image/color"
 	_ "image/png"
 
 	"image"
 	"log"
+	. "qimen/ebiten_ui"
 	"testing"
 )
 
@@ -46,7 +48,7 @@ func NewGame() *Game {
 	g.checkBox.SetOnCheckChanged(func(c *CheckBox) {
 		msg := "Check box check changed"
 		if c.Checked() {
-			msg += " (Checked)"
+			msg += " (Selected)"
 		} else {
 			msg += " (Unchecked)"
 		}

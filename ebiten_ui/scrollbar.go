@@ -51,16 +51,16 @@ func NewVScrollBar() *VScrollBar {
 	return &VScrollBar{
 		BaseUI:         BaseUI{Visible: true},
 		UIImage:        GetDefaultUIImage(),
-		ImageRectBack:  image.Rect(16, 16, 24, 32),
-		ImageRectFront: image.Rect(24, 16, 32, 32),
+		ImageRectBack:  imageSrcRects[imageTypeScrollBarBack],
+		ImageRectFront: imageSrcRects[imageTypeScrollBarFront],
 	}
 }
 func NewHScrollBar() *HScrollBar {
 	return &HScrollBar{
 		BaseUI:         BaseUI{Visible: true},
 		UIImage:        GetDefaultUIImage(),
-		ImageRectBack:  image.Rect(16, 16, 24, 32),
-		ImageRectFront: image.Rect(24, 16, 32, 32),
+		ImageRectBack:  imageSrcRects[imageTypeScrollBarBack],
+		ImageRectFront: imageSrcRects[imageTypeScrollBarFront],
 	}
 }
 

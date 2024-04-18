@@ -29,8 +29,8 @@ func NewButton(rect image.Rectangle, text string) *Button {
 		Text:   text,
 		//default resource
 		UIImage:          GetDefaultUIImage(),
-		ImageRect:        image.Rect(0, 0, 16, 16),
-		ImageRectPressed: image.Rect(16, 0, 32, 16),
+		ImageRect:        imageSrcRects[imageTypeButton],
+		ImageRectPressed: imageSrcRects[imageTypeButtonPressed],
 	}
 }
 

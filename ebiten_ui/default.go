@@ -60,29 +60,35 @@ func init() {
 	uiFontMWidth = (b.Max.X - b.Min.X).Ceil()
 }
 
-//type imageType int
+type imageType int
 
-//const (
-//	imageTypeButton imageType = iota
-//	imageTypeButtonPressed
-//	imageTypeTextBox
-//	imageTypeVScollBarBack
-//	imageTypeVScollBarFront
-//	imageTypeCheckBox
-//	imageTypeCheckBoxPressed
-//	imageTypeCheckBoxMark
-//)
+const (
+	imageTypeButton imageType = iota
+	imageTypeButtonPressed
+	imageTypeTextBox
+	imageTypeScrollBarBack
+	imageTypeScrollBarFront
+	imageTypeCheckBox
+	imageTypeCheckBoxPressed
+	imageTypeCheckBoxMark
+	imageTypeOptionBox
+	imageTypeOptionBoxPressed
+	imageTypeOptionBoxMark
+)
 
-//var imageSrcRects = map[imageType]image.Rectangle{
-//	imageTypeButton:          image.Rect(0, 0, 16, 16),
-//	imageTypeButtonPressed:   image.Rect(16, 0, 32, 16),
-//	imageTypeTextBox:         image.Rect(0, 16, 16, 32),
-//	imageTypeVScollBarBack:   image.Rect(16, 16, 24, 32),
-//	imageTypeVScollBarFront:  image.Rect(24, 16, 32, 32),
-//	imageTypeCheckBox:        image.Rect(0, 32, 16, 48),
-//	imageTypeCheckBoxPressed: image.Rect(16, 32, 32, 48),
-//	imageTypeCheckBoxMark:    image.Rect(32, 32, 48, 48),
-//}
+var imageSrcRects = map[imageType]image.Rectangle{
+	imageTypeButton:           image.Rect(0, 0, 16, 16),
+	imageTypeButtonPressed:    image.Rect(16, 0, 32, 16),
+	imageTypeTextBox:          image.Rect(0, 16, 16, 32),
+	imageTypeScrollBarBack:    image.Rect(16, 16, 24, 32),
+	imageTypeScrollBarFront:   image.Rect(24, 16, 32, 32),
+	imageTypeCheckBox:         image.Rect(0, 32, 16, 48),
+	imageTypeCheckBoxPressed:  image.Rect(16, 32, 32, 48),
+	imageTypeCheckBoxMark:     image.Rect(32, 32, 48, 48),
+	imageTypeOptionBox:        image.Rect(0, 48, 16, 64),
+	imageTypeOptionBoxPressed: image.Rect(16, 48, 32, 64),
+	imageTypeOptionBoxMark:    image.Rect(32, 48, 48, 64),
+}
 
 func GetDefaultUIImage() *ebiten.Image {
 	return uiImage

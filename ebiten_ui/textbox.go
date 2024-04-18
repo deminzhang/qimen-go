@@ -38,7 +38,7 @@ func NewTextBox(rect image.Rectangle) *TextBox {
 		Rect:   rect,
 
 		UIImage:   GetDefaultUIImage(),
-		ImageRect: image.Rect(0, 16, 16, 32),
+		ImageRect: imageSrcRects[imageTypeTextBox],
 	}
 }
 func (t *TextBox) SetText(v interface{}) {

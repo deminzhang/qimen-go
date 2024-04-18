@@ -58,6 +58,7 @@ type BaseUI struct {
 	EnableFocus bool //enable focus
 	Depth       int  //update draw depth
 	Children    []IUIPanel
+	//Parent      IUIPanel
 }
 
 func (u *BaseUI) IsDisabled() bool {
@@ -105,6 +106,7 @@ func (u *BaseUI) RemoveChild(c IUIPanel) {
 					u.Children = append(u.Children[:i], u.Children[i+1:]...)
 				}
 			}
+			break
 		}
 	}
 }
