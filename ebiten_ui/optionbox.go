@@ -53,76 +53,76 @@ func MakeOptionBoxGroup(a ...*OptionBox) {
 	}
 }
 
-func (c *OptionBox) width() int {
-	b, _ := font.BoundString(uiFont, c.Text)
+func (o *OptionBox) width() int {
+	b, _ := font.BoundString(uiFont, o.Text)
 	w := (b.Max.X - b.Min.X).Ceil()
 	return checkBoxWidth + checkBoxPaddingLeft + w
 }
 
-func (c *OptionBox) Update() {
+func (o *OptionBox) Update() {
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
-		if c.X <= x && x < c.X+c.width() && c.Y <= y && y < c.Y+checkBoxWidth {
-			c.mouseDown = true
+		if o.X <= x && x < o.X+o.width() && o.Y <= y && y < o.Y+checkBoxWidth {
+			o.mouseDown = true
 		} else {
-			c.mouseDown = false
+			o.mouseDown = false
 		}
 	} else {
-		if c.mouseDown {
-			c.setSelected(true)
+		if o.mouseDown {
+			o.setSelected(true)
 		}
-		c.mouseDown = false
+		o.mouseDown = false
 	}
 }
 
-func (c *OptionBox) Draw(dst *ebiten.Image) {
-	if !c.Visible {
+func (o *OptionBox) Draw(dst *ebiten.Image) {
+	if !o.Visible {
 		return
 	}
-	r := image.Rect(c.X, c.Y, c.X+optionBoxWidth, c.Y+optionBoxWidth)
-	if c.mouseDown {
-		drawNinePatches(dst, c.UIImage, r, c.ImageRectPressed)
+	r := image.Rect(o.X, o.Y, o.X+optionBoxWidth, o.Y+optionBoxWidth)
+	if o.mouseDown {
+		drawNinePatches(dst, o.UIImage, r, o.ImageRectPressed)
 	} else {
-		drawNinePatches(dst, c.UIImage, r, c.ImageRect)
+		drawNinePatches(dst, o.UIImage, r, o.ImageRect)
 	}
-	if c.selected {
-		drawNinePatches(dst, c.UIImage, r, c.ImageRectMark)
+	if o.selected {
+		drawNinePatches(dst, o.UIImage, r, o.ImageRectMark)
 	}
 
-	x := c.X + optionBoxWidth + optionBoxPaddingLeft
-	y := (c.Y + 16) - (16-uiFontMHeight)/2
-	if c.Disabled {
-		text.Draw(dst, c.Text, uiFont, x, y, color.Gray16{Y: 0x8888})
+	x := o.X + optionBoxWidth + optionBoxPaddingLeft
+	y := (o.Y + 16) - (16-uiFontMHeight)/2
+	if o.Disabled {
+		text.Draw(dst, o.Text, uiFont, x, y, color.Gray16{Y: 0x8888})
 	} else {
-		text.Draw(dst, c.Text, uiFont, x, y, color.White)
+		text.Draw(dst, o.Text, uiFont, x, y, color.White)
 	}
 }
 
-func (c *OptionBox) setSelected(b bool) {
-	if b {
-		if c.optionGroup != nil {
-			for box, _ := range c.optionGroup {
-				if box != c {
+func (o *OptionBox) setSelected(sel bool) {
+	if sel {
+		if o.optionGroup != nil {
+			for box, _ := range o.optionGroup {
+				if box != o {
 					box.selected = false
 				}
 			}
 		}
-		c.selected = true
-		if c.onSelect != nil {
-			c.onSelect(c)
+		o.selected = true
+		if o.onSelect != nil {
+			o.onSelect(o)
 		}
 	} else {
-		c.selected = false
+		o.selected = false
 	}
 }
 
-func (c *OptionBox) Select() {
-	c.setSelected(true)
+func (o *OptionBox) Select() {
+	o.setSelected(true)
 }
-func (c *OptionBox) Selected() bool {
-	return c.selected
+func (o *OptionBox) Selected() bool {
+	return o.selected
 }
 
-func (c *OptionBox) SetOnSelect(f func(c *OptionBox)) {
-	c.onSelect = f
+func (o *OptionBox) SetOnSelect(f func(c *OptionBox)) {
+	o.onSelect = f
 }

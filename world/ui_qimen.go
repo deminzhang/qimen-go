@@ -33,6 +33,7 @@ type UIQiMen struct {
 	opTypeRoll  *ebiten_ui.OptionBox
 	opTypeFly   *ebiten_ui.OptionBox
 	opTypeAmaze *ebiten_ui.OptionBox
+	opAnGanType *ebiten_ui.OptionBox //飞盘暗干排法
 	//cbXXX       *ebiten_ui.CheckBox
 
 	btnCalc      *ebiten_ui.Button
@@ -41,6 +42,8 @@ type UIQiMen struct {
 
 	textGong []*ebiten_ui.TextBox
 	zhiPan   []*ebiten_ui.TextBox
+
+	qmType int
 }
 
 var uiQiMen *UIQiMen
@@ -60,7 +63,9 @@ func UIHideQiMen() {
 
 func NewUIQiMen(width, height int) *UIQiMen {
 	//cx, cy := width/2, height/2 //win center
-	p := &UIQiMen{}
+	p := &UIQiMen{
+		qmType: qimen.QMTypeAmaze,
+	}
 	px0, py0 := 32, 0
 	h := 32
 	p.inputSYear = ebiten_ui.NewInputBox(image.Rect(px0, py0, px0+64, py0+h))
@@ -80,6 +85,8 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.textLHour = ebiten_ui.NewInputBox(image.Rect(px0+72*3, py0, px0+72*3+64, py0+h))
 	p.btnPreHour2 = ebiten_ui.NewButton(image.Rect(px0+72*4, py0, px0+72*4+64, py0+h), "上一局")
 	p.btnNextHour2 = ebiten_ui.NewButton(image.Rect(px0+72*5, py0, px0+72*5+64, py0+h), "下一局")
+	p.opAnGanType = ebiten_ui.NewOptionBox(px0+72*7, py0+8, "值使起暗干")
+
 	py0 += 32
 	p.textYearRB = ebiten_ui.NewInputBox(image.Rect(px0, py0, px0+64, py0+h))
 	p.textMonthRB = ebiten_ui.NewInputBox(image.Rect(px0+72, py0, px0+72+64, py0+h))
@@ -142,6 +149,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.AddChild(p.textLHour)
 	p.AddChild(p.btnPreHour2)
 	p.AddChild(p.btnNextHour2)
+	p.AddChild(p.opAnGanType)
 
 	p.AddChild(p.textYearRB)
 	p.AddChild(p.textMonthRB)
@@ -152,14 +160,16 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	ebiten_ui.MakeOptionBoxGroup(p.opTypeRoll, p.opTypeFly, p.opTypeAmaze)
 	p.opTypeAmaze.Select()
 	p.opTypeRoll.Disabled = true
-	p.opTypeFly.Disabled = true
-	//p.opTypeAmaze.Disabled = true
+	//p.opTypeFly.Disabled = true
 
 	p.inputSYear.MaxChars = 4
 	p.inputSMonth.MaxChars = 2
 	p.inputSDay.MaxChars = 2
 	p.inputSHour.MaxChars = 2
 	p.inputSMin.MaxChars = 2
+	p.opAnGanType.Select()
+	p.opAnGanType.Disabled = true
+	p.opAnGanType.Visible = p.opTypeFly.Selected()
 
 	p.inputSYear.DefaultText = "year"
 	p.inputSMonth.DefaultText = "month"
@@ -276,6 +286,18 @@ func (p *UIQiMen) Apply(year, month, day, hour, minute int) {
 		UIShowMsgBox("时间不对", "确定", "取消", func(b *ebiten_ui.Button) {
 		}, func(b *ebiten_ui.Button) {})
 	}
+	p.opTypeRoll.SetOnSelect(func(c *ebiten_ui.OptionBox) {
+		p.qmType = qimen.QMTypeRollDoor
+		p.Apply(pan.SolarYear, pan.SolarMonth, pan.SolarDay, pan.SolarHour, pan.SolarMinute)
+	})
+	p.opTypeFly.SetOnSelect(func(c *ebiten_ui.OptionBox) {
+		p.qmType = qimen.QMTypeFlyDoor
+		p.Apply(pan.SolarYear, pan.SolarMonth, pan.SolarDay, pan.SolarHour, pan.SolarMinute)
+	})
+	p.opTypeAmaze.SetOnSelect(func(c *ebiten_ui.OptionBox) {
+		p.qmType = qimen.QMTypeAmaze
+		p.Apply(pan.SolarYear, pan.SolarMonth, pan.SolarDay, pan.SolarHour, pan.SolarMinute)
+	})
 	//pan.DayArr
 	p.inputSYear.SetText(pan.SolarYear)
 	p.inputSMonth.SetText(pan.SolarMonth)
@@ -293,6 +315,8 @@ func (p *UIQiMen) Apply(year, month, day, hour, minute int) {
 	p.textDayRB.SetText(pan.DayRB)
 	p.textHourRB.SetText(pan.HourRB)
 
+	p.opAnGanType.Visible = p.qmType == qimen.QMTypeFlyDoor
+
 	p.textJu.Text = pan.JuText
 
 	for i := 1; i <= 9; i++ {
@@ -300,9 +324,10 @@ func (p *UIQiMen) Apply(year, month, day, hour, minute int) {
 	}
 
 	//大六壬 月将落时支 顺布余支
-	yueJiangIdx, yueJiangPos := pan.YueJiangIdx, pan.YueJiangPos
+	yueJiangIdx, yueJiangPos := pan.YueJiangZhiIdx, pan.YueJiangPos
 	for i := yueJiangPos; i < yueJiangPos+12; i++ {
 		z := LunarUtil.ZHI[qimen.Idx12[yueJiangIdx]]
+		g := fmt.Sprintf("\n%s", qimen.YueJiangName[z])
 		var j, h string
 		if i == yueJiangPos {
 			j = "\n月将"
@@ -310,7 +335,7 @@ func (p *UIQiMen) Apply(year, month, day, hour, minute int) {
 		if z == pan.HourHorse {
 			h = "\n驿马"
 		}
-		p.zhiPan[qimen.Idx12[i]].SetText(fmt.Sprintf("%s%s%s", z, j, h))
+		p.zhiPan[qimen.Idx12[i]].SetText(fmt.Sprintf("%s%s%s%s", z, g, j, h))
 		yueJiangIdx++
 	}
 }

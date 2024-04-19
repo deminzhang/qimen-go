@@ -66,10 +66,10 @@ type QMPan struct {
 	DutyDoor    string //值使
 	DutyDoorPos int    //值使落宫
 
-	YueJiang    string
-	HourHorse   string
-	YueJiangIdx int
-	YueJiangPos int
+	YueJiangZhi    string //月将支名
+	YueJiangZhiIdx int    //月将地支号
+	YueJiangPos    int    //月将落地支宫
+	HourHorse      string //驿马
 
 	JuText string     //局文本
 	Gongs  [10]QMGong //九宫飞盘格
@@ -157,7 +157,6 @@ func (p *QMPan) calcGong() {
 	//}
 
 	//神盘 落九神
-	//鸣法：值符加于时干上，值使加之在时支。
 	//九神顺逆随遁转，八门九星顺宫飞
 	//九神值符腾蛇是，太阴六合勾陈次。
 	//太常朱雀九地天，午后白虎玄武治。//阴遁用白虎玄武
@@ -172,7 +171,12 @@ func (p *QMPan) calcGong() {
 	}
 	//排暗干支神
 	//找符使落宫
-	if p.Type == QMTypeAmaze {
+	switch p.Type {
+	case QMTypeRollDoor:
+		//TODO
+	case QMTypeFlyDoor: //值使起暗干
+		//TODO
+	case QMTypeAmaze: //暗支起值使 暗干暗支不逆三奇 鸣法：值符加于时干上，值使加之在时支。
 		var jiaZiIdx int
 		for i, x := range LunarUtil.JIA_ZI {
 			if x == p.ShiXun {
@@ -210,8 +214,6 @@ func (p *QMPan) calcGong() {
 				}
 			}
 		}
-	} else {
-		//TODO
 	}
 	//布九门
 	if p.Type == QMTypeAmaze || p.Type == QMTypeFlyDoor {
@@ -219,6 +221,7 @@ func (p *QMPan) calcGong() {
 			g9[Idx9[i]].Door = _QMDoor9[Idx9[duty+i-p.DutyDoorPos]]
 		}
 	} else {
+
 	}
 
 }
@@ -322,14 +325,14 @@ func NewPan(year int, month int, day int, hour int, minute int) (*QMPan, error) 
 		Ju:          juIdx,
 		Yuan3:       dayYuanIdx,
 		ShiXun:      shiXun,
-		YueJiang:    YueJiang[cal.GetMonth()],
+		YueJiangZhi: YueJiang[cal.GetMonth()],
 		HourHorse:   Horse[shiZhi],
 	}
 	p.calcGong()
 	//大六壬 月将落时支 顺布余支
 	for i := 1; i <= 12; i++ {
-		if p.YueJiang == LunarUtil.ZHI[i] {
-			p.YueJiangIdx = i
+		if p.YueJiangZhi == LunarUtil.ZHI[i] {
+			p.YueJiangZhiIdx = i
 			break
 		}
 	}
