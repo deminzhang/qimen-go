@@ -1,4 +1,4 @@
-package ebiten_ui
+package ui
 
 import (
 	"bytes"

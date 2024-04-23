@@ -1,4 +1,4 @@
-package ebiten_ui_test
+package ui_test
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
@@ -7,7 +7,6 @@ import (
 
 	"image"
 	"log"
-	. "qimen/ebiten_ui"
 	"testing"
 )
 

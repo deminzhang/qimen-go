@@ -6,42 +6,42 @@ import (
 	"github.com/6tail/lunar-go/LunarUtil"
 	"github.com/6tail/lunar-go/SolarUtil"
 	"image"
-	"qimen/ebiten_ui"
 	"qimen/qimen"
+	"qimen/ui"
 	"strconv"
 	"time"
 )
 
 type UIQiMen struct {
-	ebiten_ui.BaseUI
-	inputSYear  *ebiten_ui.InputBox
-	inputSMonth *ebiten_ui.InputBox
-	inputSDay   *ebiten_ui.InputBox
-	inputSHour  *ebiten_ui.InputBox
-	inputSMin   *ebiten_ui.InputBox
+	ui.BaseUI
+	inputSYear  *ui.InputBox
+	inputSMonth *ui.InputBox
+	inputSDay   *ui.InputBox
+	inputSHour  *ui.InputBox
+	inputSMin   *ui.InputBox
 
-	textLYear   *ebiten_ui.InputBox
-	textLMonth  *ebiten_ui.InputBox
-	textLDay    *ebiten_ui.InputBox
-	textLHour   *ebiten_ui.InputBox
-	textYearRB  *ebiten_ui.InputBox
-	textMonthRB *ebiten_ui.InputBox
-	textDayRB   *ebiten_ui.InputBox
-	textHourRB  *ebiten_ui.InputBox
-	textJu      *ebiten_ui.InputBox
+	textLYear   *ui.InputBox
+	textLMonth  *ui.InputBox
+	textLDay    *ui.InputBox
+	textLHour   *ui.InputBox
+	textYearRB  *ui.InputBox
+	textMonthRB *ui.InputBox
+	textDayRB   *ui.InputBox
+	textHourRB  *ui.InputBox
+	textJu      *ui.InputBox
 
-	opTypeRoll  *ebiten_ui.OptionBox
-	opTypeFly   *ebiten_ui.OptionBox
-	opTypeAmaze *ebiten_ui.OptionBox
-	opAnGanType *ebiten_ui.OptionBox //飞盘暗干排法
+	opTypeRoll  *ui.OptionBox
+	opTypeFly   *ui.OptionBox
+	opTypeAmaze *ui.OptionBox
+	opAnGanType *ui.OptionBox //飞盘暗干排法
 	//cbXXX       *ebiten_ui.CheckBox
 
-	btnCalc      *ebiten_ui.Button
-	btnPreHour2  *ebiten_ui.Button
-	btnNextHour2 *ebiten_ui.Button
+	btnCalc      *ui.Button
+	btnPreHour2  *ui.Button
+	btnNextHour2 *ui.Button
 
-	textGong []*ebiten_ui.TextBox
-	zhiPan   []*ebiten_ui.TextBox
+	textGong []*ui.TextBox
+	zhiPan   []*ui.TextBox
 
 	qmType int
 }
@@ -51,12 +51,12 @@ var uiQiMen *UIQiMen
 func UIShowQiMen(width, height int) {
 	if uiQiMen == nil {
 		uiQiMen = NewUIQiMen(width, height)
-		ebiten_ui.ActiveUI(uiQiMen)
+		ui.ActiveUI(uiQiMen)
 	}
 }
 func UIHideQiMen() {
 	if uiQiMen != nil {
-		ebiten_ui.CloseUI(uiQiMen)
+		ui.CloseUI(uiQiMen)
 		uiQiMen = nil
 	}
 }
@@ -68,31 +68,31 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	}
 	px0, py0 := 32, 0
 	h := 32
-	p.inputSYear = ebiten_ui.NewInputBox(image.Rect(px0, py0, px0+64, py0+h))
-	p.inputSMonth = ebiten_ui.NewInputBox(image.Rect(px0+72, py0, px0+72+64, py0+h))
-	p.inputSDay = ebiten_ui.NewInputBox(image.Rect(px0+72*2, py0, px0+72*2+64, py0+h))
-	p.inputSHour = ebiten_ui.NewInputBox(image.Rect(px0+72*3, py0, px0+72*3+64, py0+h))
-	p.inputSMin = ebiten_ui.NewInputBox(image.Rect(px0+72*4, py0, px0+72*4+64, py0+h))
-	p.btnCalc = ebiten_ui.NewButton(image.Rect(px0+72*5, py0, px0+72*5+64, py0+h), "排局")
-	p.opTypeRoll = ebiten_ui.NewOptionBox(px0+72*6, py0+8, qimen.QMType[0])
-	p.opTypeFly = ebiten_ui.NewOptionBox(px0+72*7, py0+8, qimen.QMType[1])
-	p.opTypeAmaze = ebiten_ui.NewOptionBox(px0+72*8, py0+8, qimen.QMType[2])
+	p.inputSYear = ui.NewInputBox(image.Rect(px0, py0, px0+64, py0+h))
+	p.inputSMonth = ui.NewInputBox(image.Rect(px0+72, py0, px0+72+64, py0+h))
+	p.inputSDay = ui.NewInputBox(image.Rect(px0+72*2, py0, px0+72*2+64, py0+h))
+	p.inputSHour = ui.NewInputBox(image.Rect(px0+72*3, py0, px0+72*3+64, py0+h))
+	p.inputSMin = ui.NewInputBox(image.Rect(px0+72*4, py0, px0+72*4+64, py0+h))
+	p.btnCalc = ui.NewButton(image.Rect(px0+72*5, py0, px0+72*5+64, py0+h), "排局")
+	p.opTypeRoll = ui.NewOptionBox(px0+72*6, py0+8, qimen.QMType[0])
+	p.opTypeFly = ui.NewOptionBox(px0+72*7, py0+8, qimen.QMType[1])
+	p.opTypeAmaze = ui.NewOptionBox(px0+72*8, py0+8, qimen.QMType[2])
 
 	py0 += 32
-	p.textLYear = ebiten_ui.NewInputBox(image.Rect(px0, py0, px0+64, py0+h))
-	p.textLMonth = ebiten_ui.NewInputBox(image.Rect(px0+72, py0, px0+72+64, py0+h))
-	p.textLDay = ebiten_ui.NewInputBox(image.Rect(px0+72*2, py0, px0+72*2+64, py0+h))
-	p.textLHour = ebiten_ui.NewInputBox(image.Rect(px0+72*3, py0, px0+72*3+64, py0+h))
-	p.btnPreHour2 = ebiten_ui.NewButton(image.Rect(px0+72*4, py0, px0+72*4+64, py0+h), "上一局")
-	p.btnNextHour2 = ebiten_ui.NewButton(image.Rect(px0+72*5, py0, px0+72*5+64, py0+h), "下一局")
-	p.opAnGanType = ebiten_ui.NewOptionBox(px0+72*7, py0+8, "值使起暗干")
+	p.textLYear = ui.NewInputBox(image.Rect(px0, py0, px0+64, py0+h))
+	p.textLMonth = ui.NewInputBox(image.Rect(px0+72, py0, px0+72+64, py0+h))
+	p.textLDay = ui.NewInputBox(image.Rect(px0+72*2, py0, px0+72*2+64, py0+h))
+	p.textLHour = ui.NewInputBox(image.Rect(px0+72*3, py0, px0+72*3+64, py0+h))
+	p.btnPreHour2 = ui.NewButton(image.Rect(px0+72*4, py0, px0+72*4+64, py0+h), "上一局")
+	p.btnNextHour2 = ui.NewButton(image.Rect(px0+72*5, py0, px0+72*5+64, py0+h), "下一局")
+	p.opAnGanType = ui.NewOptionBox(px0+72*7, py0+8, "值使起暗干")
 
 	py0 += 32
-	p.textYearRB = ebiten_ui.NewInputBox(image.Rect(px0, py0, px0+64, py0+h))
-	p.textMonthRB = ebiten_ui.NewInputBox(image.Rect(px0+72, py0, px0+72+64, py0+h))
-	p.textDayRB = ebiten_ui.NewInputBox(image.Rect(px0+72*2, py0, px0+72*2+64, py0+h))
-	p.textHourRB = ebiten_ui.NewInputBox(image.Rect(px0+72*3, py0, px0+72*3+64, py0+h))
-	p.textJu = ebiten_ui.NewInputBox(image.Rect(px0+72*4, py0, px0+72*9, py0+h))
+	p.textYearRB = ui.NewInputBox(image.Rect(px0, py0, px0+64, py0+h))
+	p.textMonthRB = ui.NewInputBox(image.Rect(px0+72, py0, px0+72+64, py0+h))
+	p.textDayRB = ui.NewInputBox(image.Rect(px0+72*2, py0, px0+72*2+64, py0+h))
+	p.textHourRB = ui.NewInputBox(image.Rect(px0+72*3, py0, px0+72*3+64, py0+h))
+	p.textJu = ui.NewInputBox(image.Rect(px0+72*4, py0, px0+72*9, py0+h))
 
 	px4, py4 := 64, 96+64
 	const gongWidth = 128
@@ -104,7 +104,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.textGong = append(p.textGong, nil)
 	for i := 1; i <= 9; i++ {
 		offX, offZ := gongOffset[i][0]*gongWidth, gongOffset[i][1]*gongWidth
-		txtGong := ebiten_ui.NewTextBox(image.Rect(px4+offX, py4+offZ, px4+offX+gongWidth, py4+offZ+gongWidth))
+		txtGong := ui.NewTextBox(image.Rect(px4+offX, py4+offZ, px4+offX+gongWidth, py4+offZ+gongWidth))
 		txtGong.SetText(i)
 		p.textGong = append(p.textGong, txtGong)
 		p.AddChild(txtGong)
@@ -125,7 +125,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 		maxX := max(px4+offX, px4+offX+zhiPanLoc[i][2])
 		minY := min(py4+offZ, py4+offZ+zhiPanLoc[i][3])
 		maxY := max(py4+offZ, py4+offZ+zhiPanLoc[i][3])
-		txtZhi := ebiten_ui.NewTextBox(image.Rect(minX, minY, maxX, maxY))
+		txtZhi := ui.NewTextBox(image.Rect(minX, minY, maxX, maxY))
 		txtZhi.DisableHScroll = true
 		txtZhi.DisableVScroll = true
 		p.zhiPan = append(p.zhiPan, txtZhi)
@@ -157,7 +157,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.AddChild(p.textHourRB)
 	p.AddChild(p.textJu)
 
-	ebiten_ui.MakeOptionBoxGroup(p.opTypeRoll, p.opTypeFly, p.opTypeAmaze)
+	ui.MakeOptionBoxGroup(p.opTypeRoll, p.opTypeFly, p.opTypeAmaze)
 	p.opTypeAmaze.Select()
 	p.opTypeRoll.Disabled = true
 	//p.opTypeFly.Disabled = true
@@ -177,7 +177,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.inputSHour.DefaultText = "hour"
 	p.inputSMin.DefaultText = "minute"
 
-	p.btnCalc.SetOnClick(func(b *ebiten_ui.Button) {
+	p.btnCalc.SetOnClick(func(b *ui.Button) {
 		year, _ := strconv.Atoi(p.inputSYear.Text)
 		month, _ := strconv.Atoi(p.inputSMonth.Text)
 		day, _ := strconv.Atoi(p.inputSDay.Text)
@@ -185,7 +185,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 		minute, _ := strconv.Atoi(p.inputSMin.Text)
 		p.Apply(year, month, day, hour, minute)
 	})
-	p.btnPreHour2.SetOnClick(func(b *ebiten_ui.Button) {
+	p.btnPreHour2.SetOnClick(func(b *ui.Button) {
 		year, _ := strconv.Atoi(p.inputSYear.Text)
 		month, _ := strconv.Atoi(p.inputSMonth.Text)
 		day, _ := strconv.Atoi(p.inputSDay.Text)
@@ -209,7 +209,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 		}
 		p.Apply(year, month, day, hour, minute)
 	})
-	p.btnNextHour2.SetOnClick(func(b *ebiten_ui.Button) {
+	p.btnNextHour2.SetOnClick(func(b *ui.Button) {
 		year, _ := strconv.Atoi(p.inputSYear.Text)
 		month, _ := strconv.Atoi(p.inputSMonth.Text)
 		day, _ := strconv.Atoi(p.inputSDay.Text)
@@ -281,20 +281,20 @@ func (p *UIQiMen) checkDate(year, month, day, hour, minute int) error {
 	return nil
 }
 func (p *UIQiMen) Apply(year, month, day, hour, minute int) {
-	pan, err := qimen.NewPan(year, month, day, hour, minute)
+	pan, err := qimen.NewPan(p.qmType, year, month, day, hour, minute)
 	if err != nil {
-		UIShowMsgBox("时间不对", "确定", "取消", func(b *ebiten_ui.Button) {
-		}, func(b *ebiten_ui.Button) {})
+		UIShowMsgBox("时间不对", "确定", "取消", func(b *ui.Button) {
+		}, func(b *ui.Button) {})
 	}
-	p.opTypeRoll.SetOnSelect(func(c *ebiten_ui.OptionBox) {
+	p.opTypeRoll.SetOnSelect(func(c *ui.OptionBox) {
 		p.qmType = qimen.QMTypeRollDoor
 		p.Apply(pan.SolarYear, pan.SolarMonth, pan.SolarDay, pan.SolarHour, pan.SolarMinute)
 	})
-	p.opTypeFly.SetOnSelect(func(c *ebiten_ui.OptionBox) {
+	p.opTypeFly.SetOnSelect(func(c *ui.OptionBox) {
 		p.qmType = qimen.QMTypeFlyDoor
 		p.Apply(pan.SolarYear, pan.SolarMonth, pan.SolarDay, pan.SolarHour, pan.SolarMinute)
 	})
-	p.opTypeAmaze.SetOnSelect(func(c *ebiten_ui.OptionBox) {
+	p.opTypeAmaze.SetOnSelect(func(c *ui.OptionBox) {
 		p.qmType = qimen.QMTypeAmaze
 		p.Apply(pan.SolarYear, pan.SolarMonth, pan.SolarDay, pan.SolarHour, pan.SolarMinute)
 	})
@@ -326,16 +326,17 @@ func (p *UIQiMen) Apply(year, month, day, hour, minute int) {
 	//大六壬 月将落时支 顺布余支
 	yueJiangIdx, yueJiangPos := pan.YueJiangZhiIdx, pan.YueJiangPos
 	for i := yueJiangPos; i < yueJiangPos+12; i++ {
-		z := LunarUtil.ZHI[qimen.Idx12[yueJiangIdx]]
-		g := fmt.Sprintf("\n%s", qimen.YueJiangName[z])
+		z6 := LunarUtil.ZHI[qimen.Idx12[yueJiangIdx]]
+		g := fmt.Sprintf("\n%s", qimen.YueJiangName[z6])
 		var j, h string
 		if i == yueJiangPos {
 			j = "\n月将"
 		}
+		z := LunarUtil.ZHI[qimen.Idx12[i]]
 		if z == pan.HourHorse {
 			h = "\n驿马"
 		}
-		p.zhiPan[qimen.Idx12[i]].SetText(fmt.Sprintf("%s%s%s%s", z, g, j, h))
+		p.zhiPan[qimen.Idx12[i]].SetText(fmt.Sprintf("%s%s%s%s", z6, g, j, h))
 		yueJiangIdx++
 	}
 }

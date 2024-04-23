@@ -8,21 +8,15 @@ import (
 	"log"
 	"os"
 	"qimen/asset"
-	"qimen/ebiten_ui"
+	"qimen/ui"
 	"runtime"
-)
-
-const (
-	StateInit = iota
-	StateLogin
-	StateGame
 )
 
 type game struct {
 }
 
 func (g *game) Update() error {
-	ebiten_ui.Update()
+	ui.Update()
 	return nil
 }
 
@@ -50,7 +44,7 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	ebiten_ui.SetDefaultUIFont(f)
+	ui.SetDefaultUIFont(f)
 }
 
 func (g *game) Init() *game {
