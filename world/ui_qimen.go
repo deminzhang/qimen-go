@@ -159,7 +159,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 
 	ui.MakeOptionBoxGroup(p.opTypeRoll, p.opTypeFly, p.opTypeAmaze)
 	p.opTypeAmaze.Select()
-	p.opTypeRoll.Disabled = true
+	//p.opTypeRoll.Disabled = true
 	//p.opTypeFly.Disabled = true
 
 	p.inputSYear.MaxChars = 4
