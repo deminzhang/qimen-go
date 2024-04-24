@@ -32,26 +32,26 @@ var _QiMenJu = [][]int{{0, 0, 0},
 var QMType = []string{"转盘", "飞盘", "鸣法"}
 
 const (
-	QMTypeRollDoor = 0
-	QMTypeFlyDoor  = 1
+	QMTypeRotating = 0
+	QMTypeFly      = 1
 	QMTypeAmaze    = 2
 )
 
-// 飞盘九星飞宫 "鸣法"=="阴阳皆顺"
-var _QMFlyType = []string{"阴阳皆顺", "阳顺阴逆?"}
+// QMFlyType 飞盘九星飞宫
+var QMFlyType = []string{"阴阳皆顺", "阳顺阴逆"}
 
 const (
-	QMFlyTypeAllOrder   = 0
-	QMFlyTypeYinReverse = 1
+	QMFlyTypeAllOrder     = 0 // 阴阳皆顺,鸣法同
+	QMFlyTypeLunarReverse = 1 // 阴阳皆逆:源于括囊集
 )
 
-// 转盘寄宫法
-var _QMRollHostingType = []string{"中宫寄坤", "阳艮阴坤", "土寄四维"}
+// QMHostingType 转盘寄宫法
+var QMHostingType = []string{"中宫寄坤", "阳艮阴坤", "_土寄四维"}
 
 const (
-	QMRollHostingType2    = 0
-	QMRollHostingType28   = 1
-	QMRollHostingType2846 = 3
+	QMHostingType2    = 0
+	QMHostingType28   = 1
+	QMHostingType2846 = 3
 )
 
 // 起局方式
