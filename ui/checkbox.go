@@ -54,11 +54,7 @@ func (c *CheckBox) width() int {
 func (c *CheckBox) Update() {
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
-		if c.X <= x && x < c.X+c.width() && c.Y <= y && y < c.Y+checkBoxWidth {
-			c.mouseDown = true
-		} else {
-			c.mouseDown = false
-		}
+		c.mouseDown = c.X <= x && x < c.X+c.width() && c.Y <= y && y < c.Y+checkBoxWidth
 	} else {
 		if c.mouseDown {
 			c.checked = !c.checked

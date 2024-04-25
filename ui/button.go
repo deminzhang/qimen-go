@@ -56,11 +56,11 @@ func (b *Button) Draw(dst *ebiten.Image) {
 	if !b.Visible {
 		return
 	}
+	imageRect := b.ImageRect
 	if b.mouseDown {
-		drawNinePatches(dst, b.UIImage, b.Rect, b.ImageRectPressed)
-	} else {
-		drawNinePatches(dst, b.UIImage, b.Rect, b.ImageRect)
+		imageRect = b.ImageRectPressed
 	}
+	drawNinePatches(dst, b.UIImage, b.Rect, imageRect)
 
 	bounds, _ := font.BoundString(uiFont, b.Text)
 	w := (bounds.Max.X - bounds.Min.X).Ceil()

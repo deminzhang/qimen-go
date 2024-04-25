@@ -14,6 +14,7 @@ import (
 
 type UIQiMen struct {
 	ui.BaseUI
+	panelSDate  *ui.Panel
 	inputSYear  *ui.InputBox
 	inputSMonth *ui.InputBox
 	inputSDay   *ui.InputBox
@@ -40,17 +41,19 @@ type UIQiMen struct {
 	btnPreHour2  *ui.Button
 	btnNextHour2 *ui.Button
 
+	opHourPan  *ui.OptionBox
+	opDayPan   *ui.OptionBox
+	opMonthPan *ui.OptionBox
+	opYearPan  *ui.OptionBox
+
 	textGong []*ui.TextBox
 	zhiPan   []*ui.TextBox
 
-	year          int
-	month         int
-	day           int
-	hour          int
-	minute        int
-	qmType        int
-	qmHostingType int
-	qmFlyType     int
+	year, month, day, hour, minute int
+	qmType                         int
+	qmHostingType                  int
+	qmFlyType                      int
+	qmJuType                       int
 }
 
 var uiQiMen *UIQiMen
@@ -71,12 +74,14 @@ func UIHideQiMen() {
 func NewUIQiMen(width, height int) *UIQiMen {
 	//cx, cy := width/2, height/2 //win center
 	p := &UIQiMen{
+		BaseUI:        ui.BaseUI{Visible: true},
 		qmType:        qimen.QMTypeAmaze,
 		qmHostingType: qimen.QMHostingType28,
 		qmFlyType:     qimen.QMFlyTypeAllOrder,
 	}
 	px0, py0 := 32, 0
 	h := 32
+	p.panelSDate = ui.NewPanel(image.Rect(px0, py0, px0+72*4+64, py0+h))
 	p.inputSYear = ui.NewInputBox(image.Rect(px0, py0, px0+64, py0+h))
 	p.inputSMonth = ui.NewInputBox(image.Rect(px0+72, py0, px0+72+64, py0+h))
 	p.inputSDay = ui.NewInputBox(image.Rect(px0+72*2, py0, px0+72*2+64, py0+h))
@@ -103,6 +108,11 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.textDayRB = ui.NewInputBox(image.Rect(px0+72*2, py0, px0+72*2+64, py0+h))
 	p.textHourRB = ui.NewInputBox(image.Rect(px0+72*3, py0, px0+72*3+64, py0+h))
 	p.textJu = ui.NewInputBox(image.Rect(px0+72*4, py0, px0+72*9, py0+h))
+
+	p.opHourPan = ui.NewOptionBox(px0+72*9, py0+32+8, "时盘")
+	p.opDayPan = ui.NewOptionBox(px0+72*9, py0+32*2+8, "日盘")
+	p.opMonthPan = ui.NewOptionBox(px0+72*9, py0+32*3+8, "月盘")
+	p.opYearPan = ui.NewOptionBox(px0+72*9, py0+32*4+8, "年盘")
 
 	px4, py4 := 64, 96+64
 	const gongWidth = 128
@@ -143,11 +153,12 @@ func NewUIQiMen(width, height int) *UIQiMen {
 		p.zhiPan[i].SetText(LunarUtil.ZHI[i])
 	}
 
-	p.AddChild(p.inputSYear)
-	p.AddChild(p.inputSMonth)
-	p.AddChild(p.inputSDay)
-	p.AddChild(p.inputSHour)
-	p.AddChild(p.inputSMin)
+	p.AddChild(p.panelSDate)
+	p.panelSDate.AddChild(p.inputSYear)
+	p.panelSDate.AddChild(p.inputSMonth)
+	p.panelSDate.AddChild(p.inputSDay)
+	p.panelSDate.AddChild(p.inputSHour)
+	p.panelSDate.AddChild(p.inputSMin)
 	p.AddChild(p.btnCalc)
 	p.AddChild(p.opTypeRoll)
 	p.AddChild(p.opTypeFly)
@@ -157,10 +168,16 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.AddChild(p.textLMonth)
 	p.AddChild(p.textLDay)
 	p.AddChild(p.textLHour)
+
 	p.AddChild(p.btnPreHour2)
 	p.AddChild(p.btnNextHour2)
 	p.AddChild(p.cbHostingType)
 	p.AddChild(p.cbFlyType)
+
+	p.AddChild(p.opHourPan)
+	p.AddChild(p.opDayPan)
+	p.AddChild(p.opMonthPan)
+	p.AddChild(p.opYearPan)
 
 	p.AddChild(p.textYearRB)
 	p.AddChild(p.textMonthRB)
@@ -180,6 +197,11 @@ func NewUIQiMen(width, height int) *UIQiMen {
 
 	ui.MakeOptionBoxGroup(p.opTypeRoll, p.opTypeFly, p.opTypeAmaze)
 	p.opTypeAmaze.Select()
+	ui.MakeOptionBoxGroup(p.opHourPan, p.opDayPan, p.opMonthPan, p.opYearPan)
+	p.opHourPan.Select()
+	p.opDayPan.Disabled = true
+	p.opMonthPan.Disabled = true
+	p.opYearPan.Disabled = true
 
 	p.cbHostingType.SetChecked(true)
 	p.cbHostingType.Visible = p.opTypeRoll.Selected()
@@ -344,10 +366,30 @@ func (p *UIQiMen) Apply(year, month, day, hour, minute int) {
 	p.cbHostingType.Visible = p.qmType == qimen.QMTypeRotating
 	p.cbFlyType.Visible = p.qmType == qimen.QMTypeFly
 
-	p.textJu.SetText(pan.JuText)
+	//fmt
+	var juName string
+	if pan.Ju < 0 {
+		juName = fmt.Sprintf("阴%d局", -pan.Ju)
+	} else {
+		juName = fmt.Sprintf("阳%d局", pan.Ju)
+	}
+	juText := fmt.Sprintf("%s%s %s %s遁%s 值符%s落%d 值使%s落%d", pan.JieQiName, qimen.Yuan3Name[pan.Yuan3], juName,
+		pan.ShiXun, qimen.HideJia[pan.ShiXun],
+		pan.DutyStar, pan.DutyStarPos,
+		pan.DutyDoor, pan.DutyDoorPos)
+	p.textJu.SetText(juText)
 
 	for i := 1; i <= 9; i++ {
-		p.textGong[i].Text = pan.Gongs[i].FmtText
+		g := pan.Gongs[i]
+		var hosting = "    "
+		if pan.RollHosting > 0 && i == pan.DutyStarPos {
+			hosting = " 禽 "
+		}
+		p.textGong[i].Text = fmt.Sprintf("\n      %s\n\n%s    %s%s%s\n\n%s    %s    %s\n\n      %s%s",
+			g.God,
+			g.AnGan, g.Star, hosting, g.SkyGan,
+			g.AnZhi, g.Door, g.EarthGan, qimen.Diagrams9(i),
+			LunarUtil.NUMBER[i])
 	}
 
 	//大六壬 月将落时支 顺布余支

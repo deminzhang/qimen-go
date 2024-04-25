@@ -14,13 +14,11 @@ type QMGong struct {
 
 	EarthGan string //地盘奇仪
 	SkyGan   string //天盘奇仪
-	HStar    string //天九星1~9
+	Star     string //天九星1~9
 	Door     string //八门
 	God      string //九神1~9
 	AnGan    string //暗干
 	AnZhi    string //暗支
-
-	FmtText string
 }
 
 type QMPan struct {
@@ -42,7 +40,6 @@ type QMPan struct {
 	LunarDayC    string
 	LunarHourC   string
 
-	//days       int //1900.1.1起总Days
 	//Constellation28 int            //星宿1～28
 
 	HourGan string //时干
@@ -74,8 +71,7 @@ type QMPan struct {
 	YueJiangPos    int    //月将落地支宫
 	HourHorse      string //驿马
 
-	JuText string     //局文本
-	Gongs  [10]QMGong //九宫飞盘格
+	Gongs [10]QMGong //九宫飞盘格
 
 	DayPan   *QMPan //日家奇门盘
 	MonthPan *QMPan //月家奇门盘
@@ -139,23 +135,26 @@ func (p *QMPan) calcGong() {
 	if p.Ju > 0 { //阳遁顺仪奇逆布
 		ju := p.Ju
 		for i := ju; i < ju+9; i++ {
-			g9[Idx9[i]].EarthGan = _QM3Q6Y[Idx9[i-ju+1]]
+			//g9[Idx9[i]].EarthGan = _QM3Q6Y[Idx9[i-ju+1]]
+			g9[Idx9[i]].EarthGan = QM3Qi6Yi(i - ju + 1)
 		}
 	} else { //阴遁逆仪奇顺行
 		ju := -p.Ju
 		for i := ju + 9; i > ju; i-- {
-			g9[Idx9[i]].EarthGan = _QM3Q6Y[Idx9[ju+9-i+1]]
+			//g9[Idx9[i]].EarthGan = _QM3Q6Y[Idx9[ju+9-i+1]]
+			g9[Idx9[i]].EarthGan = QM3Qi6Yi(ju + 9 - i + 1)
 		}
 	}
 
 	//定值符值使 时旬首所遁地仪宫
 	var duty int //值序符宫
 	for i := 1; i <= 9; i++ {
-		if g9[i].EarthGan == _HideJia[p.ShiXun] {
+		if g9[i].EarthGan == HideJia[p.ShiXun] {
 			duty = i
 			p.Duty = i
-			p.DutyStar = _QMStar9[i]
-			p.DutyDoor = _QMDoor9[i] // TODO if 转盘值使寄坤宫
+			//p.DutyStar = _QMStar9[i]
+			p.DutyStar = QMStar9(i)
+			p.DutyDoor = QMDoor9(i) // if 转盘值使寄坤宫
 			break
 		}
 	}
@@ -165,7 +164,7 @@ func (p *QMPan) calcGong() {
 	var dutyStarPos, dutyDoorPos int
 	dutyGan := p.HourGan
 	if dutyGan == "甲" {
-		dutyGan = _HideJia[p.ShiXun] //遁甲
+		dutyGan = HideJia[p.ShiXun] //遁甲
 	}
 	for i := 1; i <= 9; i++ {
 		if g9[i].EarthGan == dutyGan {
@@ -218,21 +217,21 @@ func (p *QMPan) calcGong() {
 	var xunGanIdx int
 	xunGan := p.ShiXun[:len(p.ShiXun)/2]
 	if xunGan == "甲" {
-		xunGan = _HideJia[p.ShiXun] //遁甲
+		xunGan = HideJia[p.ShiXun] //遁甲
 	}
-	for i, g := range _QM3Q6Y {
-		if g == xunGan {
+	for i, g := range []rune(T3Qi6Yi) {
+		if string(g) == xunGan {
 			xunGanIdx = i
 		}
 	}
 	if p.Ju > 0 {
 		for i := dutyStarPos; i < dutyStarPos+9; i++ {
-			g9[Idx9[i]].SkyGan = _QM3Q6Y[Idx9[xunGanIdx]]
+			g9[Idx9[i]].SkyGan = QM3Qi6Yi(xunGanIdx)
 			xunGanIdx++
 		}
 	} else {
 		for i := dutyStarPos + 9; i > dutyStarPos; i-- {
-			g9[Idx9[i]].SkyGan = _QM3Q6Y[Idx9[xunGanIdx]]
+			g9[Idx9[i]].SkyGan = QM3Qi6Yi(xunGanIdx)
 			xunGanIdx++
 		}
 	}
@@ -274,18 +273,20 @@ func (p *QMPan) calcGong() {
 		var startIdx = _QM2RollIdx[dutyRoll]       //转起
 		for i := starRollIdx; i < starRollIdx+8; i++ {
 			gIdx := _QMRollIdx[Idx8[i]]
-			g9[gIdx].HStar = _QMStar8[Idx8[startIdx]]
+			g9[gIdx].Star = QMStar8(startIdx)
 			//神盘
 			if p.Ju > 0 {
-				g9[gIdx].God = _QMGod8[Idx8[1+i-starRollIdx]]
+				//g9[gIdx].God = _QMGod8[Idx8[1+i-starRollIdx]]
+				g9[gIdx].God = QMGod8(1 + i - starRollIdx)
 			} else {
-				g9[gIdx].God = _QMGod8[Idx8[1+starRollIdx+8-i]]
+				//g9[gIdx].God = _QMGod8[Idx8[1+starRollIdx+8-i]]
+				g9[gIdx].God = QMGod8(1 + starRollIdx + 8 - i)
 			}
 			startIdx++
 		}
 		//转八门
 		if duty == 5 {
-			p.DutyDoor = _QMDoor9[dutyRoll]
+			p.DutyDoor = QMDoor9(dutyRoll)
 		}
 		if dutyDoorPos == 5 {
 			switch p.RotatingHostingType {
@@ -299,7 +300,7 @@ func (p *QMPan) calcGong() {
 				}
 				//case QMHostingType2846:
 			}
-			p.DutyDoor = _QMDoor9[dutyDoorPos]
+			p.DutyDoor = QMDoor9(dutyDoorPos)
 			duty = dutyDoorPos
 			p.DutyDoorPos = dutyDoorPos
 		}
@@ -307,7 +308,7 @@ func (p *QMPan) calcGong() {
 		startIdx = _QM2RollIdx[dutyRoll]           //转起
 		for i := doorRollIdx; i < doorRollIdx+8; i++ {
 			gIdx := _QMRollIdx[Idx8[i]]
-			g9[gIdx].Door = _QMDoor8[Idx8[startIdx]]
+			g9[gIdx].Door = QMDoor8(startIdx)
 			startIdx++
 		}
 
@@ -319,26 +320,30 @@ func (p *QMPan) calcGong() {
 		//天盘 值符起落九星
 		if p.Type == QMTypeAmaze || p.Ju > 0 || p.FlyType == QMFlyTypeAllOrder {
 			for i := dutyStarPos; i < dutyStarPos+9; i++ {
-				g9[Idx9[i]].HStar = _QMStar9[Idx9[duty+i-dutyStarPos]]
+				//g9[Idx9[i]].Star = _QMStar9[Idx9[duty+i-dutyStarPos]]
+				g9[Idx9[i]].Star = QMStar9(duty + i - dutyStarPos)
 			}
 		} else { //QMTypeFly && QMFlyTypeLunarReverse && p.Ju < 0
 			for i := dutyStarPos + 9; i > dutyStarPos; i-- {
-				g9[Idx9[i]].HStar = _QMStar9[Idx9[duty+dutyStarPos+9-i]]
+				//g9[Idx9[i]].Star = _QMStar9[Idx9[duty+dutyStarPos+9-i]]
+				g9[Idx9[i]].Star = QMStar9(duty + dutyStarPos + 9 - i)
 			}
 		}
 		//神盘 值符起九神
 		if p.Ju > 0 { //阳遁
 			for i := dutyStarPos; i < dutyStarPos+9; i++ {
-				g9[Idx9[i]].God = _QMGod9S[Idx9[1+i-dutyStarPos]]
+				//g9[Idx9[i]].God = _QMGod9S[Idx9[1+i-dutyStarPos]]
+				g9[Idx9[i]].God = QMGod9S(1 + i - dutyStarPos)
 			}
 		} else {
 			for i := dutyStarPos + 9; i > dutyStarPos; i-- {
-				g9[Idx9[i]].God = _QMGod9L[Idx9[1+dutyStarPos+9-i]]
+				//g9[Idx9[i]].God = _QMGod9L[Idx9[1+dutyStarPos+9-i]]
+				g9[Idx9[i]].God = QMGod9L(1 + dutyStarPos + 9 - i)
 			}
 		}
 		//飞布九门
 		for i := dutyDoorPos; i < dutyDoorPos+9; i++ {
-			g9[Idx9[i]].Door = _QMDoor9[Idx9[duty+i-dutyDoorPos]]
+			g9[Idx9[i]].Door = QMDoor9(duty + i - dutyDoorPos)
 		}
 	}
 }
@@ -390,7 +395,7 @@ func NewPan(year, month, day, hour, minute, qmType, qmHostingType, pqmFlyType in
 		Ju:                  ju,
 		Yuan3:               dayYuanIdx,
 		ShiXun:              shiXun,
-		YueJiangZhi:         YueJiang[cal.GetMonth()],
+		YueJiangZhi:         YueJiang(cal.GetMonth()),
 		HourHorse:           Horse[shiZhi],
 	}
 	//排九宫
@@ -407,31 +412,6 @@ func NewPan(year, month, day, hour, minute, qmType, qmHostingType, pqmFlyType in
 			p.YueJiangPos = i
 			break
 		}
-	}
-
-	//fmt
-	var juName string
-	if ju < 0 {
-		juName = fmt.Sprintf("阴%d局", -ju)
-	} else {
-		juName = fmt.Sprintf("阳%d局", ju)
-	}
-	p.JuText = fmt.Sprintf("%s%s %s %s遁%s 值符%s落%d 值使%s落%d", p.JieQiName, Yuan3Name[dayYuanIdx], juName,
-		shiXun, _HideJia[shiXun],
-		p.DutyStar, p.DutyStarPos,
-		p.DutyDoor, p.DutyDoorPos)
-
-	for i := 1; i <= 9; i++ {
-		g := p.Gongs[i]
-		var hosting = "    "
-		if p.RollHosting > 0 && i == p.DutyStarPos {
-			hosting = " 禽 "
-		}
-		p.Gongs[i].FmtText = fmt.Sprintf("\n      %s\n\n%s    %s%s%s\n\n%s    %s    %s\n\n      %s%s",
-			g.God,
-			g.AnGan, g.HStar, hosting, g.SkyGan,
-			g.AnZhi, g.Door, g.EarthGan, Gua8In9[i],
-			LunarUtil.NUMBER[i])
 	}
 
 	return &p, nil

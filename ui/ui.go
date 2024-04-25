@@ -48,11 +48,14 @@ func Update() {
 
 func Draw(screen *ebiten.Image) {
 	for _, u := range uis {
+		//if u.IsVisible() {
 		u.Draw(screen)
+		//}
 	}
 }
 
 type BaseUI struct {
+	X, Y        int
 	Visible     bool //`default:"true"` disable draw
 	Disabled    bool //disable update
 	EnableFocus bool //enable focus

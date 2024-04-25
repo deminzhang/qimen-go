@@ -69,14 +69,8 @@ var Idx9 = []int{9, 1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 // Idx12 序环
 var Idx12 = []int{12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
 
-// 九宫八卦
-var Gua8In9 = []string{"", "坎", "坤", "震", "巽", "中", "乾", "兑", "艮", "离"}
-
-// 三奇六仪
-var _QM3Q6Y = []string{"", "戊", "己", "庚", "辛", "壬", "癸", "丁", "丙", "乙"}
-
 // 旬首遁甲
-var _HideJia = map[string]string{
+var HideJia = map[string]string{
 	"甲子": "戊",
 	"甲戌": "己",
 	"甲申": "庚",
@@ -85,40 +79,78 @@ var _HideJia = map[string]string{
 	"甲寅": "癸",
 }
 
-// 奇门九星
-var _QMStar9 = []string{"", "天蓬", "天芮", "天冲", "天辅", "天禽", "天心", "天柱", "天任", "天英"}
+const (
+	Trunk10      = "_甲乙丙丁戊已庚辛壬癸"   //天干
+	Branch12     = "_子丑寅卯辰巳午末申酉戌亥" //地支
+	Diagrams8In9 = "_坎坤震巽中乾竞艮离"    //九宫八卦
+	//Term24    = "__小寒大寒立春雨水惊蛰春分清明谷雨立夏小满芒种夏至小暑大暑立秋处暑白露秋分寒露霜降立冬小雪大雪冬至"
 
-// 转盘用九星
-var _QMStar8 = []string{"", "天蓬", "天任", "天冲", "天辅", "天英", "天芮", "天柱", "天心"}
+	Star0 = "天"
+	Star9 = " 蓬芮冲辅禽心柱任英" //奇门九星
+	Star8 = " 蓬任冲辅英芮柱心"  //转盘用九星
+
+	Door0 = "门"
+	Door8 = "_休生伤杜景死惊开"  //转盘用八门
+	Door9 = "_休死伤杜中开惊生景" //飞盘用九门
+
+	T3Qi6Yi = "_戊己庚辛壬癸丁丙乙" //三奇六仪
+
+	God9S      = "__值符腾蛇太阴六合勾陈太常朱雀九地九天" //九神飞盘阳遁用
+	God9L      = "__值符腾蛇太阴六合白虎太常玄武九地九天" //九神飞盘阴遁用
+	God8       = "__值符腾蛇太阴六合白虎玄武九地九天"   //八神转盘用
+	MonthJiang = "_亥戌酉申未午巳辰卯寅丑子"        //月将正月起亥
+	MonthJian  = "_寅卯辰巳午未申酉戌亥子丑"        //月建正月起寅
+	Build12    = "_建除满平定执破危成收开闭"        //十二建星
+
+	QMDayStar9 = "__太乙摄提轩辕招摇天符青龙咸池太阴天乙"       //日家奇门九星
+	God12      = "__青龙明堂天刑朱雀金匮天德白虎玉堂天牢玄武司命勾陈" //日家奇门十二原神黄黑道
+	God12YB    = "_黄黄黑黑黄黄黑黄黑黑黄黑"              //十二黄黑道
+)
+
+func Diagrams9(i int) string {
+	i = Idx9[i]
+	return string([]rune(Diagrams8In9)[i : i+1])
+}
+func QMStar9(i int) string {
+	i = Idx9[i]
+	return Star0 + string([]rune(Star9)[i:i+1])
+}
+func QMStar8(i int) string {
+	i = Idx8[i]
+	return Star0 + string([]rune(Star8)[i:i+1])
+}
+func QM3Qi6Yi(i int) string {
+	i = Idx9[i]
+	return string([]rune(T3Qi6Yi)[i : i+1])
+}
+func QMDoor8(i int) string {
+	i = Idx8[i]
+	return string([]rune(Door8)[i:i+1]) + Door0
+}
+func QMDoor9(i int) string {
+	i = Idx9[i]
+	return string([]rune(Door9)[i:i+1]) + Door0
+}
+func QMGod9S(i int) string {
+	i = Idx9[i] * 2
+	return string([]rune(God9S)[i : i+2])
+}
+func QMGod9L(i int) string {
+	i = Idx9[i] * 2
+	return string([]rune(God9L)[i : i+2])
+}
+func QMGod8(i int) string {
+	i = Idx8[i] * 2
+	return string([]rune(God8)[i : i+2])
+}
+func YueJiang(i int) string {
+	i = Idx12[i]
+	return string([]rune(MonthJiang)[i : i+1])
+}
 
 // 奇门转盘用转宫宫位索引
 var _QMRollIdx = []int{6, 1, 8, 3, 4, 9, 2, 7, 6}     //转宫号=>洛宫号
 var _QM2RollIdx = []int{1, 1, 6, 3, 4, 0, 8, 7, 2, 5} //洛宫号=>转宫号
-
-// 奇门转盘用八门
-var _QMDoor8 = []string{"", "休门", "生门", "伤门", "杜门", "景门", "死门", "惊门", "开门"}
-
-// 奇门飞盘用九门
-var _QMDoor9 = []string{"", "休门", "死门", "伤门", "杜门", "中门", "开门", "惊门", "生门", "景门"}
-
-// 奇门九神
-// 九神飞盘阳遁用
-var _QMGod9S = []string{"", "值符", "腾蛇", "太阴", "六合", "勾陈", "太常", "朱雀", "九地", "九天"}
-
-// 九神飞盘阴遁用
-var _QMGod9L = []string{"", "值符", "腾蛇", "太阴", "六合", "白虎", "太常", "玄武", "九地", "九天"}
-
-// 八神转盘用
-var _QMGod8 = []string{"", "值符", "腾蛇", "太阴", "六合", "白虎", "玄武", "九地", "九天"}
-
-// 地支
-var _ZhiCircle = []string{"", "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"}
-
-// YueJian 月建: 从雨水起正月 春分起二月... (正月寅 二月卯 三月辰 四月巳 五月午 六月未 七月申 八月酉 九月戌 十月亥 冬月子 腊月丑)
-var YueJian = []string{"", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑"}
-
-// YueJiang 月将: 与月建六合者为月将,如寅亥合(登明亥 河魅戌 从魁酉 传送申 小吉未 胜光午 太乙巳 天罡辰 太冲卯 功曹寅 大吉丑 神后子)
-var YueJiang = []string{"", "亥", "戌", "酉", "申", "未", "午", "巳", "辰", "卯", "寅", "丑", "子"}
 
 // YueJiangName 月将神名
 var YueJiangName = map[string]string{
@@ -181,20 +213,3 @@ var termData = []int{
 	263343, 285989, 308563, 331033, 353350, 375494, 397447, 419210, 440795, 462224, 483532,
 	504758,
 }
-
-// ShowChars
-const (
-	HS     = "甲乙丙丁戊已庚辛壬癸"
-	EB     = "子丑寅卯辰巳午末申酉戌亥"
-	Term24 = "小寒大寒立春雨水惊蛰春分清明谷雨立夏小满芒种夏至小暑大暑立秋处暑白露秋分寒露霜降立冬小雪大雪冬至"
-
-	Diagrams8   = "坎坤震巽乾竞艮离"                 //八卦
-	Diagrams9   = "坎坤震巽  乾竞艮离"               //九宫八卦
-	QMStars     = "蓬芮冲辅禽心柱任英"                //奇门九星
-	QMGodsRoll  = "值符腾蛇太阴六合白虎玄武九地九天"         //奇门转盘八神
-	QMGodsFly   = "值符腾蛇太阴六合勾陈太常朱雀九地九天"       //奇门飞盘九神
-	QMDoorsRoll = "休生伤杜景死惊开"                 //转盘八门
-	QMDoorsFly  = "休死伤杜中开惊生景"                //飞盘九门
-	BuildStar12 = "建除满平定执破危成收开闭"             //十二建星
-	God12       = "青龙明堂天刑朱雀金匮天德白虎玉堂天牢玄武司命勾陈" //十二原神
-)

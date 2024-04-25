@@ -30,6 +30,7 @@ func (p *Panel) Draw(dst *ebiten.Image) {
 		return
 	}
 	drawNinePatches(dst, p.UIImage, p.Rect, p.ImageRect)
+	p.BaseUI.Draw(dst)
 }
 
 func (p *Panel) AddChild(c IUIPanel) {
