@@ -15,17 +15,19 @@ import (
 const (
 	textInputPadding = 8
 )
-const ()
+
+var textSelectColor = color.RGBA{B: 200, A: 128}
 
 type InputBox struct {
 	BaseUI
 	Rect         image.Rectangle
-	Text         string
+	textRune     []rune
 	DefaultText  string //无Text时默认灰文本
 	MaxChars     int    //最大长度
 	PasswordChar string //密文显示
 	offsetX      int    //文本偏移 TODO
 	Editable     bool
+	Selectable   bool
 
 	autoLinefeed   bool //自动换行
 	textHistory    []string
@@ -45,9 +47,10 @@ type InputBox struct {
 
 func NewInputBox(rect image.Rectangle) *InputBox {
 	return &InputBox{
-		BaseUI:   BaseUI{Visible: true, EnableFocus: true},
-		Rect:     rect,
-		Editable: true,
+		BaseUI:     BaseUI{Visible: true, EnableFocus: true},
+		Rect:       rect,
+		Editable:   true,
+		Selectable: true,
 		//default resource
 		UIImage:   GetDefaultUIImage(),
 		ImageRect: imageSrcRects[imageTypeTextBox],
@@ -69,22 +72,24 @@ func repeatingKeyPressed(key ebiten.Key) bool {
 	return false
 }
 
+func (i *InputBox) Text() string {
+	return string(i.textRune)
+}
 func (i *InputBox) SetText(v interface{}) {
-	i.Text = fmt.Sprintf("%v", v)
+	i.textRune = []rune(fmt.Sprintf("%v", v))
 }
 
 func (i *InputBox) Update() {
-	if !i.Editable {
+	if !i.Selectable {
 		return
 	}
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
 		if i.Rect.Min.X <= x && x < i.Rect.Max.X && i.Rect.Min.Y <= y && y < i.Rect.Max.Y {
 			if i.Focused() {
-				//cursorPos
-				pos := len(i.Text)
-				for ii := 0; ii < len(i.Text); ii++ {
-					w := getFontWidth(uiFont, i.Text[:ii])
+				pos := len(i.textRune)
+				for ii := 0; ii < pos; ii++ {
+					w := getFontWidth(uiFont, string(i.textRune[:ii]))
 					if x < i.Rect.Min.X+textInputPadding+w {
 						pos = ii
 						break
@@ -94,7 +99,7 @@ func (i *InputBox) Update() {
 				i.cursorPos = pos
 			} else {
 				i.SetFocused(true)
-				i.cursorPos = len(i.Text)
+				i.cursorPos = len(i.textRune)
 				i.cursorSelect = 0
 				i.cursorNewFocus = true
 			}
@@ -110,9 +115,9 @@ func (i *InputBox) Update() {
 		x, y := ebiten.CursorPosition()
 		if i.Rect.Min.X <= x && x < i.Rect.Max.X && i.Rect.Min.Y <= y && y < i.Rect.Max.Y {
 			if i.Focused() {
-				pos := len(i.Text)
-				for ii := 0; ii < len(i.Text); ii++ {
-					w := getFontWidth(uiFont, i.Text[:ii])
+				pos := len(i.textRune)
+				for ii := 0; ii < pos; ii++ {
+					w := getFontWidth(uiFont, string(i.textRune[:ii]))
 					if x < i.Rect.Min.X+textInputPadding+w {
 						pos = ii
 						break
@@ -127,12 +132,13 @@ func (i *InputBox) Update() {
 		}
 	}
 	if i.Focused() {
-		if i.MaxChars == 0 || i.MaxChars > len(i.Text) {
-			s := string(ebiten.AppendInputChars(i.inputRunes[:0]))
-			l := len(s)
+		if i.MaxChars <= 0 || i.MaxChars > len(i.textRune) {
+			sRune := ebiten.AppendInputChars(i.inputRunes[:0])
+			l := len(sRune)
 			if l > 0 {
-				left, right := i.selected()
-				i.Text = i.Text[:left] + s + i.Text[right:]
+				left, right := i.cursorSelected()
+				sRune = append(sRune, i.textRune[right:]...)
+				i.textRune = append(i.textRune[:left], sRune...)
 				if left == right {
 					i.cursorPos += l
 				} else {
@@ -143,36 +149,37 @@ func (i *InputBox) Update() {
 		}
 
 		// If the backspace key is pressed, remove one character.
-		if repeatingKeyPressed(ebiten.KeyBackspace) {
-			if len(i.Text) > 0 {
-				left, right := i.selected()
+		if i.Editable && repeatingKeyPressed(ebiten.KeyBackspace) {
+			if len(i.textRune) > 0 {
+				left, right := i.cursorSelected()
 				if left == right { //删左1个
 					if left > 0 {
-						i.Text = i.Text[:left-1] + i.Text[right:]
+						ll := len(i.textRune[:left])
 						i.cursorPos -= 1
+						i.textRune = []rune(string(i.textRune[:ll-1]) + string(i.textRune[ll:]))
 					}
 				} else { //删选中区
-					i.Text = i.Text[:left] + i.Text[right:]
+					i.textRune = []rune(string(i.textRune[:left]) + string(i.textRune[right:]))
 					i.cursorPos = left
 				}
-				i.cursorPos = min(i.cursorPos, len(i.Text))
+				i.cursorPos = min(i.cursorPos, len(i.textRune))
 				i.cursorPos = max(i.cursorPos, 0)
 				i.cursorSelect = i.cursorPos
 			}
 		}
-		if repeatingKeyPressed(ebiten.KeyDelete) {
-			lenTxt := len(i.Text)
-			if lenTxt > 0 {
-				left, right := i.selected()
+		if i.Editable && repeatingKeyPressed(ebiten.KeyDelete) {
+			l := len(i.textRune)
+			if l > 0 {
+				left, right := i.cursorSelected()
 				if left == right { //删右1个
-					if left < lenTxt {
-						i.Text = i.Text[:left] + i.Text[right+1:]
+					if left < l {
+						i.textRune = []rune(string(i.textRune[:left]) + string(i.textRune[left+1:]))
 					}
 				} else { //删选中区
-					i.Text = i.Text[:left] + i.Text[right:]
+					i.textRune = []rune(string(i.textRune[:left]) + string(i.textRune[right:]))
 					i.cursorPos = left
 				}
-				i.cursorPos = min(i.cursorPos, len(i.Text))
+				i.cursorPos = min(i.cursorPos, len(i.textRune))
 				i.cursorPos = max(i.cursorPos, 0)
 				i.cursorSelect = i.cursorPos
 			}
@@ -183,7 +190,7 @@ func (i *InputBox) Update() {
 					i.cursorPos--
 				}
 			} else {
-				left, right := i.selected()
+				left, right := i.cursorSelected()
 				if left != right {
 					i.cursorPos = left
 				} else {
@@ -196,15 +203,15 @@ func (i *InputBox) Update() {
 		}
 		if repeatingKeyPressed(ebiten.KeyRight) {
 			if ebiten.IsKeyPressed(ebiten.KeyShift) {
-				if i.cursorPos < len(i.Text) {
+				if i.cursorPos < len(i.textRune) {
 					i.cursorPos++
 				}
 			} else {
-				left, right := i.selected()
+				left, right := i.cursorSelected()
 				if left != right {
 					i.cursorPos = right
 				} else {
-					if i.cursorPos < len(i.Text) {
+					if i.cursorPos < len(i.textRune) {
 						i.cursorPos++
 					}
 				}
@@ -214,43 +221,44 @@ func (i *InputBox) Update() {
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
 			x, y := ebiten.CursorPosition()
 			if i.Rect.Min.X <= x && x < i.Rect.Max.X && i.Rect.Min.Y <= y && y < i.Rect.Max.Y {
-				clipboard.WriteAll(i.Text)
+				clipboard.WriteAll(string(i.textRune))
 			}
 		}
 		if i.PasswordChar == "" {
 			//ctrl+x
-			if ebiten.IsKeyPressed(ebiten.KeyControl) && inpututil.IsKeyJustPressed(ebiten.KeyX) {
-				left, right := i.selected()
-				clipboard.WriteAll(i.Text[left:right])
-
-				lenTxt := len(i.Text)
-				if lenTxt > 0 {
-					left, right := i.selected()
-					if left == right { //删右1个
-						if left < lenTxt {
-							i.Text = i.Text[:left] + i.Text[right+1:]
+			if i.Editable && ebiten.IsKeyPressed(ebiten.KeyControl) && inpututil.IsKeyJustPressed(ebiten.KeyX) {
+				left, right := i.cursorSelected()
+				err := clipboard.WriteAll(string(i.textRune[left:right]))
+				if err == nil {
+					l := len(i.textRune)
+					if l > 0 {
+						if left == right { //删右1个
+							if left < l {
+								i.textRune = append(i.textRune[:left], i.textRune[right+1:]...)
+							}
+						} else { //删选中区
+							i.textRune = append(i.textRune[:left], i.textRune[right:]...)
+							i.cursorPos = left
 						}
-					} else { //删选中区
-						i.Text = i.Text[:left] + i.Text[right:]
-						i.cursorPos = left
+						i.cursorPos = min(i.cursorPos, len(i.textRune))
+						i.cursorPos = min(i.cursorPos, 0)
+						i.cursorSelect = i.cursorPos
 					}
-					i.cursorPos = min(i.cursorPos, len(i.Text))
-					i.cursorPos = min(i.cursorPos, 0)
-					i.cursorSelect = i.cursorPos
 				}
 			}
 			//ctrl+c
 			if ebiten.IsKeyPressed(ebiten.KeyControl) && inpututil.IsKeyJustPressed(ebiten.KeyC) {
-				left, right := i.selected()
-				clipboard.WriteAll(i.Text[left:right])
+				left, right := i.cursorSelected()
+				clipboard.WriteAll(string(i.textRune[left:right]))
 			}
 		}
 		//ctrl+v
-		if ebiten.IsKeyPressed(ebiten.KeyControl) && inpututil.IsKeyJustPressed(ebiten.KeyV) {
+		if i.Editable && ebiten.IsKeyPressed(ebiten.KeyControl) && inpututil.IsKeyJustPressed(ebiten.KeyV) {
 			s, err := clipboard.ReadAll()
 			if err == nil {
-				left, right := i.selected()
-				i.Text = i.Text[:left] + s + i.Text[right:]
+				left, right := i.cursorSelected()
+				r := append(i.textRune[:left], []rune(s)...)
+				i.textRune = append(i.textRune, r...)
 				if left == right {
 					i.cursorPos += len(s)
 				} else {
@@ -265,8 +273,8 @@ func (i *InputBox) Update() {
 				if i.textHistoryIdx < length-1 {
 					i.textHistoryIdx++
 				}
-				i.Text = i.textHistory[i.textHistoryIdx]
-				i.cursorPos = len(i.Text)
+				i.textRune = []rune(i.textHistory[i.textHistoryIdx])
+				i.cursorPos = len(i.textRune)
 				i.cursorSelect = i.cursorPos
 			}
 		} else if inpututil.IsKeyJustPressed(ebiten.KeyDown) {
@@ -274,8 +282,8 @@ func (i *InputBox) Update() {
 				if i.textHistoryIdx > 0 {
 					i.textHistoryIdx--
 				}
-				i.Text = i.textHistory[i.textHistoryIdx]
-				i.cursorPos = len(i.Text)
+				i.textRune = []rune(i.textHistory[i.textHistoryIdx])
+				i.cursorPos = len(i.textRune)
 				i.cursorSelect = i.cursorPos
 			}
 		}
@@ -288,9 +296,7 @@ func (i *InputBox) Update() {
 	i.cursorCounter++
 }
 
-var textSelectColor = color.RGBA{0, 0, 200, 128}
-
-func (i *InputBox) selected() (int, int) {
+func (i *InputBox) cursorSelected() (int, int) {
 	left, right := i.cursorPos, i.cursorSelect
 	if left > right {
 		left, right = i.cursorSelect, i.cursorPos
@@ -308,33 +314,34 @@ func (i *InputBox) Draw(dst *ebiten.Image) {
 	x := i.Rect.Min.X + textInputPadding //居左  //居中 + (i.Rect.Dx()-w)/2
 	y := i.Rect.Max.Y - (i.Rect.Dy()-uiFontMHeight)/2
 
-	if i.Text == "" && i.DefaultText != "" && !i.Focused() {
+	if len(i.textRune) == 0 && i.DefaultText != "" && !i.Focused() {
 		text.Draw(dst, i.DefaultText, uiFont, x, y, color.Gray{Y: 128})
 	} else {
-		t := i.Text
-		if i.PasswordChar != "" && i.Text != "" {
-			t = strings.Repeat(i.PasswordChar[:1], len(t))
+		r := i.textRune
+		if len(r) == 0 && i.PasswordChar != "" {
+			r = []rune(strings.Repeat(i.PasswordChar[:1], len(r)))
 		}
+		s := string(r)
 		//drawText todo 自动换行
-		text.Draw(dst, t, uiFont, x, y, color.Black)
+		text.Draw(dst, s, uiFont, x, y, color.Black)
 		if i.autoLinefeed {
-
 		} else {
-
 		}
 		//draw cursor
 		if i.Focused() {
-			i.cursorPos = min(i.cursorPos, len(t))
-			i.cursorSelect = min(i.cursorSelect, len(t))
+			i.cursorPos = min(i.cursorPos, len(r))
+			i.cursorSelect = min(i.cursorSelect, len(r))
 			//drawSelect
 			if i.cursorPos != i.cursorSelect {
-				left, right := i.selected()
-				wl, wr := getFontSelectWidth(uiFont, t, left, right)
+				left, right := i.cursorSelected()
+				s1 := string(r[:left])
+				s2 := string(r[:right])
+				wl, wr := getFontSelectWidth(uiFont, s, len(s1), len(s2))
 				ebitenutil.DrawRect(dst, float64(x+wl), float64(i.Rect.Min.Y+4),
 					float64(wr-wl), float64(i.Rect.Dy()-8), textSelectColor)
 			}
 			if i.cursorCounter%10 < 5 {
-				w := getFontWidth(uiFont, t[:i.cursorPos])
+				w := getFontWidth(uiFont, string(r[:i.cursorPos]))
 				//太矮 text.Draw(dst, "|", uiFont, x+w, y, color.Black)
 				//太窄 ebitenutil.DrawLine(dst, float64(x+w), float64(i.Rect.Min.Y+4), float64(x+w), float64(i.Rect.Min.Y+i.Rect.Dy()-4), color.Black)
 				ebitenutil.DrawRect(dst, float64(x+w), float64(i.Rect.Min.Y+4),

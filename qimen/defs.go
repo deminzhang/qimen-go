@@ -51,7 +51,7 @@ var QMHostingType = []string{"中宫寄坤", "阳艮阴坤", "_土寄四维"}
 const (
 	QMHostingType2    = 0
 	QMHostingType28   = 1
-	QMHostingType2846 = 3
+	QMHostingType2846 = 2
 )
 
 // 起局方式

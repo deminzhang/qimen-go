@@ -59,6 +59,7 @@ func (g *game) Init() *game {
 	ebiten.SetWindowIcon([]image.Image{icon32, icon16})
 	ebiten.SetMaxTPS(TPSRate)
 	ebiten.SetWindowSize(ScreenWidth, ScreenHeight)
+	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	//ebiten.SetWindowTitle("众妙之门")
 	ebiten.SetWindowTitle("奇门遁甲")
 

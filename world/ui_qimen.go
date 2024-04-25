@@ -82,20 +82,20 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.inputSDay = ui.NewInputBox(image.Rect(px0+72*2, py0, px0+72*2+64, py0+h))
 	p.inputSHour = ui.NewInputBox(image.Rect(px0+72*3, py0, px0+72*3+64, py0+h))
 	p.inputSMin = ui.NewInputBox(image.Rect(px0+72*4, py0, px0+72*4+64, py0+h))
-	p.btnCalc = ui.NewButton(image.Rect(px0+72*5, py0, px0+72*5+64, py0+h), "排局")
-	p.opTypeRoll = ui.NewOptionBox(px0+72*6, py0+8, qimen.QMType[0])
-	p.opTypeFly = ui.NewOptionBox(px0+72*7, py0+8, qimen.QMType[1])
-	p.opTypeAmaze = ui.NewOptionBox(px0+72*8, py0+8, qimen.QMType[2])
+	p.opTypeRoll = ui.NewOptionBox(px0+72*5, py0+8, qimen.QMType[0])
+	p.opTypeFly = ui.NewOptionBox(px0+72*6, py0+8, qimen.QMType[1])
+	p.opTypeAmaze = ui.NewOptionBox(px0+72*7, py0+8, qimen.QMType[2])
+	p.btnCalc = ui.NewButton(image.Rect(px0+72*8, py0, px0+72*8+64, py0+h), "排局")
 
 	py0 += 32
 	p.textLYear = ui.NewInputBox(image.Rect(px0, py0, px0+64, py0+h))
 	p.textLMonth = ui.NewInputBox(image.Rect(px0+72, py0, px0+72+64, py0+h))
 	p.textLDay = ui.NewInputBox(image.Rect(px0+72*2, py0, px0+72*2+64, py0+h))
 	p.textLHour = ui.NewInputBox(image.Rect(px0+72*3, py0, px0+72*3+64, py0+h))
-	p.btnPreHour2 = ui.NewButton(image.Rect(px0+72*4, py0, px0+72*4+64, py0+h), "上一局")
-	p.btnNextHour2 = ui.NewButton(image.Rect(px0+72*5, py0, px0+72*5+64, py0+h), "下一局")
-	p.cbHostingType = ui.NewCheckBox(px0+72*6, py0+8, "阳遁寄艮宫")
-	p.cbFlyType = ui.NewCheckBox(px0+72*7, py0+8, "星神阴阳皆顺")
+	p.cbHostingType = ui.NewCheckBox(px0+72*5, py0+8, qimen.QMHostingType[qimen.QMHostingType28])
+	p.cbFlyType = ui.NewCheckBox(px0+72*6, py0+8, qimen.QMFlyType[qimen.QMFlyTypeAllOrder])
+	p.btnPreHour2 = ui.NewButton(image.Rect(px0+72*8, py0, px0+72*8+64, py0+h), "上一局")
+	p.btnNextHour2 = ui.NewButton(image.Rect(px0+72*9, py0, px0+72*9+64, py0+h), "下一局")
 
 	py0 += 32
 	p.textYearRB = ui.NewInputBox(image.Rect(px0, py0, px0+64, py0+h))
@@ -203,19 +203,19 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	})
 
 	p.btnCalc.SetOnClick(func(b *ui.Button) {
-		year, _ := strconv.Atoi(p.inputSYear.Text)
-		month, _ := strconv.Atoi(p.inputSMonth.Text)
-		day, _ := strconv.Atoi(p.inputSDay.Text)
-		hour, _ := strconv.Atoi(p.inputSHour.Text)
-		minute, _ := strconv.Atoi(p.inputSMin.Text)
+		year, _ := strconv.Atoi(p.inputSYear.Text())
+		month, _ := strconv.Atoi(p.inputSMonth.Text())
+		day, _ := strconv.Atoi(p.inputSDay.Text())
+		hour, _ := strconv.Atoi(p.inputSHour.Text())
+		minute, _ := strconv.Atoi(p.inputSMin.Text())
 		p.Apply(year, month, day, hour, minute)
 	})
 	p.btnPreHour2.SetOnClick(func(b *ui.Button) {
-		year, _ := strconv.Atoi(p.inputSYear.Text)
-		month, _ := strconv.Atoi(p.inputSMonth.Text)
-		day, _ := strconv.Atoi(p.inputSDay.Text)
-		hour, _ := strconv.Atoi(p.inputSHour.Text)
-		minute, _ := strconv.Atoi(p.inputSMin.Text)
+		year, _ := strconv.Atoi(p.inputSYear.Text())
+		month, _ := strconv.Atoi(p.inputSMonth.Text())
+		day, _ := strconv.Atoi(p.inputSDay.Text())
+		hour, _ := strconv.Atoi(p.inputSHour.Text())
+		minute, _ := strconv.Atoi(p.inputSMin.Text())
 		hour -= 2
 		if hour < 0 {
 			hour += 24
@@ -235,11 +235,11 @@ func NewUIQiMen(width, height int) *UIQiMen {
 		p.Apply(year, month, day, hour, minute)
 	})
 	p.btnNextHour2.SetOnClick(func(b *ui.Button) {
-		year, _ := strconv.Atoi(p.inputSYear.Text)
-		month, _ := strconv.Atoi(p.inputSMonth.Text)
-		day, _ := strconv.Atoi(p.inputSDay.Text)
-		hour, _ := strconv.Atoi(p.inputSHour.Text)
-		minute, _ := strconv.Atoi(p.inputSMin.Text)
+		year, _ := strconv.Atoi(p.inputSYear.Text())
+		month, _ := strconv.Atoi(p.inputSMonth.Text())
+		day, _ := strconv.Atoi(p.inputSDay.Text())
+		hour, _ := strconv.Atoi(p.inputSHour.Text())
+		minute, _ := strconv.Atoi(p.inputSMin.Text())
 		hour += 2
 		if hour > 23 {
 			hour -= 24
@@ -344,7 +344,7 @@ func (p *UIQiMen) Apply(year, month, day, hour, minute int) {
 	p.cbHostingType.Visible = p.qmType == qimen.QMTypeRotating
 	p.cbFlyType.Visible = p.qmType == qimen.QMTypeFly
 
-	p.textJu.Text = pan.JuText
+	p.textJu.SetText(pan.JuText)
 
 	for i := 1; i <= 9; i++ {
 		p.textGong[i].Text = pan.Gongs[i].FmtText
