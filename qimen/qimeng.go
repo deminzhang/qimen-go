@@ -42,8 +42,9 @@ type QMPan struct {
 
 	//Constellation28 int            //星宿1～28
 
-	HourGan string //时干
-	HourZhi string //时支
+	ShiGan    string //时干
+	ShiZhi    string //时支
+	ShiZhiIdx int    //时支序
 
 	YearRB  string //年干支
 	MonthRB string //月干支
@@ -66,9 +67,10 @@ type QMPan struct {
 	DutyDoorPos int    //值使落宫
 	RollHosting int    //转盘寄宫
 
-	YueJiangZhi    string //月将支名
+	YueJian        string //月建
+	YueJianZhiIdx  int    //月建地支号
+	YueJiang       string //月将
 	YueJiangZhiIdx int    //月将地支号
-	YueJiangPos    int    //月将落地支宫
 	HourHorse      string //驿马
 
 	Gongs [10]QMGong //九宫飞盘格
@@ -162,7 +164,7 @@ func (p *QMPan) calcGong() {
 	//值符落宫
 	//值符加于时干上，值使加之在时支。
 	var dutyStarPos, dutyDoorPos int
-	dutyGan := p.HourGan
+	dutyGan := p.ShiGan
 	if dutyGan == "甲" {
 		dutyGan = HideJia[p.ShiXun] //遁甲
 	}
@@ -191,7 +193,7 @@ func (p *QMPan) calcGong() {
 			g, z := gz[:len(gz)/2], gz[len(gz)/2:]
 			g9[gid].AnGan = g
 			g9[gid].AnZhi = z
-			if z == p.HourZhi {
+			if z == p.ShiZhi {
 				dutyDoorPos = gid
 				p.DutyDoorPos = gid
 			}
@@ -207,7 +209,7 @@ func (p *QMPan) calcGong() {
 			g, z := gz[:len(gz)/2], gz[len(gz)/2:]
 			g9[gid].AnGan = g
 			g9[gid].AnZhi = z
-			if z == p.HourZhi {
+			if z == p.ShiZhi {
 				p.DutyDoorPos = gid
 			}
 		}
@@ -385,8 +387,8 @@ func NewPan(year, month, day, hour, minute, qmType, qmHostingType, pqmFlyType in
 		LunarMonthC:         cal.GetMonthInChinese() + "月",
 		LunarDayC:           cal.GetDayInChinese(),
 		LunarHourC:          shiZhi + "时",
-		HourGan:             shiGanZhi[:len(shiGanZhi)/2],
-		HourZhi:             shiZhi,
+		ShiGan:              shiGanZhi[:len(shiGanZhi)/2],
+		ShiZhi:              shiZhi,
 		YearRB:              c8[0],
 		MonthRB:             c8[1],
 		DayRB:               dayGanZhi,
@@ -395,21 +397,28 @@ func NewPan(year, month, day, hour, minute, qmType, qmHostingType, pqmFlyType in
 		Ju:                  ju,
 		Yuan3:               dayYuanIdx,
 		ShiXun:              shiXun,
-		YueJiangZhi:         YueJiang(cal.GetMonth()),
+		YueJiang:            YueJiang(cal.GetMonth()),
+		YueJian:             YueJian(cal.GetMonth()),
 		HourHorse:           Horse[shiZhi],
 	}
 	//排九宫
 	p.calcGong()
 	//排大六壬支 月将落时支 顺布余支
 	for i := 1; i <= 12; i++ {
-		if p.YueJiangZhi == LunarUtil.ZHI[i] {
+		if p.YueJiang == LunarUtil.ZHI[i] {
 			p.YueJiangZhiIdx = i
 			break
 		}
 	}
 	for i := 1; i <= 12; i++ {
-		if p.HourZhi == LunarUtil.ZHI[i] {
-			p.YueJiangPos = i
+		if p.YueJian == LunarUtil.ZHI[i] {
+			p.YueJianZhiIdx = i
+			break
+		}
+	}
+	for i := 1; i <= 12; i++ {
+		if p.ShiZhi == LunarUtil.ZHI[i] {
+			p.ShiZhiIdx = i
 			break
 		}
 	}

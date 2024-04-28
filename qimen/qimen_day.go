@@ -2,6 +2,7 @@ package qimen
 
 //时家奇门遁甲
 //http://www.360doc.com/content/24/0205/15/6148393_1113383057.shtml
+//http://www.360doc.com/content/10/0524/00/1471833_29180548.shtml
 
 // QMGongDay 时家奇门遁甲宫格
 type QMGongDay struct {
@@ -13,4 +14,4 @@ type QMGongDay struct {
 	JoyfulGod string //喜神方位
 }
 
-//TODO
+//TODO 年月日家

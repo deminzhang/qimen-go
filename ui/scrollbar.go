@@ -12,8 +12,6 @@ const HScrollBarHeight = 16
 // 竖向ScrollBar
 type VScrollBar struct {
 	BaseUI
-	X      int
-	Y      int
 	Height int
 
 	thumbRate           float64
@@ -31,8 +29,6 @@ type VScrollBar struct {
 // 横向ScrollBar
 type HScrollBar struct {
 	BaseUI
-	X     int
-	Y     int
 	Width int
 
 	thumbRate           float64
@@ -49,7 +45,7 @@ type HScrollBar struct {
 
 func NewVScrollBar() *VScrollBar {
 	return &VScrollBar{
-		BaseUI:         BaseUI{Visible: true},
+		BaseUI:         BaseUI{Visible: true, X: 0, Y: 0},
 		UIImage:        GetDefaultUIImage(),
 		ImageRectBack:  imageSrcRects[imageTypeScrollBarBack],
 		ImageRectFront: imageSrcRects[imageTypeScrollBarFront],
@@ -57,7 +53,7 @@ func NewVScrollBar() *VScrollBar {
 }
 func NewHScrollBar() *HScrollBar {
 	return &HScrollBar{
-		BaseUI:         BaseUI{Visible: true},
+		BaseUI:         BaseUI{Visible: true, X: 0, Y: 0},
 		UIImage:        GetDefaultUIImage(),
 		ImageRectBack:  imageSrcRects[imageTypeScrollBarBack],
 		ImageRectFront: imageSrcRects[imageTypeScrollBarFront],

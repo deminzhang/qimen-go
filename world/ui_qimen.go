@@ -393,19 +393,30 @@ func (p *UIQiMen) Apply(year, month, day, hour, minute int) {
 	}
 
 	//大六壬 月将落时支 顺布余支
-	yueJiangIdx, yueJiangPos := pan.YueJiangZhiIdx, pan.YueJiangPos
-	for i := yueJiangPos; i < yueJiangPos+12; i++ {
-		z6 := LunarUtil.ZHI[qimen.Idx12[yueJiangIdx]]
-		g := fmt.Sprintf("\n%s", qimen.YueJiangName[z6])
-		var j, h string
-		if i == yueJiangPos {
-			j = "\n月将"
+	yueJiangIdx := pan.YueJiangZhiIdx
+	yueJianIdx := pan.YueJianZhiIdx
+	shiZhiIdx := pan.ShiZhiIdx
+	for i := shiZhiIdx; i < shiZhiIdx+12; i++ {
+		//var s []string
+		js := LunarUtil.ZHI[qimen.Idx12[yueJiangIdx]]
+		g := fmt.Sprintf("%s", qimen.YueJiangName[js])
+		var j, h, b, bs string
+		if i == shiZhiIdx {
+			j = "月将"
 		}
 		z := LunarUtil.ZHI[qimen.Idx12[i]]
 		if z == pan.HourHorse {
-			h = "\n驿马"
+			h = "驿马"
 		}
-		p.zhiPan[qimen.Idx12[i]].SetText(fmt.Sprintf("%s%s%s%s", z6, g, j, h))
+		b = LunarUtil.ZHI[qimen.Idx12[yueJianIdx+i-shiZhiIdx]]
+		bs = qimen.BuildStar(1 + i - shiZhiIdx)
+		switch qimen.Idx12[i] {
+		case 1, 2, 6, 7, 8, 12:
+			p.zhiPan[qimen.Idx12[i]].SetText(fmt.Sprintf("%s %s %s\n%s   %s\n%s", g, js, j, bs, b, h))
+		default:
+			p.zhiPan[qimen.Idx12[i]].SetText(fmt.Sprintf("%s\n  %s\n%s\n----\n%s%s\n%s", g, js, j, bs, b, h))
+		}
+
 		yueJiangIdx++
 	}
 }

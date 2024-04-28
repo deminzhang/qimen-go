@@ -15,8 +15,6 @@ const (
 
 type OptionBox struct {
 	BaseUI
-	X    int
-	Y    int
 	Text string
 
 	selected    bool
@@ -33,9 +31,7 @@ type OptionBox struct {
 
 func NewOptionBox(x, y int, text string) *OptionBox {
 	return &OptionBox{
-		BaseUI: BaseUI{Visible: true},
-		X:      x,
-		Y:      y,
+		BaseUI: BaseUI{Visible: true, X: x, Y: y},
 		Text:   text,
 
 		UIImage:          GetDefaultUIImage(),

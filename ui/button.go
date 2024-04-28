@@ -24,7 +24,7 @@ type Button struct {
 
 func NewButton(rect image.Rectangle, text string) *Button {
 	return &Button{
-		BaseUI: BaseUI{Visible: true},
+		BaseUI: BaseUI{Visible: true, X: 0, Y: 0},
 		Rect:   rect,
 		Text:   text,
 		//default resource

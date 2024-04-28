@@ -69,7 +69,7 @@ var Idx9 = []int{9, 1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 // Idx12 序环
 var Idx12 = []int{12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
 
-// 旬首遁甲
+// HideJia 旬首遁甲
 var HideJia = map[string]string{
 	"甲子": "戊",
 	"甲戌": "己",
@@ -98,9 +98,9 @@ const (
 	God9S      = "__值符腾蛇太阴六合勾陈太常朱雀九地九天" //九神飞盘阳遁用
 	God9L      = "__值符腾蛇太阴六合白虎太常玄武九地九天" //九神飞盘阴遁用
 	God8       = "__值符腾蛇太阴六合白虎玄武九地九天"   //八神转盘用
-	MonthJiang = "_亥戌酉申未午巳辰卯寅丑子"        //月将正月起亥
 	MonthJian  = "_寅卯辰巳午未申酉戌亥子丑"        //月建正月起寅
 	Build12    = "_建除满平定执破危成收开闭"        //十二建星
+	MonthJiang = "_亥戌酉申未午巳辰卯寅丑子"        //月将正月起亥
 
 	QMDayStar9 = "__太乙摄提轩辕招摇天符青龙咸池太阴天乙"       //日家奇门九星
 	God12      = "__青龙明堂天刑朱雀金匮天德白虎玉堂天牢玄武司命勾陈" //日家奇门十二原神黄黑道
@@ -146,6 +146,14 @@ func QMGod8(i int) string {
 func YueJiang(i int) string {
 	i = Idx12[i]
 	return string([]rune(MonthJiang)[i : i+1])
+}
+func YueJian(month int) string {
+	i := Idx12[month]
+	return string([]rune(MonthJian)[i : i+1])
+}
+func BuildStar(i int) string {
+	i = Idx12[i]
+	return string([]rune(Build12)[i : i+1])
 }
 
 // 奇门转盘用转宫宫位索引

@@ -34,7 +34,7 @@ type TextBox struct {
 
 func NewTextBox(rect image.Rectangle) *TextBox {
 	return &TextBox{
-		BaseUI: BaseUI{Visible: true},
+		BaseUI: BaseUI{Visible: true, X: 0, Y: 0},
 		Rect:   rect,
 
 		UIImage:   GetDefaultUIImage(),

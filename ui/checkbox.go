@@ -15,8 +15,6 @@ const (
 
 type CheckBox struct {
 	BaseUI
-	X    int
-	Y    int
 	Text string
 
 	checked   bool
@@ -32,9 +30,7 @@ type CheckBox struct {
 
 func NewCheckBox(x, y int, text string) *CheckBox {
 	return &CheckBox{
-		BaseUI: BaseUI{Visible: true},
-		X:      x,
-		Y:      y,
+		BaseUI: BaseUI{Visible: true, X: x, Y: y},
 		Text:   text,
 
 		UIImage:          GetDefaultUIImage(),
