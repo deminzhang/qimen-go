@@ -86,8 +86,8 @@ const (
 	//Term24    = "__小寒大寒立春雨水惊蛰春分清明谷雨立夏小满芒种夏至小暑大暑立秋处暑白露秋分寒露霜降立冬小雪大雪冬至"
 
 	Star0 = "天"
-	Star9 = " 蓬芮冲辅禽心柱任英" //奇门九星
-	Star8 = " 蓬任冲辅英芮柱心"  //转盘用九星
+	Star9 = "_蓬芮冲辅禽心柱任英" //奇门九星
+	Star8 = "_蓬任冲辅英芮柱心"  //转盘用九星
 
 	Door0 = "门"
 	Door8 = "_休生伤杜景死惊开"  //转盘用八门
@@ -98,9 +98,9 @@ const (
 	God9S      = "__值符腾蛇太阴六合勾陈太常朱雀九地九天" //九神飞盘阳遁用
 	God9L      = "__值符腾蛇太阴六合白虎太常玄武九地九天" //九神飞盘阴遁用
 	God8       = "__值符腾蛇太阴六合白虎玄武九地九天"   //八神转盘用
-	MonthJian  = "_寅卯辰巳午未申酉戌亥子丑"        //月建正月起寅
+	MonthBuild = "_寅卯辰巳午未申酉戌亥子丑"        //月建 正月起寅 交节换建
 	Build12    = "_建除满平定执破危成收开闭"        //十二建星
-	MonthJiang = "_亥戌酉申未午巳辰卯寅丑子"        //月将正月起亥
+	MonthJiang = "_亥戌酉申未午巳辰卯寅丑子"        //月将 正月起亥 交气/中气换将
 
 	QMDayStar9 = "__太乙摄提轩辕招摇天符青龙咸池太阴天乙"       //日家奇门九星
 	God12      = "__青龙明堂天刑朱雀金匮天德白虎玉堂天牢玄武司命勾陈" //日家奇门十二原神黄黑道
@@ -143,13 +143,22 @@ func QMGod8(i int) string {
 	i = Idx8[i] * 2
 	return string([]rune(God8)[i : i+2])
 }
+func JieQi2YueJian(jie string) string {
+	return YueJian(TermMonth[jie])
+}
+func JieQi2YueJiang(qi string) string {
+	return YueJiang(TermMonth[qi])
+}
 func YueJiang(i int) string {
 	i = Idx12[i]
 	return string([]rune(MonthJiang)[i : i+1])
 }
 func YueJian(month int) string {
+	if month < 0 {
+		month = -month
+	}
 	i := Idx12[month]
-	return string([]rune(MonthJian)[i : i+1])
+	return string([]rune(MonthBuild)[i : i+1])
 }
 func BuildStar(i int) string {
 	i = Idx12[i]
@@ -160,7 +169,23 @@ func BuildStar(i int) string {
 var _QMRollIdx = []int{6, 1, 8, 3, 4, 9, 2, 7, 6}     //转宫号=>洛宫号
 var _QM2RollIdx = []int{1, 1, 6, 3, 4, 0, 8, 7, 2, 5} //洛宫号=>转宫号
 
-// YueJiangName 月将神名
+// TermMonth 节气月将
+var TermMonth = map[string]int{
+	"雨水": 1, "惊蛰": 1,
+	"春分": 2, "清明": 2,
+	"谷雨": 3, "立夏": 3,
+	"小满": 4, "芒种": 4,
+	"夏至": 5, "小暑": 5,
+	"大暑": 6, "立秋": 7,
+	"处暑": 7, "白露": 7,
+	"秋分": 8, "寒露": 8,
+	"霜降": 9, "立冬": 9,
+	"小雪": 10, "大雪": 10,
+	"冬至": 11, "小寒": 11,
+	"大寒": 12, "立春": 12,
+}
+
+// YueJiangName 月将将名
 var YueJiangName = map[string]string{
 	"亥": "登明", "戌": "河魅", "酉": "从魁", "申": "传送",
 	"未": "小吉", "午": "胜光", "巳": "太乙", "辰": "天罡",

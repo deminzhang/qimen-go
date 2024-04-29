@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"github.com/hajimehoshi/ebiten/v2"
 	"image"
 )
 
@@ -22,16 +21,17 @@ func NewPanel(rect image.Rectangle) *Panel {
 	}
 }
 
-func (p *Panel) Update() {
-}
+//func (p *Panel) Update() {
+//	p.BaseUI.Update()
+//}
 
-func (p *Panel) Draw(dst *ebiten.Image) {
-	if !p.Visible {
-		return
-	}
-	//drawNinePatches(dst, p.UIImage, p.Rect, p.ImageRect)
-	p.BaseUI.Draw(dst)
-}
+//func (p *Panel) Draw(dst *ebiten.Image) {
+//	if !p.Visible {
+//		return
+//	}
+//	//drawNinePatches(dst, p.UIImage, p.Rect, p.ImageRect)
+//	p.BaseUI.Draw(dst)
+//}
 
 func (p *Panel) AddChild(c IUIPanel) {
 	p.BaseUI.AddChild(c)

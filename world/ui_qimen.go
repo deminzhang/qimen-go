@@ -29,7 +29,7 @@ type UIQiMen struct {
 	textMonthRB *ui.InputBox
 	textDayRB   *ui.InputBox
 	textHourRB  *ui.InputBox
-	textJu      *ui.InputBox
+	textJu      *ui.TextBox
 
 	opTypeRoll    *ui.OptionBox
 	opTypeFly     *ui.OptionBox
@@ -107,14 +107,14 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.textMonthRB = ui.NewInputBox(image.Rect(px0+72, py0, px0+72+64, py0+h))
 	p.textDayRB = ui.NewInputBox(image.Rect(px0+72*2, py0, px0+72*2+64, py0+h))
 	p.textHourRB = ui.NewInputBox(image.Rect(px0+72*3, py0, px0+72*3+64, py0+h))
-	p.textJu = ui.NewInputBox(image.Rect(px0+72*4, py0, px0+72*9, py0+h))
+	p.textJu = ui.NewTextBox(image.Rect(px0+72*4, py0, px0+72*9, py0+h*2))
 
 	p.opHourPan = ui.NewOptionBox(px0+72*9, py0+32+8, "时盘")
 	p.opDayPan = ui.NewOptionBox(px0+72*9, py0+32*2+8, "日盘")
 	p.opMonthPan = ui.NewOptionBox(px0+72*9, py0+32*3+8, "月盘")
 	p.opYearPan = ui.NewOptionBox(px0+72*9, py0+32*4+8, "年盘")
 
-	px4, py4 := 64, 96+64
+	px4, py4 := 128, 96+128
 	const gongWidth = 128
 	gongOffset := [][]int{{0, 0},
 		{1, 2}, {2, 0}, {0, 1},
@@ -202,6 +202,9 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.opDayPan.Disabled = true
 	p.opMonthPan.Disabled = true
 	p.opYearPan.Disabled = true
+	p.opDayPan.Visible = false
+	p.opMonthPan.Visible = false
+	p.opYearPan.Visible = false
 
 	p.cbHostingType.SetChecked(true)
 	p.cbHostingType.Visible = p.opTypeRoll.Selected()
@@ -290,7 +293,6 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.textMonthRB.Editable = false
 	p.textDayRB.Editable = false
 	p.textHourRB.Editable = false
-	p.textJu.Editable = false
 
 	t := time.Now()
 	p.Apply(t.Year(), int(t.Month()), t.Day(), t.Hour(), t.Minute())
@@ -368,15 +370,23 @@ func (p *UIQiMen) Apply(year, month, day, hour, minute int) {
 
 	//fmt
 	var juName string
-	if pan.Ju < 0 {
-		juName = fmt.Sprintf("阴%d局", -pan.Ju)
+	if pan.ShiGameJu < 0 {
+		juName = fmt.Sprintf("阴%d局", -pan.ShiGameJu)
 	} else {
-		juName = fmt.Sprintf("阳%d局", pan.Ju)
+		juName = fmt.Sprintf("阳%d局", pan.ShiGameJu)
 	}
-	juText := fmt.Sprintf("%s%s %s %s遁%s 值符%s落%d 值使%s落%d", pan.JieQiName, qimen.Yuan3Name[pan.Yuan3], juName,
-		pan.ShiXun, qimen.HideJia[pan.ShiXun],
-		pan.DutyStar, pan.DutyStarPos,
-		pan.DutyDoor, pan.DutyDoorPos)
+	jieQi := pan.Lunar.GetPrevJieQi()
+	jieQiNext := pan.Lunar.GetNextJieQi()
+	jie := pan.Lunar.GetPrevJie()
+	qi := pan.Lunar.GetPrevQi()
+	juText := fmt.Sprintf("%s%s %s%s"+
+		"\n%s %s %s遁%s 值符%s落%d宫 值使%s落%d宫"+
+		"\n%s月建%s %s月将%s",
+		jieQi.GetName(), jieQi.GetSolar().ToYmdHms(), jieQiNext.GetName(), jieQiNext.GetSolar().ToYmdHms(),
+		qimen.Yuan3Name[pan.Yuan3], juName, pan.ShiXun, qimen.HideJia[pan.ShiXun],
+		pan.DutyStar, pan.DutyStarPos, pan.DutyDoor, pan.DutyDoorPos,
+		jie.GetName(), pan.YueJian, qi.GetName(), pan.YueJiang,
+	)
 	p.textJu.SetText(juText)
 
 	for i := 1; i <= 9; i++ {
@@ -387,8 +397,8 @@ func (p *UIQiMen) Apply(year, month, day, hour, minute int) {
 		}
 		p.textGong[i].Text = fmt.Sprintf("\n      %s\n\n%s    %s%s%s\n\n%s    %s    %s\n\n      %s%s",
 			g.God,
-			g.AnGan, g.Star, hosting, g.SkyGan,
-			g.AnZhi, g.Door, g.EarthGan, qimen.Diagrams9(i),
+			g.PathGan, g.Star, hosting, g.GuestGan,
+			g.PathZhi, g.Door, g.HostGan, qimen.Diagrams9(i),
 			LunarUtil.NUMBER[i])
 	}
 
