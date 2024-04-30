@@ -1,7 +1,7 @@
 package qimen
 
-// 奇门三元
-var _Yuan3Name = []string{"", "上元", "中元", "下元"}
+// Yuan3Name 奇门三元名
+var Yuan3Name = []string{"", "上元", "中元", "下元"}
 
 // 节气索引
 var _JieQiIndex = map[string]int{
@@ -32,33 +32,43 @@ var _QiMenJu = [][]int{{0, 0, 0},
 var QMType = []string{"转盘", "飞盘", "鸣法"}
 
 const (
-	QMTypeRollDoor = 0
-	QMTypeFlyDoor  = 1
+	QMTypeRotating = 0
+	QMTypeFly      = 1
 	QMTypeAmaze    = 2
 )
 
-// 飞盘九星飞宫 "鸣法"=="阴阳皆顺"
-var _QMFlyType = []string{"阴阳皆顺", "阳顺阴逆?"}
+// QMFlyType 飞盘九星飞宫
+var QMFlyType = []string{"阴阳皆顺", "阳顺阴逆"}
 
 const (
-	QMFlyTypeAllOrder   = 0
-	QMFlyTypeYinReverse = 1
+	QMFlyTypeAllOrder     = 0 // 阴阳皆顺,鸣法同
+	QMFlyTypeLunarReverse = 1 // 阴阳皆逆:源于括囊集
 )
 
-// 转盘寄宫
-var _QMRollHostingType = []string{"中宫寄坤?", "阳艮阴坤", "长夏寄四库?"}
+// QMHostingType 转盘寄宫法
+var QMHostingType = []string{"中宫寄坤", "阳艮阴坤", "_土寄四维"}
 
 const (
-	QMRollHostingType2    = 0
-	QMRollHostingType28   = 1
-	QMRollHostingType2846 = 3
+	QMHostingType2    = 0
+	QMHostingType28   = 1
+	QMHostingType2846 = 2
 )
 
-// 起局方式
-var _QMStartType = []string{"拆补", "茅山", "置闰", "自选"}
+// QMStartType 起局方式
+var QMStartType = []string{"拆补", "茅山", "置闰", "自选"}
 
-// 暗干起法
-var _QMHideGanType = []string{"值使门起", "门地盘起"}
+const (
+	QMStartTypeSplit = 0 //节气和日干符头定三元
+	QMStartTypeMao   = 1 //无视符头，节气开始使用本节气之上元60个时辰后即转入中元
+	QMStartTypeZhi   = 2 //符头和节气的关系
+	QMStartTypeSelf  = 3 //自选
+)
+
+// QMHideGanType 暗干起法
+var QMHideGanType = []string{"值使门起", "门地盘起"}
+
+// Idx8 序环
+var Idx8 = []int{8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8}
 
 // Idx9 序环
 var Idx9 = []int{9, 1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9}
@@ -66,16 +76,8 @@ var Idx9 = []int{9, 1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 // Idx12 序环
 var Idx12 = []int{12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
 
-// 九宫八卦
-var Gua8In9 = []string{"", "坎", "坤", "震", "巽", "中", "乾", "兑", "艮", "离"}
-
-// 三奇六仪
-var _QM3Q6Y = []string{"戊", "己", "庚", "辛", "壬", "癸", "丁", "丙", "乙"}
-var _QM3Q6YCircle = []string{"戊", "己", "庚", "辛", "壬", "癸", "丁", "丙", "乙",
-	"戊", "己", "庚", "辛", "壬", "癸", "丁", "丙", "乙"}
-
-// 旬首遁甲
-var _HideJia = map[string]string{
+// HideJia 旬首遁甲
+var HideJia = map[string]string{
 	"甲子": "戊",
 	"甲戌": "己",
 	"甲申": "庚",
@@ -84,39 +86,119 @@ var _HideJia = map[string]string{
 	"甲寅": "癸",
 }
 
-// 奇门九星
-var _QMStar9 = []string{"", "天蓬", "天芮", "天冲", "天辅", "天禽", "天心", "天柱", "天任", "天英"}
-var _QMStar9Circle = []string{"", "天蓬", "天芮", "天冲", "天辅", "天禽", "天心", "天柱", "天任", "天英",
-	"天蓬", "天芮", "天冲", "天辅", "天禽", "天心", "天柱", "天任"}
+const (
+	Trunk10      = "_甲乙丙丁戊已庚辛壬癸"   //天干
+	Branch12     = "_子丑寅卯辰巳午末申酉戌亥" //地支
+	Diagrams8In9 = "_坎坤震巽中乾竞艮离"    //九宫八卦
+	//Term24    = "__小寒大寒立春雨水惊蛰春分清明谷雨立夏小满芒种夏至小暑大暑立秋处暑白露秋分寒露霜降立冬小雪大雪冬至"
 
-// 奇门九神
-// 九神飞盘阳遁
-var _QMGod9S = []string{"值符", "腾蛇", "太阴", "六合", "勾陈", "太常", "朱雀", "九地", "九天"}
-var _QMGod9SCircle = []string{
-	"值符", "腾蛇", "太阴", "六合", "勾陈", "太常", "朱雀", "九地", "九天",
-	"值符", "腾蛇", "太阴", "六合", "勾陈", "太常", "朱雀", "九地", "九天"}
+	Star0 = "天"
+	Star9 = "_蓬芮冲辅禽心柱任英" //奇门九星
+	Star8 = "_蓬任冲辅英芮柱心"  //转盘用九星
 
-// 九神飞盘阴遁
-var _QMGod9L = []string{"值符", "腾蛇", "太阴", "六合", "白虎", "太常", "玄武", "九地", "九天"}
-var _QMGod9LCircle = []string{
-	"值符", "腾蛇", "太阴", "六合", "白虎", "太常", "玄武", "九地", "九天",
-	"值符", "腾蛇", "太阴", "六合", "白虎", "太常", "玄武", "九地", "九天"}
+	Door0 = "门"
+	Door8 = "_休生伤杜景死惊开"  //转盘用八门
+	Door9 = "_休死伤杜中开惊生景" //飞盘用九门
 
-// 奇门八门
-var _QMDoor9 = []string{"", "休门", "死门", "伤门", "杜门", "中门", "开门", "惊门", "生门", "景门"}
-var _QMDoor9Circle = []string{"",
-	"休门", "死门", "伤门", "杜门", "中门", "开门", "惊门", "生门", "景门",
-	"休门", "死门", "伤门", "杜门", "中门", "开门", "惊门", "生门", "景门"}
+	T3Qi6Yi = "_戊己庚辛壬癸丁丙乙" //三奇六仪
 
-// 地支
-var _ZhiCircle = []string{"", "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"}
+	God9S      = "__值符腾蛇太阴六合勾陈太常朱雀九地九天" //九神飞盘阳遁用
+	God9L      = "__值符腾蛇太阴六合白虎太常玄武九地九天" //九神飞盘阴遁用
+	God8       = "__值符腾蛇太阴六合白虎玄武九地九天"   //八神转盘用
+	MonthBuild = "_寅卯辰巳午未申酉戌亥子丑"        //月建 正月起寅 交节换建
+	Build12    = "_建除满平定执破危成收开闭"        //十二建星
+	MonthJiang = "_亥戌酉申未午巳辰卯寅丑子"        //月将 正月起亥 交气/中气换将
 
-// YueJian 月建: 从雨水起正月 春分起二月... (正月寅 二月卯 三月辰 四月巳 五月午 六月未 七月申 八月酉 九月戌 十月亥 冬月子 腊月丑)
-var YueJian = []string{"", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑"}
+	QMDayStar9 = "__太乙摄提轩辕招摇天符青龙咸池太阴天乙"       //日家奇门九星
+	God12      = "__青龙明堂天刑朱雀金匮天德白虎玉堂天牢玄武司命勾陈" //日家奇门十二原神黄黑道
+	God12YB    = "_黄黄黑黑黄黄黑黄黑黑黄黑"              //十二黄黑道
+)
 
-// YueJiang 月将: 与月建六合者为月将,如寅亥合(登明亥 河魅戌 从魁酉 传送申 小吉未 胜光午 太乙巳 天罡辰 太冲卯 功曹寅 大吉丑 神后子)
-var YueJiang = []string{"", "亥", "戌", "酉", "申", "未", "午", "巳", "辰", "卯", "寅", "丑", "子"}
-var YueJiangName = []string{"", "登明", "河魅", "从魁", "传送", "小吉", "胜光", "太乙", "天罡", "太冲", "功曹", "大吉", "神后"}
+func Diagrams9(i int) string {
+	i = Idx9[i]
+	return string([]rune(Diagrams8In9)[i : i+1])
+}
+func QMStar9(i int) string {
+	i = Idx9[i]
+	return Star0 + string([]rune(Star9)[i:i+1])
+}
+func QMStar8(i int) string {
+	i = Idx8[i]
+	return Star0 + string([]rune(Star8)[i:i+1])
+}
+func QM3Qi6Yi(i int) string {
+	i = Idx9[i]
+	return string([]rune(T3Qi6Yi)[i : i+1])
+}
+func QMDoor8(i int) string {
+	i = Idx8[i]
+	return string([]rune(Door8)[i:i+1]) + Door0
+}
+func QMDoor9(i int) string {
+	i = Idx9[i]
+	return string([]rune(Door9)[i:i+1]) + Door0
+}
+func QMGod9S(i int) string {
+	i = Idx9[i] * 2
+	return string([]rune(God9S)[i : i+2])
+}
+func QMGod9L(i int) string {
+	i = Idx9[i] * 2
+	return string([]rune(God9L)[i : i+2])
+}
+func QMGod8(i int) string {
+	i = Idx8[i] * 2
+	return string([]rune(God8)[i : i+2])
+}
+func Jie2YueJian(jie string) string {
+	return JieYuejian[jie]
+}
+func Qi2YueJiang(qi string) string {
+	return QiYuejiang[qi]
+}
+
+func YueJiang(i int) string {
+	i = Idx12[i]
+	return string([]rune(MonthJiang)[i : i+1])
+}
+func YueJian(month int) string {
+	if month < 0 {
+		month = -month
+	}
+	i := Idx12[month]
+	return string([]rune(MonthBuild)[i : i+1])
+}
+func BuildStar(i int) string {
+	i = Idx12[i]
+	return string([]rune(Build12)[i : i+1])
+}
+
+// 奇门转盘用转宫宫位索引
+var _QMRollIdx = []int{6, 1, 8, 3, 4, 9, 2, 7, 6}     //转宫号=>洛宫号
+var _QM2RollIdx = []int{1, 1, 6, 3, 4, 0, 8, 7, 2, 5} //洛宫号=>转宫号
+// YueJiangName 月将神名
+var YueJiangName = map[string]string{
+	"亥": "登明", "戌": "河魅", "酉": "从魁",
+	"申": "传送", "未": "小吉", "午": "胜光",
+	"巳": "太乙", "辰": "天罡", "卯": "太冲",
+	"寅": "功曹", "丑": "大吉", "子": "神后",
+}
+
+// JIEQI_MONTH 节气 月建索引 交节换建
+var JieYuejian = map[string]string{
+	"立春": "寅", "惊蛰": "卯", "清明": "辰",
+	"立夏": "巳", "芒种": "午", "小暑": "未",
+	"立秋": "申", "白露": "酉", "寒露": "戌",
+	"立冬": "亥", "大雪": "子", "小寒": "丑",
+}
+
+// QiYuejiang 节气 月将索引 交(中)气换将
+var QiYuejiang = map[string]string{
+	"雨水": "亥", "春分": "戌", "谷雨": "酉",
+	"小满": "申", "夏至": "未", "大暑": "午",
+	"处暑": "巳", "秋分": "辰", "霜降": "卯",
+	"小雪": "寅", "冬至": "丑", "大寒": "子",
+}
 
 // Horse 驿马方(申子辰见寅 寅午戌见申 巳酉丑见亥 亥卯未见巳)
 var Horse = map[string]string{
@@ -167,25 +249,8 @@ var Horse = map[string]string{
 
 // 廿四节气信息 (0小寒)
 // 从第0个节气的分钟数
-var termData = []int{
-	0, 21208, 42467, 63836, 85337, 107014, 128867, 150921, 173149, 195551, 218072, 240693,
-	263343, 285989, 308563, 331033, 353350, 375494, 397447, 419210, 440795, 462224, 483532,
-	504758,
-}
-
-// ShowChars
-const (
-	HS     = "甲乙丙丁戊已庚辛壬癸"
-	EB     = "子丑寅卯辰巳午末申酉戌亥"
-	Term24 = "小寒大寒立春雨水惊蛰春分清明谷雨立夏小满芒种夏至小暑大暑立秋处暑白露秋分寒露霜降立冬小雪大雪冬至"
-
-	Diagrams8   = "坎坤震巽乾竞艮离"                 //八卦
-	Diagrams9   = "坎坤震巽  乾竞艮离"               //九宫八卦
-	QMStars     = "蓬芮冲辅禽心柱任英"                //奇门九星
-	QMGodsRoll  = "值符腾蛇太阴六合白虎玄武九地九天"         //奇门转盘八神
-	QMGodsFly   = "值符腾蛇太阴六合勾陈太常朱雀九地九天"       //奇门飞盘九神
-	QMDoorsRoll = "休生伤杜景死惊开"                 //转盘八门
-	QMDoorsFly  = "休死伤杜中开惊生景"                //飞盘九门
-	BuildStar12 = "建除满平定执破危成收开闭"             //十二建星
-	God12       = "青龙明堂天刑朱雀金匮天德白虎玉堂天牢玄武司命勾陈" //十二原神
-)
+//var termData = []int{
+//	0, 21208, 42467, 63836, 85337, 107014, 128867, 150921, 173149, 195551, 218072, 240693,
+//	263343, 285989, 308563, 331033, 353350, 375494, 397447, 419210, 440795, 462224, 483532,
+//	504758,
+//}

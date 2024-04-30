@@ -1,4 +1,4 @@
-package ebiten_ui
+package ui
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
@@ -24,13 +24,13 @@ type Button struct {
 
 func NewButton(rect image.Rectangle, text string) *Button {
 	return &Button{
-		BaseUI: BaseUI{Visible: true},
+		BaseUI: BaseUI{Visible: true, X: 0, Y: 0},
 		Rect:   rect,
 		Text:   text,
 		//default resource
 		UIImage:          GetDefaultUIImage(),
-		ImageRect:        image.Rect(0, 0, 16, 16),
-		ImageRectPressed: image.Rect(16, 0, 32, 16),
+		ImageRect:        imageSrcRects[imageTypeButton],
+		ImageRectPressed: imageSrcRects[imageTypeButtonPressed],
 	}
 }
 
@@ -56,11 +56,11 @@ func (b *Button) Draw(dst *ebiten.Image) {
 	if !b.Visible {
 		return
 	}
+	imageRect := b.ImageRect
 	if b.mouseDown {
-		drawNinePatches(dst, b.UIImage, b.Rect, b.ImageRectPressed)
-	} else {
-		drawNinePatches(dst, b.UIImage, b.Rect, b.ImageRect)
+		imageRect = b.ImageRectPressed
 	}
+	drawNinePatches(dst, b.UIImage, b.Rect, imageRect)
 
 	bounds, _ := font.BoundString(uiFont, b.Text)
 	w := (bounds.Max.X - bounds.Min.X).Ceil()

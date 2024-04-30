@@ -1,8 +1,10 @@
-package ebiten_ui_test
+package ui_test
 
 import (
+	"github.com/hajimehoshi/ebiten/v2"
 	"image/color"
 	_ "image/png"
+	. "qimen/ui"
 
 	"image"
 	"log"
@@ -12,6 +14,7 @@ import (
 const (
 	screenWidth  = 640
 	screenHeight = 480
+	TPSRate      = 10
 )
 
 type Game struct {
@@ -46,7 +49,7 @@ func NewGame() *Game {
 	g.checkBox.SetOnCheckChanged(func(c *CheckBox) {
 		msg := "Check box check changed"
 		if c.Checked() {
-			msg += " (Checked)"
+			msg += " (Selected)"
 		} else {
 			msg += " (Unchecked)"
 		}
@@ -64,7 +67,7 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0xeb, 0xeb, 0xeb, 0xff})
+	screen.Fill(color.RGBA{R: 0xeb, G: 0xeb, B: 0xeb, A: 0xff})
 	g.button1.Draw(screen)
 	g.button2.Draw(screen)
 	g.checkBox.Draw(screen)
@@ -78,6 +81,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 func main() {
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("uiBase (Ebiten Demo)")
+	ebiten.SetMaxTPS(TPSRate)
 	if err := ebiten.RunGame(NewGame()); err != nil {
 		log.Fatal(err)
 	}

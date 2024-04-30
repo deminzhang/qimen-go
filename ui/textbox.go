@@ -1,4 +1,4 @@
-package ebiten_ui
+package ui
 
 import (
 	"fmt"
@@ -34,11 +34,11 @@ type TextBox struct {
 
 func NewTextBox(rect image.Rectangle) *TextBox {
 	return &TextBox{
-		BaseUI: BaseUI{Visible: true},
+		BaseUI: BaseUI{Visible: true, X: 0, Y: 0},
 		Rect:   rect,
 
 		UIImage:   GetDefaultUIImage(),
-		ImageRect: image.Rect(0, 16, 16, 32),
+		ImageRect: imageSrcRects[imageTypeTextBox],
 	}
 }
 func (t *TextBox) SetText(v interface{}) {

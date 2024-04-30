@@ -1,4 +1,4 @@
-package ebiten_ui
+package ui
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
@@ -13,7 +13,10 @@ type IUIPanel interface {
 
 	IsDisabled() bool
 	IsVisible() bool
+	GetXY() (int, int)
 	GetDepth() int
+	GetParent() IUIPanel
+	SetParent(p IUIPanel)
 }
 
 // var uis = make(map[IUIPanel]struct{})
@@ -48,16 +51,20 @@ func Update() {
 
 func Draw(screen *ebiten.Image) {
 	for _, u := range uis {
-		u.Draw(screen)
+		if u.IsVisible() {
+			u.Draw(screen)
+		}
 	}
 }
 
 type BaseUI struct {
+	X, Y        int
 	Visible     bool //`default:"true"` disable draw
 	Disabled    bool //disable update
 	EnableFocus bool //enable focus
 	Depth       int  //update draw depth
-	Children    []IUIPanel
+	children    []IUIPanel
+	parent      IUIPanel
 }
 
 func (u *BaseUI) IsDisabled() bool {
@@ -66,12 +73,21 @@ func (u *BaseUI) IsDisabled() bool {
 func (u *BaseUI) IsVisible() bool {
 	return u.Visible
 }
+func (u *BaseUI) GetXY() (int, int) {
+	return u.X, u.Y
+}
 func (u *BaseUI) GetDepth() int {
 	return u.Depth
 }
+func (u *BaseUI) GetParent() IUIPanel {
+	return u.parent
+}
+func (u *BaseUI) SetParent(p IUIPanel) {
+	u.parent = p
+}
 
 func (u *BaseUI) Update() {
-	for _, p := range u.Children {
+	for _, p := range u.children {
 		if !p.IsDisabled() {
 			p.Update()
 		}
@@ -79,7 +95,7 @@ func (u *BaseUI) Update() {
 }
 
 func (u *BaseUI) Draw(screen *ebiten.Image) {
-	for _, p := range u.Children {
+	for _, p := range u.children {
 		if p.IsVisible() {
 			p.Draw(screen)
 		}
@@ -87,24 +103,25 @@ func (u *BaseUI) Draw(screen *ebiten.Image) {
 }
 
 func (u *BaseUI) AddChild(c IUIPanel) {
-	u.Children = append(u.Children, c)
-	sort.Slice(u.Children, func(a, b int) bool {
-		return u.Children[a].GetDepth() > u.Children[b].GetDepth()
+	u.children = append(u.children, c)
+	sort.Slice(u.children, func(a, b int) bool {
+		return u.children[a].GetDepth() > u.children[b].GetDepth()
 	})
 }
 
 func (u *BaseUI) RemoveChild(c IUIPanel) {
-	for i, child := range u.Children {
+	for i, child := range u.children {
 		if c == child {
 			if i == 0 {
-				u.Children = u.Children[1:]
+				u.children = u.children[1:]
 			} else {
-				if i+1 == len(u.Children) {
-					u.Children = u.Children[:i]
+				if i+1 == len(u.children) {
+					u.children = u.children[:i]
 				} else {
-					u.Children = append(u.Children[:i], u.Children[i+1:]...)
+					u.children = append(u.children[:i], u.children[i+1:]...)
 				}
 			}
+			break
 		}
 	}
 }

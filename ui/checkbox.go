@@ -1,4 +1,4 @@
-package ebiten_ui
+package ui
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
@@ -9,15 +9,12 @@ import (
 )
 
 const (
-	checkboxWidth       = 16
-	checkboxHeight      = 16
-	checkboxPaddingLeft = 8
+	checkBoxWidth       = 16
+	checkBoxPaddingLeft = 8
 )
 
 type CheckBox struct {
 	BaseUI
-	X    int
-	Y    int
 	Text string
 
 	checked   bool
@@ -33,15 +30,13 @@ type CheckBox struct {
 
 func NewCheckBox(x, y int, text string) *CheckBox {
 	return &CheckBox{
-		BaseUI: BaseUI{Visible: true},
-		X:      x,
-		Y:      y,
+		BaseUI: BaseUI{Visible: true, X: x, Y: y},
 		Text:   text,
 
 		UIImage:          GetDefaultUIImage(),
-		ImageRect:        image.Rect(0, 32, 16, 48),
-		ImageRectPressed: image.Rect(16, 32, 32, 48),
-		ImageRectMark:    image.Rect(32, 32, 48, 48),
+		ImageRect:        imageSrcRects[imageTypeCheckBox],
+		ImageRectPressed: imageSrcRects[imageTypeCheckBoxPressed],
+		ImageRectMark:    imageSrcRects[imageTypeCheckBoxMark],
 	}
 
 }
@@ -49,17 +44,13 @@ func NewCheckBox(x, y int, text string) *CheckBox {
 func (c *CheckBox) width() int {
 	b, _ := font.BoundString(uiFont, c.Text)
 	w := (b.Max.X - b.Min.X).Ceil()
-	return checkboxWidth + checkboxPaddingLeft + w
+	return checkBoxWidth + checkBoxPaddingLeft + w
 }
 
 func (c *CheckBox) Update() {
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
-		if c.X <= x && x < c.X+c.width() && c.Y <= y && y < c.Y+checkboxHeight {
-			c.mouseDown = true
-		} else {
-			c.mouseDown = false
-		}
+		c.mouseDown = c.X <= x && x < c.X+c.width() && c.Y <= y && y < c.Y+checkBoxWidth
 	} else {
 		if c.mouseDown {
 			c.checked = !c.checked
@@ -75,7 +66,7 @@ func (c *CheckBox) Draw(dst *ebiten.Image) {
 	if !c.Visible {
 		return
 	}
-	r := image.Rect(c.X, c.Y, c.X+checkboxWidth, c.Y+checkboxHeight)
+	r := image.Rect(c.X, c.Y, c.X+checkBoxWidth, c.Y+checkBoxWidth)
 	if c.mouseDown {
 		drawNinePatches(dst, c.UIImage, r, c.ImageRectPressed)
 	} else {
@@ -85,10 +76,13 @@ func (c *CheckBox) Draw(dst *ebiten.Image) {
 		drawNinePatches(dst, c.UIImage, r, c.ImageRectMark)
 	}
 
-	x := c.X + checkboxWidth + checkboxPaddingLeft
+	x := c.X + checkBoxWidth + checkBoxPaddingLeft
 	y := (c.Y + 16) - (16-uiFontMHeight)/2
-	//text.Draw(dst, c.Text, uiFont, x, y, color.Black)
-	text.Draw(dst, c.Text, uiFont, x, y, color.White)
+	if c.Disabled {
+		text.Draw(dst, c.Text, uiFont, x, y, color.Gray16{Y: 0x8888})
+	} else {
+		text.Draw(dst, c.Text, uiFont, x, y, color.White)
+	}
 }
 
 func (c *CheckBox) SetChecked(b bool) {
