@@ -21,18 +21,6 @@ func NewPanel(rect image.Rectangle) *Panel {
 	}
 }
 
-//func (p *Panel) Update() {
-//	p.BaseUI.Update()
-//}
-
-//func (p *Panel) Draw(dst *ebiten.Image) {
-//	if !p.Visible {
-//		return
-//	}
-//	//drawNinePatches(dst, p.UIImage, p.Rect, p.ImageRect)
-//	p.BaseUI.Draw(dst)
-//}
-
 func (p *Panel) AddChild(c IUIPanel) {
 	p.BaseUI.AddChild(c)
 	//TODO Resize by children

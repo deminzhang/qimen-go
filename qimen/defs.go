@@ -54,11 +54,18 @@ const (
 	QMHostingType2846 = 2
 )
 
-// 起局方式
-var _QMStartType = []string{"拆补", "茅山", "置闰", "自选"}
+// QMStartType 起局方式
+var QMStartType = []string{"拆补", "茅山", "置闰", "自选"}
 
-// 暗干起法
-var _QMHideGanType = []string{"值使门起", "门地盘起"}
+const (
+	QMStartTypeSplit = 0 //节气和日干符头定三元
+	QMStartTypeMao   = 1 //无视符头，节气开始使用本节气之上元60个时辰后即转入中元
+	QMStartTypeZhi   = 2 //符头和节气的关系
+	QMStartTypeSelf  = 3 //自选
+)
+
+// QMHideGanType 暗干起法
+var QMHideGanType = []string{"值使门起", "门地盘起"}
 
 // Idx8 序环
 var Idx8 = []int{8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8}
@@ -143,12 +150,13 @@ func QMGod8(i int) string {
 	i = Idx8[i] * 2
 	return string([]rune(God8)[i : i+2])
 }
-func JieQi2YueJian(jie string) string {
-	return YueJian(TermMonth[jie])
+func Jie2YueJian(jie string) string {
+	return JieYuejian[jie]
 }
-func JieQi2YueJiang(qi string) string {
-	return YueJiang(TermMonth[qi])
+func Qi2YueJiang(qi string) string {
+	return QiYuejiang[qi]
 }
+
 func YueJiang(i int) string {
 	i = Idx12[i]
 	return string([]rune(MonthJiang)[i : i+1])
@@ -168,28 +176,28 @@ func BuildStar(i int) string {
 // 奇门转盘用转宫宫位索引
 var _QMRollIdx = []int{6, 1, 8, 3, 4, 9, 2, 7, 6}     //转宫号=>洛宫号
 var _QM2RollIdx = []int{1, 1, 6, 3, 4, 0, 8, 7, 2, 5} //洛宫号=>转宫号
-
-// TermMonth 节气月将
-var TermMonth = map[string]int{
-	"雨水": 1, "惊蛰": 1,
-	"春分": 2, "清明": 2,
-	"谷雨": 3, "立夏": 3,
-	"小满": 4, "芒种": 4,
-	"夏至": 5, "小暑": 5,
-	"大暑": 6, "立秋": 7,
-	"处暑": 7, "白露": 7,
-	"秋分": 8, "寒露": 8,
-	"霜降": 9, "立冬": 9,
-	"小雪": 10, "大雪": 10,
-	"冬至": 11, "小寒": 11,
-	"大寒": 12, "立春": 12,
+// YueJiangName 月将神名
+var YueJiangName = map[string]string{
+	"亥": "登明", "戌": "河魅", "酉": "从魁",
+	"申": "传送", "未": "小吉", "午": "胜光",
+	"巳": "太乙", "辰": "天罡", "卯": "太冲",
+	"寅": "功曹", "丑": "大吉", "子": "神后",
 }
 
-// YueJiangName 月将将名
-var YueJiangName = map[string]string{
-	"亥": "登明", "戌": "河魅", "酉": "从魁", "申": "传送",
-	"未": "小吉", "午": "胜光", "巳": "太乙", "辰": "天罡",
-	"卯": "太冲", "寅": "功曹", "丑": "大吉", "子": "神后",
+// JIEQI_MONTH 节气 月建索引 交节换建
+var JieYuejian = map[string]string{
+	"立春": "寅", "惊蛰": "卯", "清明": "辰",
+	"立夏": "巳", "芒种": "午", "小暑": "未",
+	"立秋": "申", "白露": "酉", "寒露": "戌",
+	"立冬": "亥", "大雪": "子", "小寒": "丑",
+}
+
+// QiYuejiang 节气 月将索引 交(中)气换将
+var QiYuejiang = map[string]string{
+	"雨水": "亥", "春分": "戌", "谷雨": "酉",
+	"小满": "申", "夏至": "未", "大暑": "午",
+	"处暑": "巳", "秋分": "辰", "霜降": "卯",
+	"小雪": "寅", "冬至": "丑", "大寒": "子",
 }
 
 // Horse 驿马方(申子辰见寅 寅午戌见申 巳酉丑见亥 亥卯未见巳)
@@ -241,8 +249,8 @@ var Horse = map[string]string{
 
 // 廿四节气信息 (0小寒)
 // 从第0个节气的分钟数
-var termData = []int{
-	0, 21208, 42467, 63836, 85337, 107014, 128867, 150921, 173149, 195551, 218072, 240693,
-	263343, 285989, 308563, 331033, 353350, 375494, 397447, 419210, 440795, 462224, 483532,
-	504758,
-}
+//var termData = []int{
+//	0, 21208, 42467, 63836, 85337, 107014, 128867, 150921, 173149, 195551, 218072, 240693,
+//	263343, 285989, 308563, 331033, 353350, 375494, 397447, 419210, 440795, 462224, 483532,
+//	504758,
+//}
