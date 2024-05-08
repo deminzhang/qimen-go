@@ -1,5 +1,12 @@
 package qimen
 
+const (
+	QMGameHour  = 0 //时家奇门
+	QMGameDay   = 1 //日家奇门
+	QMGameMonth = 2 //月家奇门
+	QMGameYear  = 3 //年家奇门
+)
+
 // Yuan3Name 奇门三元名
 var Yuan3Name = []string{"", "上元", "中元", "下元"}
 
@@ -55,7 +62,7 @@ const (
 )
 
 // QMStartType 起局方式
-var QMStartType = []string{"拆补", "茅山", "置闰", "自选"}
+var QMStartType = []string{"拆补", "_茅山", "_置闰", "自选"}
 
 const (
 	QMStartTypeSplit = 0 //节气和日干符头定三元
@@ -86,10 +93,27 @@ var HideJia = map[string]string{
 	"甲寅": "癸",
 }
 
+// KongWang 旬空亡
+var KongWang = map[string][]string{
+	"甲子": {"戌", "亥"},
+	"甲戌": {"申", "酉"},
+	"甲申": {"午", "未"},
+	"甲午": {"辰", "巳"},
+	"甲辰": {"寅", "卯"},
+	"甲寅": {"子", "丑"},
+}
+
+// ZhiGong9 支九宫位
+var ZhiGong9 = map[string]int{
+	"子": 1, "丑": 8, "寅": 8, "卯": 3, "辰": 4, "巳": 4,
+	"午": 9, "未": 2, "申": 2, "酉": 7, "戌": 6, "亥": 6,
+}
+
 const (
-	Trunk10      = "_甲乙丙丁戊已庚辛壬癸"   //天干
-	Branch12     = "_子丑寅卯辰巳午末申酉戌亥" //地支
-	Diagrams8In9 = "_坎坤震巽中乾竞艮离"    //九宫八卦
+	Trunk10  = "_甲乙丙丁戊已庚辛壬癸"   //天干
+	Branch12 = "_子丑寅卯辰巳午末申酉戌亥" //地支
+
+	Diagrams8In9 = "_坎坤震巽中乾竞艮离" //九宫八卦
 	//Term24    = "__小寒大寒立春雨水惊蛰春分清明谷雨立夏小满芒种夏至小暑大暑立秋处暑白露秋分寒露霜降立冬小雪大雪冬至"
 
 	Star0 = "天"
@@ -249,8 +273,19 @@ var Horse = map[string]string{
 
 // 廿四节气信息 (0小寒)
 // 从第0个节气的分钟数
-//var termData = []int{
-//	0, 21208, 42467, 63836, 85337, 107014, 128867, 150921, 173149, 195551, 218072, 240693,
-//	263343, 285989, 308563, 331033, 353350, 375494, 397447, 419210, 440795, 462224, 483532,
-//	504758,
-//}
+var termData = []int{
+	0, 21208, 42467, 63836, 85337, 107014, 128867, 150921, 173149, 195551, 218072, 240693,
+	263343, 285989, 308563, 331033, 353350, 375494, 397447, 419210, 440795, 462224, 483532,
+	504758,
+}
+
+const _QiMenYearJuStart = 64 //64年局起上元,60年换中元,再60年换下元
+var _QiMenJuYear = []int{0, -1, -4, -7}
+
+func GetYearYuan(lYear int) int {
+	return 1 + (lYear-_QiMenYearJuStart)%180/60
+}
+
+func GetYearJu(lYear int) int {
+	return _QiMenJuYear[GetYearYuan(lYear)]
+}

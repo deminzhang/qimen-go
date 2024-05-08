@@ -11,17 +11,21 @@ import (
 func TestQimen(t *testing.T) {
 	tm := time.Now()
 	pan, err := qimen.NewPan(tm.Year(), int(tm.Month()), tm.Day(), tm.Hour(), tm.Minute(),
-		qimen.QMTypeAmaze,
-		qimen.QMHostingType28,
-		qimen.QMFlyTypeAllOrder)
+		qimen.QMParams{
+			Type:        qimen.QMTypeAmaze,
+			HostingType: qimen.QMHostingType28,
+			FlyType:     qimen.QMFlyTypeAllOrder,
+			StartType:   qimen.QMStartTypeSplit,
+			HideGanType: 0,
+		})
 	if err != nil {
 		fmt.Println("时间不对")
 	}
 	//九宫文本
 	for i := 1; i <= 9; i++ {
-		g := pan.Gongs[i]
+		g := pan.HourPan.Gongs[i]
 		var hosting = "    "
-		if pan.RollHosting > 0 && i == pan.DutyStarPos {
+		if pan.HourPan.RollHosting > 0 && i == pan.HourPan.DutyStarPos {
 			hosting = " 禽 "
 		}
 		fmt.Printf("\n      %s\n\n%s    %s%s%s\n\n%s    %s    %s\n\n      %s%s",
@@ -31,4 +35,5 @@ func TestQimen(t *testing.T) {
 			LunarUtil.NUMBER[i])
 	}
 	fmt.Println("---")
+
 }

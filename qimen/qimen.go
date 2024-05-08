@@ -42,25 +42,37 @@ type QMGame struct {
 	LunarDayC    string
 	LunarHourC   string
 
-	ShiGan    string //时干
-	ShiZhi    string //时支
-	ShiZhiIdx int    //时支序
-
 	YearRB  string //年干支
 	MonthRB string //月干支
 	DayRB   string //日干支
 	HourRB  string //时干支
 
-	Type                int //盘式
-	RotatingHostingType int //转盘.寄中法
-	FlyType             int //飞盘.飞星法
-	StartType           int //起局.起局法
+	YueJian        string //月建
+	YueJianZhiIdx  int    //月建地支号
+	YueJiang       string //月将
+	YueJiangZhiIdx int    //月将地支号
+
+	HourGan    string //时干
+	HourZhi    string //时支
+	HourZhiIdx int    //时支序
+
+	YMDH string //年月日时家
 
 	JieQi string //节气文本
-	Yuan3 int    //三元1~3
-	Ju    int    //格局-1~-9,1~9
 
-	ShiXun      string //时辰旬首
+	YearPan  *QMPan //年家奇门盘
+	MonthPan *QMPan //月家奇门盘
+	DayPan   *QMPan //日家奇门盘
+	HourPan  *QMPan //时家奇门盘
+}
+
+type QMPan struct {
+	Yuan3 int //三元1~3
+	Ju    int //格局-1~-9,1~9
+
+	GanZhi string //时辰旬首
+	Xun    string //时辰旬首
+
 	Duty        int    //值序
 	DutyStar    string //值符
 	DutyStarPos int    //值符落宫
@@ -68,27 +80,25 @@ type QMGame struct {
 	DutyDoorPos int    //值使落宫
 	RollHosting int    //转盘寄宫
 
-	YueJian        string //月建
-	YueJianZhiIdx  int    //月建地支号
-	YueJiang       string //月将
-	YueJiangZhiIdx int    //月将地支号
+	Type                int //盘式
+	RotatingHostingType int //转盘.寄中法
+	FlyType             int //飞盘.飞星法
+	StartType           int //起局.起局法
 
-	HourHorse string //驿马
+	Horse string //驿马支位
 
 	Gongs [10]QMPalace //九宫飞盘格
-
-	//DayPan   *QMGame //日家奇门盘
-	//MonthPan *QMGame //月家奇门盘
-	//YearPan  *QMGame //年家奇门盘
 }
 
 type QMParams struct {
 	Type        int //QMType
-	HostingType int //QMHostingType
-	FlyType     int //QMFlyType
-	StartType   int //QMStartType
-	HideGanType int //QMHideGanType
+	HostingType int //QMHostingType 转盘寄宫法
+	FlyType     int //QMFlyType	飞盘九星飞宫
+	StartType   int //QMStartType 起局方式
+	HideGanType int //QMHideGanType 暗干起法
 	SelfJu      int //自选局数
+
+	YMDH int //年月日时家
 }
 
 func getQiMenYuan3Index(dayGanZhi string) int {
@@ -108,10 +118,10 @@ func getQiMenJuIndex(jieQi string, yuan3Idx int) int {
 }
 
 // GetTermTime 返回solar年的第n(1小寒)个节气进入时间 以1970-01-01 00:00:00 UTC为0,正后前负
-//func GetTermTime(year, n int) int64 {
-//	t := int64(31556925974.7*float64(year-1900)/1000) + int64(termData[n-1]*60-2208549300)
-//	return t
-//}
+func GetTermTime(year, n int) int64 {
+	t := int64(31556925974.7*float64(year-1900)/1000) + int64(termData[n-1]*60-2208549300)
+	return t
+}
 
 func checkDate(year, month, day, hour, minute int) error {
 	if month < 1 || month > 12 {
@@ -138,33 +148,37 @@ func checkDate(year, month, day, hour, minute int) error {
 	return nil
 }
 
-func (p *QMGame) calcGong() {
-	g9 := &p.Gongs
+func (p *QMGame) calcGong(pp *QMPan) {
+	g9 := &pp.Gongs
+	xun := LunarUtil.GetXun(pp.GanZhi)
+	gan := pp.GanZhi[:len(pp.GanZhi)/2]
+	zhi := pp.GanZhi[len(pp.GanZhi)/2:]
+	pp.Xun = xun
+	pp.Horse = Horse[zhi]
+
 	for i := 1; i <= 9; i++ {
 		g9[i].Idx = i
 	}
-
+	ju := pp.Ju
 	//地盘 三奇六仪
-	if p.Ju > 0 { //阳遁顺仪奇逆布
-		ju := p.Ju
+	if ju > 0 { //阳遁顺仪奇逆布
 		for i := ju; i < ju+9; i++ {
 			g9[Idx9[i]].HostGan = QM3Qi6Yi(i - ju + 1)
 		}
 	} else { //阴遁逆仪奇顺行
-		ju := -p.Ju
-		for i := ju + 9; i > ju; i-- {
-			g9[Idx9[i]].HostGan = QM3Qi6Yi(ju + 9 - i + 1)
+		for i := -ju + 9; i > -ju; i-- {
+			g9[Idx9[i]].HostGan = QM3Qi6Yi(-ju + 9 - i + 1)
 		}
 	}
 
 	//定值符值使 时旬首所遁地仪宫
 	var duty int //值序符宫
 	for i := 1; i <= 9; i++ {
-		if g9[i].HostGan == HideJia[p.ShiXun] {
+		if g9[i].HostGan == HideJia[pp.Xun] {
 			duty = i
-			p.Duty = i
-			p.DutyStar = QMStar9(i)
-			p.DutyDoor = QMDoor9(i) // if 转盘值使寄坤宫
+			pp.Duty = i
+			pp.DutyStar = QMStar9(i)
+			pp.DutyDoor = QMDoor9(i) // if 转盘值使寄坤宫
 			break
 		}
 	}
@@ -172,25 +186,25 @@ func (p *QMGame) calcGong() {
 	//值符落宫
 	//值符加于时干上，值使加之在时支。
 	var dutyStarPos, dutyDoorPos int
-	dutyGan := p.ShiGan
+	dutyGan := gan
 	if dutyGan == "甲" {
-		dutyGan = HideJia[p.ShiXun] //遁甲
+		dutyGan = HideJia[pp.Xun] //遁甲
 	}
 	for i := 1; i <= 9; i++ {
 		if g9[i].HostGan == dutyGan {
 			dutyStarPos = i
-			p.DutyStarPos = i
+			pp.DutyStarPos = i
 			break
 		}
 	}
 	//找符使落宫  排暗干支神
 	var jiaZiIdx int
 	for i, x := range LunarUtil.JIA_ZI {
-		if x == p.ShiXun {
+		if x == pp.Xun {
 			jiaZiIdx = i
 		}
 	}
-	if p.Ju > 0 { //阳遁
+	if pp.Ju > 0 { //阳遁
 		for i := duty; i <= duty+9; i++ {
 			gid := Idx9[i]
 			gz := LunarUtil.JIA_ZI[jiaZiIdx]
@@ -201,9 +215,9 @@ func (p *QMGame) calcGong() {
 			g, z := gz[:len(gz)/2], gz[len(gz)/2:]
 			g9[gid].PathGan = g
 			g9[gid].PathZhi = z
-			if z == p.ShiZhi {
+			if z == zhi {
 				dutyDoorPos = gid
-				p.DutyDoorPos = gid
+				pp.DutyDoorPos = gid
 			}
 		}
 	} else {
@@ -217,24 +231,25 @@ func (p *QMGame) calcGong() {
 			g, z := gz[:len(gz)/2], gz[len(gz)/2:]
 			g9[gid].PathGan = g
 			g9[gid].PathZhi = z
-			if z == p.ShiZhi {
-				p.DutyDoorPos = gid
+			if z == zhi {
+				dutyDoorPos = gid
+				pp.DutyDoorPos = gid
 			}
 		}
 	}
 
 	//天盘 三奇六仪 值符带旬首仪飞
 	var xunGanIdx int
-	xunGan := p.ShiXun[:len(p.ShiXun)/2]
+	xunGan := pp.Xun[:len(pp.Xun)/2]
 	if xunGan == "甲" {
-		xunGan = HideJia[p.ShiXun] //遁甲
+		xunGan = HideJia[pp.Xun] //遁甲
 	}
 	for i, g := range []rune(T3Qi6Yi) {
 		if string(g) == xunGan {
 			xunGanIdx = i
 		}
 	}
-	if p.Ju > 0 {
+	if pp.Ju > 0 {
 		for i := dutyStarPos; i < dutyStarPos+9; i++ {
 			g9[Idx9[i]].GuestGan = QM3Qi6Yi(xunGanIdx)
 			xunGanIdx++
@@ -246,38 +261,38 @@ func (p *QMGame) calcGong() {
 		}
 	}
 
-	switch p.Type {
+	switch pp.Type {
 	case QMTypeRotating:
 		//天盘 值符起落九星
-		p.RollHosting = 0
+		pp.RollHosting = 0
 		dutyRoll := duty
 		//中宫寄二,阴寄二阳寄八,寄四维?
 		if dutyStarPos == 5 { //落5寄宫
-			switch p.RotatingHostingType {
+			switch pp.RotatingHostingType {
 			case QMHostingType2:
 				dutyRoll = 2
 			case QMHostingType28:
-				if p.Ju > 0 {
+				if pp.Ju > 0 {
 					dutyRoll = 8
 				} else {
 					dutyRoll = 2
 				}
 			}
 			dutyStarPos = dutyRoll
-			p.DutyStarPos = dutyRoll
+			pp.DutyStarPos = dutyRoll
 		}
 		if duty == 5 { //符中寄禽芮
-			switch p.RotatingHostingType {
+			switch pp.RotatingHostingType {
 			case QMHostingType2:
 				dutyRoll = 2
 			case QMHostingType28:
-				if p.Ju > 0 {
+				if pp.Ju > 0 {
 					dutyRoll = 8
 				} else {
 					dutyRoll = 2
 				}
 			}
-			p.RollHosting = dutyRoll
+			pp.RollHosting = dutyRoll
 		}
 		var starRollIdx = _QM2RollIdx[dutyStarPos] //转起宫
 		var startIdx = _QM2RollIdx[dutyRoll]       //转起
@@ -285,34 +300,31 @@ func (p *QMGame) calcGong() {
 			gIdx := _QMRollIdx[Idx8[i]]
 			g9[gIdx].Star = QMStar8(startIdx)
 			//神盘
-			if p.Ju > 0 {
-				//g9[gIdx].God = _QMGod8[Idx8[1+i-starRollIdx]]
+			if pp.Ju > 0 {
 				g9[gIdx].God = QMGod8(1 + i - starRollIdx)
 			} else {
-				//g9[gIdx].God = _QMGod8[Idx8[1+starRollIdx+8-i]]
 				g9[gIdx].God = QMGod8(1 + starRollIdx + 8 - i)
 			}
 			startIdx++
 		}
 		//转八门
 		if duty == 5 {
-			p.DutyDoor = QMDoor9(dutyRoll)
+			pp.DutyDoor = QMDoor9(dutyRoll)
 		}
 		if dutyDoorPos == 5 {
-			switch p.RotatingHostingType {
+			switch pp.RotatingHostingType {
 			case QMHostingType2:
 				dutyDoorPos = 2
 			case QMHostingType28:
-				if p.Ju > 0 {
+				if pp.Ju > 0 {
 					dutyDoorPos = 8
 				} else {
 					dutyDoorPos = 2
 				}
-				//case QMHostingType2846:
 			}
-			p.DutyDoor = QMDoor9(dutyDoorPos)
+			pp.DutyDoor = QMDoor9(dutyDoorPos)
 			duty = dutyDoorPos
-			p.DutyDoorPos = dutyDoorPos
+			pp.DutyDoorPos = dutyDoorPos
 		}
 		var doorRollIdx = _QM2RollIdx[dutyDoorPos] //转起宫
 		startIdx = _QM2RollIdx[dutyRoll]           //转起
@@ -328,26 +340,22 @@ func (p *QMGame) calcGong() {
 		}
 	case QMTypeFly, QMTypeAmaze:
 		//天盘 值符起落九星
-		if p.Type == QMTypeAmaze || p.Ju > 0 || p.FlyType == QMFlyTypeAllOrder {
+		if pp.Type == QMTypeAmaze || pp.Ju > 0 || pp.FlyType == QMFlyTypeAllOrder {
 			for i := dutyStarPos; i < dutyStarPos+9; i++ {
-				//g9[Idx9[i]].Star = _QMStar9[Idx9[duty+i-dutyStarPos]]
 				g9[Idx9[i]].Star = QMStar9(duty + i - dutyStarPos)
 			}
 		} else { //QMTypeFly && QMFlyTypeLunarReverse && p.Ju < 0
 			for i := dutyStarPos + 9; i > dutyStarPos; i-- {
-				//g9[Idx9[i]].Star = _QMStar9[Idx9[duty+dutyStarPos+9-i]]
 				g9[Idx9[i]].Star = QMStar9(duty + dutyStarPos + 9 - i)
 			}
 		}
 		//神盘 值符起九神
-		if p.Ju > 0 { //阳遁
+		if pp.Ju > 0 { //阳遁
 			for i := dutyStarPos; i < dutyStarPos+9; i++ {
-				//g9[Idx9[i]].God = _QMGod9S[Idx9[1+i-dutyStarPos]]
 				g9[Idx9[i]].God = QMGod9S(1 + i - dutyStarPos)
 			}
 		} else {
 			for i := dutyStarPos + 9; i > dutyStarPos; i-- {
-				//g9[Idx9[i]].God = _QMGod9L[Idx9[1+dutyStarPos+9-i]]
 				g9[Idx9[i]].God = QMGod9L(1 + dutyStarPos + 9 - i)
 			}
 		}
@@ -359,8 +367,8 @@ func (p *QMGame) calcGong() {
 }
 
 func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error) {
-	qmType, qmHostingType, pqmFlyType, startType, hideGanType :=
-		params.Type, params.HostingType, params.FlyType, params.StartType, params.HideGanType
+	ymdh, qmType, qmHostingType, pqmFlyType, startType, hideGanType :=
+		params.YMDH, params.Type, params.HostingType, params.FlyType, params.StartType, params.HideGanType
 	if err := checkDate(year, month, day, hour, minute); err != nil {
 		return nil, err
 	}
@@ -368,7 +376,7 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 	lunar := calendar.NewLunarFromSolar(solar)
 	c8 := lunar.GetBaZi()
 	dayGanZhi := c8[2]
-	shiGanZhi := c8[3]
+	hourGanZhi := c8[3]
 	if hour == 23 { //晚子时日柱作次日
 		di := LunarUtil.GetJiaZiIndex(dayGanZhi) + 1
 		if di > 59 {
@@ -378,77 +386,97 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 	}
 	dayYuanIdx := getQiMenYuan3Index(c8[2])
 	jieQi := lunar.GetPrevJieQi().GetName()
-	var ju int
-	switch startType {
-	case QMStartTypeSplit:
-		ju = getQiMenJuIndex(jieQi, dayYuanIdx)
-	case QMStartTypeMao:
-		//TODO
-	case QMStartTypeZhi:
-		//TODO
-	case QMStartTypeSelf:
-		//TODO
-		ju = params.SelfJu
-	}
-	switch hideGanType {
-	//TODO
-	}
-	shiXun := LunarUtil.GetXun(shiGanZhi)
-	shiZhi := shiGanZhi[len(shiGanZhi)/2:]
+
+	hourZhi := hourGanZhi[len(hourGanZhi)/2:]
 	p := QMGame{
-		Solar:               solar,
-		Lunar:               lunar,
-		Type:                qmType,
-		RotatingHostingType: qmHostingType,
-		FlyType:             pqmFlyType,
-		StartType:           startType,
-		SolarYear:           year,
-		SolarMonth:          month,
-		SolarDay:            day,
-		SolarHour:           hour,
-		SolarMinute:         minute,
-		lunarYear:           lunar.GetYear(),
-		lunarMonth:          lunar.GetMonth(),
-		lunarDay:            lunar.GetYear(),
-		lunarHour:           lunar.GetHour(),
-		LunarYearC:          lunar.GetYearInChinese(),
-		LunarMonthC:         lunar.GetMonthInChinese() + "月",
-		LunarDayC:           lunar.GetDayInChinese(),
-		LunarHourC:          shiZhi + "时",
-		ShiGan:              shiGanZhi[:len(shiGanZhi)/2],
-		ShiZhi:              shiZhi,
-		YearRB:              c8[0],
-		MonthRB:             c8[1],
-		DayRB:               dayGanZhi,
-		HourRB:              shiGanZhi,
-		JieQi:               jieQi,
-		Ju:                  ju,
-		Yuan3:               dayYuanIdx,
-		ShiXun:              shiXun,
-		YueJian:             Jie2YueJian(lunar.GetPrevJie().GetName()),
-		YueJiang:            Qi2YueJiang(lunar.GetPrevQi().GetName()),
-		HourHorse:           Horse[shiZhi],
+		Solar:       solar,
+		Lunar:       lunar,
+		SolarYear:   year,
+		SolarMonth:  month,
+		SolarDay:    day,
+		SolarHour:   hour,
+		SolarMinute: minute,
+		lunarYear:   lunar.GetYear(),
+		lunarMonth:  lunar.GetMonth(),
+		lunarDay:    lunar.GetYear(),
+		lunarHour:   lunar.GetHour(),
+		LunarYearC:  lunar.GetYearInChinese(),
+		LunarMonthC: lunar.GetMonthInChinese() + "月",
+		LunarDayC:   lunar.GetDayInChinese(),
+		LunarHourC:  hourZhi + "时",
+		HourGan:     hourGanZhi[:len(hourGanZhi)/2],
+		HourZhi:     hourZhi,
+		YearRB:      c8[0],
+		MonthRB:     c8[1],
+		DayRB:       dayGanZhi,
+		HourRB:      hourGanZhi,
+		YueJian:     Jie2YueJian(lunar.GetPrevJie().GetName()),
+		YueJiang:    Qi2YueJiang(lunar.GetPrevQi().GetName()),
+		JieQi:       jieQi,
 	}
-	//排九宫
-	p.calcGong()
-	//排大六壬支 月将落时支 顺布余支
-	for i := 1; i <= 12; i++ {
-		if p.YueJian == LunarUtil.ZHI[i] {
-			p.YueJianZhiIdx = i
-			break
+	switch ymdh {
+	case QMGameHour: //排时家奇门
+		var ju int
+		switch startType {
+		case QMStartTypeSplit:
+			ju = getQiMenJuIndex(jieQi, dayYuanIdx)
+		case QMStartTypeMao:
+			//TODO
+		case QMStartTypeZhi:
+			//TODO
+		case QMStartTypeSelf:
+			ju = params.SelfJu
 		}
-	}
-	for i := 1; i <= 12; i++ {
-		if p.YueJiang == LunarUtil.ZHI[i] {
-			p.YueJiangZhiIdx = i
-			break
+		switch hideGanType {
+		//TODO
 		}
-	}
-	for i := 1; i <= 12; i++ {
-		if p.ShiZhi == LunarUtil.ZHI[i] {
-			p.ShiZhiIdx = i
-			break
+		p.HourPan = &QMPan{
+			Yuan3:  dayYuanIdx,
+			Ju:     ju,
+			GanZhi: hourGanZhi,
+
+			Type:                qmType,
+			RotatingHostingType: qmHostingType,
+			FlyType:             pqmFlyType,
+			StartType:           startType,
 		}
+		//排九宫
+		p.calcGong(p.HourPan)
+
+		//排大六壬支 月将落时支 顺布余支
+		for i := 1; i <= 12; i++ {
+			if p.YueJian == LunarUtil.ZHI[i] {
+				p.YueJianZhiIdx = i
+				break
+			}
+		}
+		for i := 1; i <= 12; i++ {
+			if p.YueJiang == LunarUtil.ZHI[i] {
+				p.YueJiangZhiIdx = i
+				break
+			}
+		}
+		for i := 1; i <= 12; i++ {
+			if p.HourZhi == LunarUtil.ZHI[i] {
+				p.HourZhiIdx = i
+				break
+			}
+		}
+	case QMGameDay:
+	case QMGameMonth:
+	case QMGameYear: //排年家奇门
+		yearGanZhi := c8[0]
+		p.YearPan = &QMPan{
+			Yuan3:  GetYearYuan(p.lunarYear),
+			Ju:     GetYearJu(p.lunarYear),
+			GanZhi: yearGanZhi,
+
+			Type:                qmType,
+			RotatingHostingType: qmHostingType,
+			FlyType:             pqmFlyType,
+			StartType:           startType,
+		}
+		p.calcGong(p.YearPan)
 	}
 
 	return &p, nil

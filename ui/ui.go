@@ -45,7 +45,9 @@ func CloseUI(ui IUIPanel) {
 }
 func Update() {
 	for _, u := range uis {
-		u.Update()
+		if !u.IsDisabled() && u.IsVisible() {
+			u.Update()
+		}
 	}
 }
 
@@ -88,7 +90,7 @@ func (u *BaseUI) SetParent(p IUIPanel) {
 
 func (u *BaseUI) Update() {
 	for _, p := range u.children {
-		if !p.IsDisabled() {
+		if !p.IsDisabled() && p.IsVisible() {
 			p.Update()
 		}
 	}
