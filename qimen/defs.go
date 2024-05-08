@@ -1,10 +1,16 @@
 package qimen
 
+import (
+	"github.com/6tail/lunar-go/LunarUtil"
+	"strings"
+)
+
 const (
 	QMGameHour  = 0 //时家奇门
 	QMGameDay   = 1 //日家奇门
 	QMGameMonth = 2 //月家奇门
 	QMGameYear  = 3 //年家奇门
+	QMGameDay2  = 4 //日家奇门太乙
 )
 
 // Yuan3Name 奇门三元名
@@ -131,11 +137,11 @@ const (
 	God8       = "__值符腾蛇太阴六合白虎玄武九地九天"   //八神转盘用
 	MonthBuild = "_寅卯辰巳午未申酉戌亥子丑"        //月建 正月起寅 交节换建
 	Build12    = "_建除满平定执破危成收开闭"        //十二建星
-	MonthJiang = "_亥戌酉申未午巳辰卯寅丑子"        //月将 正月起亥 交气/中气换将
+	MonthJiang = "_亥戌酉申未午巳辰卯寅丑子"        //月将 正月起亥 交中气换将
 
-	QMDayStar9 = "__太乙摄提轩辕招摇天符青龙咸池太阴天乙"       //日家奇门九星
-	God12      = "__青龙明堂天刑朱雀金匮天德白虎玉堂天牢玄武司命勾陈" //日家奇门十二原神黄黑道
-	God12YB    = "_黄黄黑黑黄黄黑黄黑黑黄黑"              //十二黄黑道
+	QMDayStar9   = "__太乙摄提轩辕招摇天符青龙咸池太阴天乙"       //日家奇门2九星
+	QMDayGod12   = "__青龙明堂天刑朱雀金匮天德白虎玉堂天牢玄武司命勾陈" //日家奇门2十二原神黄黑道
+	QMDayGod12YB = "_黄黄黑黑黄黄黑黄黑黑黄黑"              //十二黄黑道
 )
 
 func Diagrams9(i int) string {
@@ -279,13 +285,49 @@ var termData = []int{
 	504758,
 }
 
+// 黄帝有熊氏即位的甲子年(公元前2697年)
 const _QiMenYearJuStart = 64 //64年局起上元,60年换中元,再60年换下元
 var _QiMenJuYear = []int{0, -1, -4, -7}
 
-func GetYearYuan(lYear int) int {
-	return 1 + (lYear-_QiMenYearJuStart)%180/60
+func GetYearYuanJu(lYear int) (int, int) {
+	yuan := 1 + (lYear-_QiMenYearJuStart)%180/60
+	return yuan, _QiMenJuYear[yuan]
 }
 
-func GetYearJu(lYear int) int {
-	return _QiMenJuYear[GetYearYuan(lYear)]
+const (
+	_Ju1 = "子午卯酉" //四仲上元阴7
+	_Ju2 = "寅申巳亥" //四孟中元阴1
+	_Ju3 = "辰戌丑未" //四季下元阴4
+)
+
+var _QiMenJuMonth = []int{0, -7, -1, -4} //秋分局
+
+// GetHeadGanZhi 找甲己符头
+func GetHeadGanZhi(yearTB string) (string, string) {
+	gan := yearTB[:len(yearTB)/2]
+	zhi := yearTB[len(yearTB)/2:]
+	var ganIdx, zhiIdx int
+	for i, g := range LunarUtil.GAN {
+		if g == gan {
+			ganIdx = i
+			break
+		}
+	}
+	for i, z := range LunarUtil.ZHI {
+		if z == zhi {
+			zhiIdx = i
+			break
+		}
+	}
+	return LunarUtil.GAN[ganIdx], LunarUtil.ZHI[zhiIdx]
+}
+func GetMonthYuanJu(yearTB string) (int, int) {
+	_, zhi := GetHeadGanZhi(yearTB)
+	if strings.Contains(_Ju1, zhi) {
+		return 1, _QiMenJuMonth[1]
+	}
+	if strings.Contains(_Ju2, zhi) {
+		return 2, _QiMenJuMonth[2]
+	}
+	return 3, _QiMenJuMonth[3]
 }

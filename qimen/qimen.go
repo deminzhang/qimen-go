@@ -42,10 +42,10 @@ type QMGame struct {
 	LunarDayC    string
 	LunarHourC   string
 
-	YearRB  string //年干支
-	MonthRB string //月干支
-	DayRB   string //日干支
-	HourRB  string //时干支
+	YearTB  string //年干支
+	MonthTB string //月干支
+	DayTB   string //日干支
+	HourTB  string //时干支
 
 	YueJian        string //月建
 	YueJianZhiIdx  int    //月建地支号
@@ -67,11 +67,16 @@ type QMGame struct {
 }
 
 type QMPan struct {
-	Yuan3 int //三元1~3
-	Ju    int //格局-1~-9,1~9
+	Type                int //盘式
+	RotatingHostingType int //转盘.寄中法
+	FlyType             int //飞盘.飞星法
+	StartType           int //起局.起局法
 
-	GanZhi string //时辰旬首
-	Xun    string //时辰旬首
+	Yuan3 int //三元1~3
+	Ju    int //格局-1~-9,1~9, 年家为-1,-4,-7
+
+	GanZhi string //干支 年家为年干支,,,时家为时干支
+	Xun    string //干支旬首
 
 	Duty        int    //值序
 	DutyStar    string //值符
@@ -79,11 +84,6 @@ type QMPan struct {
 	DutyDoor    string //值使
 	DutyDoorPos int    //值使落宫
 	RollHosting int    //转盘寄宫
-
-	Type                int //盘式
-	RotatingHostingType int //转盘.寄中法
-	FlyType             int //飞盘.飞星法
-	StartType           int //起局.起局法
 
 	Horse string //驿马支位
 
@@ -406,10 +406,10 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 		LunarHourC:  hourZhi + "时",
 		HourGan:     hourGanZhi[:len(hourGanZhi)/2],
 		HourZhi:     hourZhi,
-		YearRB:      c8[0],
-		MonthRB:     c8[1],
-		DayRB:       dayGanZhi,
-		HourRB:      hourGanZhi,
+		YearTB:      c8[0],
+		MonthTB:     c8[1],
+		DayTB:       dayGanZhi,
+		HourTB:      hourGanZhi,
 		YueJian:     Jie2YueJian(lunar.GetPrevJie().GetName()),
 		YueJiang:    Qi2YueJiang(lunar.GetPrevQi().GetName()),
 		JieQi:       jieQi,
@@ -463,13 +463,35 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 			}
 		}
 	case QMGameDay:
+		//p.DayPan = &QMPan{
+		//	//Yuan3:  ,
+		//	//Ju:    ,
+		//	GanZhi: c8[2],
+		//
+		//	Type:                qmType,
+		//	RotatingHostingType: qmHostingType,
+		//	FlyType:             pqmFlyType,
+		//	StartType:           startType,
+		//}
 	case QMGameMonth:
+		yuan, ju := GetMonthYuanJu(p.YearTB)
+		p.MonthPan = &QMPan{
+			Yuan3:  yuan,
+			Ju:     ju,
+			GanZhi: c8[1],
+
+			Type:                qmType,
+			RotatingHostingType: qmHostingType,
+			FlyType:             pqmFlyType,
+			StartType:           startType,
+		}
+		p.calcGong(p.MonthPan)
 	case QMGameYear: //排年家奇门
-		yearGanZhi := c8[0]
+		yuan, ju := GetYearYuanJu(p.lunarYear)
 		p.YearPan = &QMPan{
-			Yuan3:  GetYearYuan(p.lunarYear),
-			Ju:     GetYearJu(p.lunarYear),
-			GanZhi: yearGanZhi,
+			Yuan3:  yuan,
+			Ju:     ju,
+			GanZhi: c8[0],
 
 			Type:                qmType,
 			RotatingHostingType: qmHostingType,
