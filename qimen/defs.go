@@ -59,12 +59,11 @@ const (
 )
 
 // QMHostingType 转盘寄宫法
-var QMHostingType = []string{"中宫寄坤", "阳艮阴坤", "_土寄四维"}
+var QMHostingType = []string{"中宫寄坤", "阳艮阴坤"}
 
 const (
-	QMHostingType2    = 0
-	QMHostingType28   = 1
-	QMHostingType2846 = 2
+	QMHostingType2  = 0
+	QMHostingType28 = 1
 )
 
 // QMStartType 起局方式
@@ -91,12 +90,8 @@ var Idx12 = []int{12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7
 
 // HideJia 旬首遁甲
 var HideJia = map[string]string{
-	"甲子": "戊",
-	"甲戌": "己",
-	"甲申": "庚",
-	"甲午": "辛",
-	"甲辰": "壬",
-	"甲寅": "癸",
+	"甲子": "戊", "甲戌": "己", "甲申": "庚",
+	"甲午": "辛", "甲辰": "壬", "甲寅": "癸",
 }
 
 // KongWang 旬空亡
@@ -285,11 +280,16 @@ var termData = []int{
 	504758,
 }
 
-// 黄帝有熊氏即位的甲子年(公元前2697年)
-const _QiMenYearJuStart = 64 //64年局起上元,60年换中元,再60年换下元
+// 黄帝有熊氏即位的甲子年(公元前2697年起甲子下元)
+// 公元前1年为0,前2年为-1,60年换元
+const _QiMenYearJuStart = 60 - 2697 + 1
+
 var _QiMenJuYear = []int{0, -1, -4, -7}
 
 func GetYearYuanJu(lYear int) (int, int) {
+	if lYear < _QiMenYearJuStart {
+		lYear += ((_QiMenYearJuStart-lYear)/180 + 1) * 180
+	}
 	yuan := 1 + (lYear-_QiMenYearJuStart)%180/60
 	return yuan, _QiMenJuYear[yuan]
 }
