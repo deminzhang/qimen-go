@@ -123,7 +123,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.textJu = ui.NewTextBox(image.Rect(px0, py0, px0+72*4+64, py0+h*2))
 	py0 += 32
 	p.opHourPan = ui.NewOptionBox(px0+72*5, py0+8, "时家")
-	p.opDayPan = ui.NewOptionBox(px0+72*6, py0+8, "日家")
+	p.opDayPan = ui.NewOptionBox(px0+72*6, py0+8, "_日家")
 	p.opMonthPan = ui.NewOptionBox(px0+72*7, py0+8, "月家")
 	p.opYearPan = ui.NewOptionBox(px0+72*8, py0+8, "年家")
 
@@ -167,7 +167,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	}
 
 	p.AddChild(p.panelSDate)
-	p.inputSYear.MaxChars = 4
+	p.inputSYear.MaxChars = 5
 	p.inputSMonth.MaxChars = 2
 	p.inputSDay.MaxChars = 2
 	p.inputSHour.MaxChars = 2
@@ -300,11 +300,8 @@ func NewUIQiMen(width, height int) *UIQiMen {
 		p.Apply(year, month, day, hour, minute)
 	})
 	p.btnPreHour2.SetOnClick(func(b *ui.Button) {
-		year, _ := strconv.Atoi(p.inputSYear.Text())
-		month, _ := strconv.Atoi(p.inputSMonth.Text())
-		day, _ := strconv.Atoi(p.inputSDay.Text())
-		hour, _ := strconv.Atoi(p.inputSHour.Text())
-		minute, _ := strconv.Atoi(p.inputSMin.Text())
+		year, month, day, hour, minute := p.year, p.month, p.day, p.hour, p.minute
+
 		switch p.qmParams.YMDH {
 		case qimen.QMGameYear:
 			year--
@@ -351,11 +348,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 		p.Apply(year, month, day, hour, minute)
 	})
 	p.btnNextHour2.SetOnClick(func(b *ui.Button) {
-		year, _ := strconv.Atoi(p.inputSYear.Text())
-		month, _ := strconv.Atoi(p.inputSMonth.Text())
-		day, _ := strconv.Atoi(p.inputSDay.Text())
-		hour, _ := strconv.Atoi(p.inputSHour.Text())
-		minute, _ := strconv.Atoi(p.inputSMin.Text())
+		year, month, day, hour, minute := p.year, p.month, p.day, p.hour, p.minute
 
 		switch p.qmParams.YMDH {
 		case qimen.QMGameYear:
@@ -487,6 +480,31 @@ func (p *UIQiMen) Apply(year, month, day, hour, minute int) {
 	}
 }
 
+func (p *UIQiMen) show9Gong(pp *qimen.QMPan) {
+	kongWang := qimen.KongWang[pp.Xun]
+	for i := 1; i <= 9; i++ {
+		g := pp.Gongs[i]
+		var hosting = "    "
+		if pp.RollHosting > 0 && i == pp.DutyStarPos {
+			hosting = " 禽 "
+		}
+		var empty, horse = "  ", "  "
+		for _, zhi := range kongWang {
+			if qimen.ZhiGong9[zhi] == i {
+				empty = "〇" //"空亡"
+				break
+			}
+		}
+		if qimen.ZhiGong9[pp.Horse] == i {
+			horse = "马"
+		}
+		p.textGong[i].Text = fmt.Sprintf("\n  %s  %s    %s\n\n%s    %s%s%s\n\n%s    %s    %s\n\n      %s%s",
+			empty, g.God, horse,
+			g.PathGan, g.Star, hosting, g.GuestGan,
+			g.PathZhi, g.Door, g.HostGan, qimen.Diagrams9(i),
+			LunarUtil.NUMBER[i])
+	}
+}
 func (p *UIQiMen) ShowHourGame(pan *qimen.QMGame) {
 	pp := pan.HourPan
 	var juName string
@@ -508,33 +526,13 @@ func (p *UIQiMen) ShowHourGame(pan *qimen.QMGame) {
 		jie.GetName(), pan.YueJian, qi.GetName(), pan.YueJiang,
 	)
 	p.textJu.SetText(juText)
+	p.show9Gong(pp)
 
-	kongWang := qimen.KongWang[pp.Xun]
-	for i := 1; i <= 9; i++ {
-		g := pp.Gongs[i]
-		var hosting = "    "
-		if pp.RollHosting > 0 && i == pp.DutyStarPos {
-			hosting = " 禽 "
-		}
-		var empty = "" //旬空亡
-		for _, zhi := range kongWang {
-			if qimen.ZhiGong9[zhi] == i {
-				empty = "空亡"
-				break
-			}
-		}
-		p.textGong[i].Text = fmt.Sprintf("\n      %s  %s\n\n%s    %s%s%s\n\n%s    %s    %s\n\n      %s%s",
-			g.God, empty,
-			g.PathGan, g.Star, hosting, g.GuestGan,
-			g.PathZhi, g.Door, g.HostGan, qimen.Diagrams9(i),
-			LunarUtil.NUMBER[i])
-	}
-
-	p.ShowZhiGong(pan)
+	p.show12Gong(pan)
 }
 
-// ShowZhiGong 大六壬 月将落时支 顺布余支 天三门兮地四户
-func (p *UIQiMen) ShowZhiGong(pan *qimen.QMGame) {
+// show12Gong 大六壬 月将落时支 顺布余支 天三门兮地四户
+func (p *UIQiMen) show12Gong(pan *qimen.QMGame) {
 	yueJiangIdx := pan.YueJiangZhiIdx
 	yueJianIdx := pan.YueJianZhiIdx
 	shiZhiIdx := pan.HourZhiIdx
@@ -561,6 +559,11 @@ func (p *UIQiMen) ShowZhiGong(pan *qimen.QMGame) {
 		yueJiangIdx++
 	}
 }
+func (p *UIQiMen) noShow12Gong() {
+	for i := 1; i <= 12; i++ {
+		p.zhiPan[i].SetText("")
+	}
+}
 
 func (p *UIQiMen) ShowMonthGame(pan *qimen.QMGame) {
 	pp := pan.MonthPan
@@ -576,30 +579,8 @@ func (p *UIQiMen) ShowMonthGame(pan *qimen.QMGame) {
 		pp.DutyStar, pp.DutyStarPos, pp.DutyDoor, pp.DutyDoorPos,
 	)
 	p.textJu.SetText(juText)
-
-	kongWang := qimen.KongWang[pp.Xun]
-	for i := 1; i <= 9; i++ {
-		g := pp.Gongs[i]
-		var hosting = "    "
-		if pp.RollHosting > 0 && i == pp.DutyStarPos {
-			hosting = " 禽 "
-		}
-		var empty = ""
-		for _, zhi := range kongWang {
-			if qimen.ZhiGong9[zhi] == i {
-				empty = "空亡"
-				break
-			}
-		}
-		p.textGong[i].Text = fmt.Sprintf("\n      %s  %s\n\n%s    %s%s%s\n\n%s    %s    %s\n\n      %s%s",
-			g.God, empty,
-			g.PathGan, g.Star, hosting, g.GuestGan,
-			g.PathZhi, g.Door, g.HostGan, qimen.Diagrams9(i),
-			LunarUtil.NUMBER[i])
-	}
-	for i := 1; i <= 12; i++ {
-		p.zhiPan[i].SetText("")
-	}
+	p.show9Gong(pp)
+	p.noShow12Gong()
 }
 
 func (p *UIQiMen) ShowYearGame(pan *qimen.QMGame) {
@@ -616,28 +597,6 @@ func (p *UIQiMen) ShowYearGame(pan *qimen.QMGame) {
 		pp.DutyStar, pp.DutyStarPos, pp.DutyDoor, pp.DutyDoorPos,
 	)
 	p.textJu.SetText(juText)
-
-	kongWang := qimen.KongWang[pp.Xun]
-	for i := 1; i <= 9; i++ {
-		g := pp.Gongs[i]
-		var hosting = "    "
-		if pp.RollHosting > 0 && i == pp.DutyStarPos {
-			hosting = " 禽 "
-		}
-		var empty = ""
-		for _, zhi := range kongWang {
-			if qimen.ZhiGong9[zhi] == i {
-				empty = "空亡"
-				break
-			}
-		}
-		p.textGong[i].Text = fmt.Sprintf("\n      %s  %s\n\n%s    %s%s%s\n\n%s    %s    %s\n\n      %s%s",
-			g.God, empty,
-			g.PathGan, g.Star, hosting, g.GuestGan,
-			g.PathZhi, g.Door, g.HostGan, qimen.Diagrams9(i),
-			LunarUtil.NUMBER[i])
-	}
-	for i := 1; i <= 12; i++ {
-		p.zhiPan[i].SetText("")
-	}
+	p.show9Gong(pp)
+	p.noShow12Gong()
 }
