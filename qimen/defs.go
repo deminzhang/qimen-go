@@ -59,7 +59,7 @@ const (
 )
 
 // QMHostingType 转盘寄宫法
-var QMHostingType = []string{"中宫寄坤", "阳艮阴坤"}
+var QMHostingType = []string{"中宫寄坤", "阳艮阴坤", "_寄四维", "_寄八节"}
 
 const (
 	QMHostingType2  = 0
@@ -77,7 +77,12 @@ const (
 )
 
 // QMHideGanType 暗干起法
-var QMHideGanType = []string{"值使门起", "门地盘起"}
+var QMHideGanType = []string{"暗干值使门起", "暗干门地盘起"}
+
+const (
+	QMHideGanDutyDoorPos = 0 //值使门起 值使落宫起时干 地盘干与时干相同时,时干入中宫
+	QMHideGanDoorHome    = 1 //门地盘起 八门带原始宫的地盘干
+)
 
 // Idx8 序环
 var Idx8 = []int{8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8}

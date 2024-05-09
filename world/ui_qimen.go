@@ -42,6 +42,9 @@ type UIQiMen struct {
 	opStartZhi   *ui.OptionBox
 	opStartSelf  *ui.OptionBox
 
+	opHideGan0 *ui.OptionBox
+	opHideGan1 *ui.OptionBox
+
 	btnCalc      *ui.Button
 	btnPreHour2  *ui.Button
 	btnNextHour2 *ui.Button
@@ -121,6 +124,8 @@ func NewUIQiMen(width, height int) *UIQiMen {
 
 	py0 += 32
 	p.textJu = ui.NewTextBox(image.Rect(px0, py0, px0+72*4+64, py0+h*2))
+	p.opHideGan0 = ui.NewOptionBox(px0+72*5, py0+8, qimen.QMHideGanType[qimen.QMHideGanDutyDoorPos])
+	p.opHideGan1 = ui.NewOptionBox(px0+72*7, py0+8, qimen.QMHideGanType[qimen.QMHideGanDoorHome])
 	py0 += 32
 	p.opHourPan = ui.NewOptionBox(px0+72*5, py0+8, "时家")
 	p.opDayPan = ui.NewOptionBox(px0+72*6, py0+8, "_日家")
@@ -210,6 +215,8 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.AddChild(p.opStartMao)
 	p.AddChild(p.opStartZhi)
 	p.AddChild(p.opStartSelf)
+	p.AddChild(p.opHideGan0)
+	p.AddChild(p.opHideGan1)
 
 	p.AddChild(p.textJu)
 
@@ -249,6 +256,10 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.opStartMao.Disabled = true
 	p.opStartZhi.Disabled = true
 	p.opStartSelf.Visible = false
+
+	ui.MakeOptionBoxGroup(p.opHideGan0, p.opHideGan1)
+	p.opHideGan0.Select()
+	p.opHideGan1.Disabled = true
 
 	ui.MakeOptionBoxGroup(p.opHourPan, p.opDayPan, p.opMonthPan, p.opYearPan)
 	p.opHourPan.Select()
@@ -467,6 +478,8 @@ func (p *UIQiMen) Apply(year, month, day, hour, minute int) {
 
 	p.cbHostingType.Visible = p.qmParams.Type == qimen.QMTypeRotating
 	p.cbFlyType.Visible = p.qmParams.Type == qimen.QMTypeFly
+	p.opHideGan0.Visible = p.qmParams.Type != qimen.QMTypeAmaze
+	p.opHideGan1.Visible = p.qmParams.Type != qimen.QMTypeAmaze
 
 	//fmt
 	switch p.qmParams.YMDH {
@@ -498,11 +511,14 @@ func (p *UIQiMen) show9Gong(pp *qimen.QMPan) {
 		if qimen.ZhiGong9[pp.Horse] == i {
 			horse = "马"
 		}
-		p.textGong[i].Text = fmt.Sprintf("\n  %s  %s    %s\n\n%s    %s%s%s\n\n%s    %s    %s\n\n      %s%s",
+		p.textGong[i].Text = fmt.Sprintf("\n  %s  %s    %s\n\n"+
+			"%s %s %s%s%s\n\n"+
+			"%s    %s    %s\n\n"+
+			"      %s%s",
 			empty, g.God, horse,
-			g.PathGan, g.Star, hosting, g.GuestGan,
-			g.PathZhi, g.Door, g.HostGan, qimen.Diagrams9(i),
-			LunarUtil.NUMBER[i])
+			g.PathGan, g.HideGan, g.Star, hosting, g.GuestGan,
+			g.PathZhi, g.Door, g.HostGan,
+			qimen.Diagrams9(i), LunarUtil.NUMBER[i])
 	}
 }
 func (p *UIQiMen) ShowHourGame(pan *qimen.QMGame) {
