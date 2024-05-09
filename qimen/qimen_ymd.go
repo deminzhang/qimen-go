@@ -1,20 +1,9 @@
 package qimen
 
-// TODO 年月日家
-//http://www.360doc.com/content/24/0205/15/6148393_1113383057.shtml
+// 年月日家奇门,日家2
 //http://www.360doc.com/content/10/0524/00/1471833_29180548.shtml
 
-// QMGongYear 时家奇门宫格
-type QMGongYear struct {
-	Idx int //洛书宫数
-}
-
-// QMGongMonth 月家奇门宫格
-type QMGongMonth struct {
-	Idx int //洛书宫数
-}
-
-// QMGongDay 日家奇门宫格
+// QMGongDay 日家2奇门宫格
 type QMGongDay struct {
 	Idx int //洛书宫数
 

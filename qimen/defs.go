@@ -1,5 +1,18 @@
 package qimen
 
+import (
+	"github.com/6tail/lunar-go/LunarUtil"
+	"strings"
+)
+
+const (
+	QMGameHour  = 0 //时家奇门
+	QMGameDay   = 1 //日家奇门
+	QMGameMonth = 2 //月家奇门
+	QMGameYear  = 3 //年家奇门
+	QMGameDay2  = 4 //日家奇门太乙
+)
+
 // Yuan3Name 奇门三元名
 var Yuan3Name = []string{"", "上元", "中元", "下元"}
 
@@ -46,16 +59,15 @@ const (
 )
 
 // QMHostingType 转盘寄宫法
-var QMHostingType = []string{"中宫寄坤", "阳艮阴坤", "_土寄四维"}
+var QMHostingType = []string{"中宫寄坤", "阳艮阴坤"}
 
 const (
-	QMHostingType2    = 0
-	QMHostingType28   = 1
-	QMHostingType2846 = 2
+	QMHostingType2  = 0
+	QMHostingType28 = 1
 )
 
 // QMStartType 起局方式
-var QMStartType = []string{"拆补", "茅山", "置闰", "自选"}
+var QMStartType = []string{"拆补", "_茅山", "_置闰", "自选"}
 
 const (
 	QMStartTypeSplit = 0 //节气和日干符头定三元
@@ -78,18 +90,31 @@ var Idx12 = []int{12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7
 
 // HideJia 旬首遁甲
 var HideJia = map[string]string{
-	"甲子": "戊",
-	"甲戌": "己",
-	"甲申": "庚",
-	"甲午": "辛",
-	"甲辰": "壬",
-	"甲寅": "癸",
+	"甲子": "戊", "甲戌": "己", "甲申": "庚",
+	"甲午": "辛", "甲辰": "壬", "甲寅": "癸",
+}
+
+// KongWang 旬空亡
+var KongWang = map[string][]string{
+	"甲子": {"戌", "亥"},
+	"甲戌": {"申", "酉"},
+	"甲申": {"午", "未"},
+	"甲午": {"辰", "巳"},
+	"甲辰": {"寅", "卯"},
+	"甲寅": {"子", "丑"},
+}
+
+// ZhiGong9 支九宫位
+var ZhiGong9 = map[string]int{
+	"子": 1, "丑": 8, "寅": 8, "卯": 3, "辰": 4, "巳": 4,
+	"午": 9, "未": 2, "申": 2, "酉": 7, "戌": 6, "亥": 6,
 }
 
 const (
-	Trunk10      = "_甲乙丙丁戊已庚辛壬癸"   //天干
-	Branch12     = "_子丑寅卯辰巳午末申酉戌亥" //地支
-	Diagrams8In9 = "_坎坤震巽中乾竞艮离"    //九宫八卦
+	Trunk10  = "_甲乙丙丁戊已庚辛壬癸"   //天干
+	Branch12 = "_子丑寅卯辰巳午末申酉戌亥" //地支
+
+	Diagrams8In9 = "_坎坤震巽中乾竞艮离" //九宫八卦
 	//Term24    = "__小寒大寒立春雨水惊蛰春分清明谷雨立夏小满芒种夏至小暑大暑立秋处暑白露秋分寒露霜降立冬小雪大雪冬至"
 
 	Star0 = "天"
@@ -107,11 +132,11 @@ const (
 	God8       = "__值符腾蛇太阴六合白虎玄武九地九天"   //八神转盘用
 	MonthBuild = "_寅卯辰巳午未申酉戌亥子丑"        //月建 正月起寅 交节换建
 	Build12    = "_建除满平定执破危成收开闭"        //十二建星
-	MonthJiang = "_亥戌酉申未午巳辰卯寅丑子"        //月将 正月起亥 交气/中气换将
+	MonthJiang = "_亥戌酉申未午巳辰卯寅丑子"        //月将 正月起亥 交中气换将
 
-	QMDayStar9 = "__太乙摄提轩辕招摇天符青龙咸池太阴天乙"       //日家奇门九星
-	God12      = "__青龙明堂天刑朱雀金匮天德白虎玉堂天牢玄武司命勾陈" //日家奇门十二原神黄黑道
-	God12YB    = "_黄黄黑黑黄黄黑黄黑黑黄黑"              //十二黄黑道
+	QMDayStar9   = "__太乙摄提轩辕招摇天符青龙咸池太阴天乙"       //日家奇门2九星
+	QMDayGod12   = "__青龙明堂天刑朱雀金匮天德白虎玉堂天牢玄武司命勾陈" //日家奇门2十二原神黄黑道
+	QMDayGod12YB = "_黄黄黑黑黄黄黑黄黑黑黄黑"              //十二黄黑道
 )
 
 func Diagrams9(i int) string {
@@ -249,8 +274,60 @@ var Horse = map[string]string{
 
 // 廿四节气信息 (0小寒)
 // 从第0个节气的分钟数
-//var termData = []int{
-//	0, 21208, 42467, 63836, 85337, 107014, 128867, 150921, 173149, 195551, 218072, 240693,
-//	263343, 285989, 308563, 331033, 353350, 375494, 397447, 419210, 440795, 462224, 483532,
-//	504758,
-//}
+var termData = []int{
+	0, 21208, 42467, 63836, 85337, 107014, 128867, 150921, 173149, 195551, 218072, 240693,
+	263343, 285989, 308563, 331033, 353350, 375494, 397447, 419210, 440795, 462224, 483532,
+	504758,
+}
+
+// 黄帝有熊氏即位的甲子年(公元前2697年起甲子下元)
+// 公元前1年为0,前2年为-1,60年换元
+const _QiMenYearJuStart = 60 - 2697 + 1
+
+var _QiMenJuYear = []int{0, -1, -4, -7}
+
+func GetYearYuanJu(lYear int) (int, int) {
+	if lYear < _QiMenYearJuStart {
+		lYear += ((_QiMenYearJuStart-lYear)/180 + 1) * 180
+	}
+	yuan := 1 + (lYear-_QiMenYearJuStart)%180/60
+	return yuan, _QiMenJuYear[yuan]
+}
+
+const (
+	_Ju1 = "子午卯酉" //四仲上元阴7
+	_Ju2 = "寅申巳亥" //四孟中元阴1
+	_Ju3 = "辰戌丑未" //四季下元阴4
+)
+
+var _QiMenJuMonth = []int{0, -7, -1, -4} //秋分局
+
+// GetHeadGanZhi 找甲己符头
+func GetHeadGanZhi(yearTB string) (string, string) {
+	gan := yearTB[:len(yearTB)/2]
+	zhi := yearTB[len(yearTB)/2:]
+	var ganIdx, zhiIdx int
+	for i, g := range LunarUtil.GAN {
+		if g == gan {
+			ganIdx = i
+			break
+		}
+	}
+	for i, z := range LunarUtil.ZHI {
+		if z == zhi {
+			zhiIdx = i
+			break
+		}
+	}
+	return LunarUtil.GAN[ganIdx], LunarUtil.ZHI[zhiIdx]
+}
+func GetMonthYuanJu(yearTB string) (int, int) {
+	_, zhi := GetHeadGanZhi(yearTB)
+	if strings.Contains(_Ju1, zhi) {
+		return 1, _QiMenJuMonth[1]
+	}
+	if strings.Contains(_Ju2, zhi) {
+		return 2, _QiMenJuMonth[2]
+	}
+	return 3, _QiMenJuMonth[3]
+}
