@@ -84,7 +84,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 			Type:        qimen.QMTypeAmaze,
 			HostingType: qimen.QMHostingType28,
 			FlyType:     qimen.QMFlyTypeAllOrder,
-			StartType:   qimen.QMStartTypeSplit,
+			JuType:      qimen.QMJuTypeSplit,
 			HideGanType: qimen.QMHideGanDutyDoorHour,
 		},
 	}
@@ -117,10 +117,10 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.textHourTB = ui.NewInputBox(image.Rect(px0+72*3, py0, px0+72*3+64, py0+h))
 	p.btnNextHour2 = ui.NewButton(image.Rect(px0+72*8, py0, px0+72*8+64, py0+h), "下一局")
 
-	p.opStartSplit = ui.NewOptionBox(px0+72*5, py0+8, qimen.QMStartType[qimen.QMStartTypeSplit])
-	p.opStartMao = ui.NewOptionBox(px0+72*6, py0+8, qimen.QMStartType[qimen.QMStartTypeMao])
-	p.opStartZhi = ui.NewOptionBox(px0+72*7, py0+8, qimen.QMStartType[qimen.QMStartTypeZhi])
-	p.opStartSelf = ui.NewOptionBox(px0+72*7, py0+8, qimen.QMStartType[qimen.QMStartTypeSelf])
+	p.opStartSplit = ui.NewOptionBox(px0+72*5, py0+8, qimen.QMJuType[qimen.QMJuTypeSplit])
+	p.opStartMao = ui.NewOptionBox(px0+72*6, py0+8, qimen.QMJuType[qimen.QMJuTypeMao])
+	p.opStartZhi = ui.NewOptionBox(px0+72*7, py0+8, qimen.QMJuType[qimen.QMJuTypeZhi])
+	p.opStartSelf = ui.NewOptionBox(px0+72*7, py0+8, qimen.QMJuType[qimen.QMJuTypeSelf])
 
 	py0 += 32
 	p.textJu = ui.NewTextBox(image.Rect(px0, py0, px0+72*4+64, py0+h*2))
@@ -238,22 +238,21 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	ui.MakeOptionBoxGroup(p.opStartSplit, p.opStartMao, p.opStartZhi, p.opStartSelf)
 	p.opStartSplit.Select()
 	p.opStartSplit.SetOnSelect(func(c *ui.OptionBox) {
-		p.qmParams.StartType = qimen.QMStartTypeSplit
+		p.qmParams.JuType = qimen.QMJuTypeSplit
 		p.Apply(p.year, p.month, p.day, p.hour, p.minute)
 	})
 	p.opStartMao.SetOnSelect(func(c *ui.OptionBox) {
-		p.qmParams.StartType = qimen.QMStartTypeMao
+		p.qmParams.JuType = qimen.QMJuTypeMao
 		p.Apply(p.year, p.month, p.day, p.hour, p.minute)
 	})
 	p.opStartZhi.SetOnSelect(func(c *ui.OptionBox) {
-		p.qmParams.StartType = qimen.QMStartTypeZhi
+		p.qmParams.JuType = qimen.QMJuTypeZhi
 		p.Apply(p.year, p.month, p.day, p.hour, p.minute)
 	})
 	p.opStartSelf.SetOnSelect(func(c *ui.OptionBox) {
-		p.qmParams.StartType = qimen.QMStartTypeSelf
+		p.qmParams.JuType = qimen.QMJuTypeSelf
 		p.Apply(p.year, p.month, p.day, p.hour, p.minute)
 	})
-	p.opStartMao.Disabled = true
 	p.opStartZhi.Disabled = true
 	p.opStartSelf.Visible = false
 
@@ -485,6 +484,12 @@ func (p *UIQiMen) Apply(year, month, day, hour, minute int) {
 
 	p.cbHostingType.Visible = p.qmParams.Type == qimen.QMTypeRotating
 	p.cbFlyType.Visible = p.qmParams.Type == qimen.QMTypeFly
+
+	shiPan := p.qmParams.YMDH == qimen.QMGameHour
+	p.opStartSplit.Visible = shiPan && p.qmParams.Type != qimen.QMTypeAmaze
+	p.opStartMao.Visible = shiPan && p.qmParams.Type != qimen.QMTypeAmaze
+	p.opStartZhi.Visible = shiPan && p.qmParams.Type != qimen.QMTypeAmaze
+
 	p.opHideGan0.Visible = p.qmParams.Type != qimen.QMTypeAmaze
 	p.opHideGan1.Visible = p.qmParams.Type != qimen.QMTypeAmaze
 

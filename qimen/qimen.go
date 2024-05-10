@@ -71,7 +71,7 @@ type QMPan struct {
 	Type                int //盘式
 	RotatingHostingType int //转盘.寄中法
 	FlyType             int //飞盘.飞星法
-	StartType           int //QMStartType 起局.起局法
+	StartType           int //QMJuType 起局.起局法
 	HideGanType         int //QMHideGanType
 
 	Yuan3 int //三元1~3
@@ -96,7 +96,7 @@ type QMParams struct {
 	Type        int //QMType
 	HostingType int //QMHostingType 转盘寄宫法
 	FlyType     int //QMFlyType	飞盘九星飞宫
-	StartType   int //QMStartType 起局方式
+	JuType      int //QMJuType 起局方式
 	HideGanType int //QMHideGanType 暗干起法
 	SelfJu      int //自选局数
 
@@ -405,7 +405,7 @@ func (p *QMGame) calcGong(pp *QMPan) {
 
 func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error) {
 	ymdh, qmType, qmHostingType, pqmFlyType, startType, hideGanType :=
-		params.YMDH, params.Type, params.HostingType, params.FlyType, params.StartType, params.HideGanType
+		params.YMDH, params.Type, params.HostingType, params.FlyType, params.JuType, params.HideGanType
 	if err := checkDate(year, month, day, hour, minute); err != nil {
 		return nil, err
 	}
@@ -421,8 +421,8 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 		}
 		dayGanZhi = LunarUtil.JIA_ZI[di]
 	}
-	dayYuanIdx := getQiMenYuan3Index(c8[2])
-	jieQi := lunar.GetPrevJieQi().GetName()
+	jieQi := lunar.GetPrevJieQi()
+	jieQiName := lunar.GetPrevJieQi().GetName()
 
 	hourZhi := hourGanZhi[len(hourGanZhi)/2:]
 	p := QMGame{
@@ -449,23 +449,36 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 		HourTB:      hourGanZhi,
 		YueJian:     Jie2YueJian(lunar.GetPrevJie().GetName()),
 		YueJiang:    Qi2YueJiang(lunar.GetPrevQi().GetName()),
-		JieQi:       jieQi,
+		JieQi:       jieQiName,
 	}
 	switch ymdh {
 	case QMGameHour: //排时家奇门
-		var ju int
+		var yuan, ju int
+		yuan = getQiMenYuan3Index(c8[2])
 		switch startType {
-		case QMStartTypeSplit:
-			ju = getQiMenJuIndex(jieQi, dayYuanIdx)
-		case QMStartTypeMao:
+		case QMJuTypeSplit:
+			//ju = getQiMenJuIndex(jieQiName, yuan)
+			jqi := _JieQiIndex[jieQiName]
+			ju = _QiMenJu[jqi][yuan-1]
+		case QMJuTypeMao:
+			jieQiTime := jieQi.GetSolar()
+			qiHour := jieQiTime.GetHour() //交气所在时辰起时
+			if qiHour%2 == 0 {
+				qiHour--
+			}
+			start := calendar.NewSolar(jieQiTime.GetYear(), jieQiTime.GetMonth(), jieQiTime.GetDay(), qiHour, 0, 0)
+			minutes := solar.SubtractMinute(start)
+			yuan = 1 + minutes/120/60 //60个时辰一元
+			yuan = min(yuan, 3)       //三元完新节气不到用下元
+			jqi := _JieQiIndex[jieQiName]
+			ju = _QiMenJu[jqi][yuan-1]
+		case QMJuTypeZhi:
 			//TODO
-		case QMStartTypeZhi:
-			//TODO
-		case QMStartTypeSelf:
+		case QMJuTypeSelf:
 			ju = params.SelfJu
 		}
 		p.HourPan = &QMPan{
-			Yuan3:  dayYuanIdx,
+			Yuan3:  yuan,
 			Ju:     ju,
 			GanZhi: hourGanZhi,
 
@@ -506,7 +519,7 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 		//	Type:                qmType,
 		//	RotatingHostingType: qmHostingType,
 		//	FlyType:             pqmFlyType,
-		//	StartType:           startType,
+		//	JuType:           startType,
 		//  HideGanType:         hideGanType,
 		//}
 	case QMGameDay2:

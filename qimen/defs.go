@@ -66,18 +66,18 @@ const (
 	QMHostingType28 = 1
 )
 
-// QMStartType 起局方式
-var QMStartType = []string{"拆补", "_茅山", "_置闰", "自选"}
+// QMJuType 起局方式
+var QMJuType = []string{"拆补", "茅山", "_置闰", "自选"}
 
 const (
-	QMStartTypeSplit = 0 //节气和日干符头定三元
-	QMStartTypeMao   = 1 //无视符头，节气开始使用本节气之上元60个时辰后即转入中元
-	QMStartTypeZhi   = 2 //符头和节气的关系
-	QMStartTypeSelf  = 3 //自选
+	QMJuTypeSplit = 0 //节气和日干符头定三元
+	QMJuTypeMao   = 1 //无视符头，节气开始上元60时辰,中元60时辰,再下元60时辰,下元满60时辰不到下个节气继用下元
+	QMJuTypeZhi   = 2 //符头和节气的关系
+	QMJuTypeSelf  = 3 //自选
 )
 
 // QMHideGanType 暗干起法
-var QMHideGanType = []string{"暗干值使门起", "暗干门地盘起"}
+var QMHideGanType = []string{"暗干值使起", "门地暗干"}
 
 const (
 	QMHideGanDutyDoorHour = 0 //值使门起 值使落宫起时干 地盘干与时干相同时,时干入中宫
