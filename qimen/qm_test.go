@@ -15,7 +15,7 @@ func TestQimen(t *testing.T) {
 			Type:        qimen.QMTypeAmaze,
 			HostingType: qimen.QMHostingType28,
 			FlyType:     qimen.QMFlyTypeAllOrder,
-			StartType:   qimen.QMStartTypeSplit,
+			JuType:      qimen.QMJuTypeSplit,
 			HideGanType: 0,
 		})
 	if err != nil {

@@ -32,8 +32,10 @@ func NewGame() *Game {
 		Text: "Button 2",
 	}
 	g.checkBox = &CheckBox{
-		X:    16,
-		Y:    64,
+		BaseUI: BaseUI{
+			X: 16,
+			Y: 64,
+		},
 		Text: "Check Box!",
 	}
 	g.textBoxLog = &TextBox{

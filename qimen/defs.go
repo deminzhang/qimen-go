@@ -59,25 +59,30 @@ const (
 )
 
 // QMHostingType 转盘寄宫法
-var QMHostingType = []string{"中宫寄坤", "阳艮阴坤"}
+var QMHostingType = []string{"中宫寄坤", "阳艮阴坤", "_寄四维", "_寄八节"}
 
 const (
 	QMHostingType2  = 0
 	QMHostingType28 = 1
 )
 
-// QMStartType 起局方式
-var QMStartType = []string{"拆补", "_茅山", "_置闰", "自选"}
+// QMJuType 起局方式
+var QMJuType = []string{"拆补", "茅山", "_置闰", "自选"}
 
 const (
-	QMStartTypeSplit = 0 //节气和日干符头定三元
-	QMStartTypeMao   = 1 //无视符头，节气开始使用本节气之上元60个时辰后即转入中元
-	QMStartTypeZhi   = 2 //符头和节气的关系
-	QMStartTypeSelf  = 3 //自选
+	QMJuTypeSplit   = 0 //节气和日干符头定三元
+	QMJuTypeMaoShan = 1 //无视符头，节气开始上元60时辰,中元60时辰,再下元60时辰,下元满60时辰不到下个节气继用下元
+	QMJuTypeZhiRun  = 2 //符头和节气的关系
+	QMJuTypeSelf    = 3 //自选
 )
 
 // QMHideGanType 暗干起法
-var QMHideGanType = []string{"值使门起", "门地盘起"}
+var QMHideGanType = []string{"暗干值使起", "门地暗干"}
+
+const (
+	QMHideGanDutyDoorHour = 0 //值使门起 值使落宫起时干 地盘干与时干相同时,时干入中宫
+	QMHideGanDoorHomeGan  = 1 //门地盘起 八门带原始宫的地盘干
+)
 
 // Idx8 序环
 var Idx8 = []int{8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8}
@@ -139,17 +144,29 @@ const (
 	QMDayGod12YB = "_黄黄黑黑黄黄黑黄黑黑黄黑"              //十二黄黑道
 )
 
+// StarHome 星原始宫位
+var StarHome = map[string]int{
+	"蓬": 1, "芮": 2, "冲": 3, "辅": 4, "禽": 5, "心": 6, "柱": 7, "任": 8, "英": 9,
+}
+
+// DoorHome 门原始宫位
+var DoorHome = map[string]int{
+	"休": 1, "生": 8, "伤": 3, "杜": 4, "中": 5, "景": 9, "死": 2, "惊": 7, "开": 6,
+}
+
 func Diagrams9(i int) string {
 	i = Idx9[i]
 	return string([]rune(Diagrams8In9)[i : i+1])
 }
 func QMStar9(i int) string {
 	i = Idx9[i]
-	return Star0 + string([]rune(Star9)[i:i+1])
+	//return Star0 + string([]rune(Star9)[i:i+1])
+	return string([]rune(Star9)[i : i+1])
 }
 func QMStar8(i int) string {
 	i = Idx8[i]
-	return Star0 + string([]rune(Star8)[i:i+1])
+	//return Star0 + string([]rune(Star8)[i:i+1])
+	return string([]rune(Star8)[i : i+1])
 }
 func QM3Qi6Yi(i int) string {
 	i = Idx9[i]
@@ -157,11 +174,11 @@ func QM3Qi6Yi(i int) string {
 }
 func QMDoor8(i int) string {
 	i = Idx8[i]
-	return string([]rune(Door8)[i:i+1]) + Door0
+	return string([]rune(Door8)[i : i+1]) // + Door0
 }
 func QMDoor9(i int) string {
 	i = Idx9[i]
-	return string([]rune(Door9)[i:i+1]) + Door0
+	return string([]rune(Door9)[i : i+1]) // + Door0
 }
 func QMGod9S(i int) string {
 	i = Idx9[i] * 2

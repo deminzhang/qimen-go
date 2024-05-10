@@ -14,42 +14,25 @@ import (
 
 type UIQiMen struct {
 	ui.BaseUI
-	panelSDate  *ui.Panel
-	inputSYear  *ui.InputBox
-	inputSMonth *ui.InputBox
-	inputSDay   *ui.InputBox
-	inputSHour  *ui.InputBox
-	inputSMin   *ui.InputBox
+	panelSDate                                                *ui.Panel
+	inputSYear, inputSMonth, inputSDay, inputSHour, inputSMin *ui.InputBox
+	textLYear, textLMonth, textLDay, textLHour                *ui.InputBox
+	textYearTB, textMonthTB, textDayTB, textHourTB            *ui.InputBox
+	textJu                                                    *ui.TextBox
 
-	textLYear   *ui.InputBox
-	textLMonth  *ui.InputBox
-	textLDay    *ui.InputBox
-	textLHour   *ui.InputBox
-	textYearTB  *ui.InputBox
-	textMonthTB *ui.InputBox
-	textDayTB   *ui.InputBox
-	textHourTB  *ui.InputBox
-	textJu      *ui.TextBox
+	opTypeRoll, opTypeFly, opTypeAmaze *ui.OptionBox
+	cbHostingType, cbFlyType           *ui.CheckBox
 
-	opTypeRoll    *ui.OptionBox
-	opTypeFly     *ui.OptionBox
-	opTypeAmaze   *ui.OptionBox
-	cbHostingType *ui.CheckBox
-	cbFlyType     *ui.CheckBox
+	opStartSplit, opStartMaoShan, opStartZhiRun *ui.OptionBox
+	opStartSelf                                 *ui.OptionBox
+	inputSelfJu                                 *ui.InputBox
 
-	opStartSplit *ui.OptionBox
-	opStartMao   *ui.OptionBox
-	opStartZhi   *ui.OptionBox
-	opStartSelf  *ui.OptionBox
+	opHideGan0, opHideGan1 *ui.OptionBox
 
-	btnCalc      *ui.Button
-	btnPreHour2  *ui.Button
-	btnNextHour2 *ui.Button
+	btnCalc             *ui.Button
+	btnPreJu, btnNextJu *ui.Button
 
-	opHourPan  *ui.OptionBox
-	opDayPan   *ui.OptionBox
-	opMonthPan *ui.OptionBox
-	opYearPan  *ui.OptionBox
+	opHourPan, opDayPan, opMonthPan, opYearPan *ui.OptionBox
 
 	textGong []*ui.TextBox
 	zhiPan   []*ui.TextBox
@@ -81,8 +64,8 @@ func NewUIQiMen(width, height int) *UIQiMen {
 			Type:        qimen.QMTypeAmaze,
 			HostingType: qimen.QMHostingType28,
 			FlyType:     qimen.QMFlyTypeAllOrder,
-			StartType:   qimen.QMStartTypeSplit,
-			HideGanType: 0,
+			JuType:      qimen.QMJuTypeSplit,
+			HideGanType: qimen.QMHideGanDutyDoorHour,
 		},
 	}
 	px0, py0 := 32, 0
@@ -105,22 +88,26 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.textLHour = ui.NewInputBox(image.Rect(px0+72*3, py0, px0+72*3+64, py0+h))
 	p.cbHostingType = ui.NewCheckBox(px0+72*5, py0+8, qimen.QMHostingType[qimen.QMHostingType28])
 	p.cbFlyType = ui.NewCheckBox(px0+72*6, py0+8, qimen.QMFlyType[qimen.QMFlyTypeAllOrder])
-	p.btnPreHour2 = ui.NewButton(image.Rect(px0+72*8, py0, px0+72*8+64, py0+h), "上一局")
+	p.btnPreJu = ui.NewButton(image.Rect(px0+72*8, py0, px0+72*8+64, py0+h), "上一局")
 
 	py0 += 32
 	p.textYearTB = ui.NewInputBox(image.Rect(px0, py0, px0+64, py0+h))
 	p.textMonthTB = ui.NewInputBox(image.Rect(px0+72, py0, px0+72+64, py0+h))
 	p.textDayTB = ui.NewInputBox(image.Rect(px0+72*2, py0, px0+72*2+64, py0+h))
 	p.textHourTB = ui.NewInputBox(image.Rect(px0+72*3, py0, px0+72*3+64, py0+h))
-	p.btnNextHour2 = ui.NewButton(image.Rect(px0+72*8, py0, px0+72*8+64, py0+h), "下一局")
+	p.btnNextJu = ui.NewButton(image.Rect(px0+72*8, py0, px0+72*8+64, py0+h), "下一局")
 
-	p.opStartSplit = ui.NewOptionBox(px0+72*5, py0+8, qimen.QMStartType[qimen.QMStartTypeSplit])
-	p.opStartMao = ui.NewOptionBox(px0+72*6, py0+8, qimen.QMStartType[qimen.QMStartTypeMao])
-	p.opStartZhi = ui.NewOptionBox(px0+72*7, py0+8, qimen.QMStartType[qimen.QMStartTypeZhi])
-	p.opStartSelf = ui.NewOptionBox(px0+72*7, py0+8, qimen.QMStartType[qimen.QMStartTypeSelf])
+	p.inputSelfJu = ui.NewInputBox(image.Rect(px0+72*4, py0, px0+72*4+64, py0+h))
+	p.opStartSelf = ui.NewOptionBox(px0+72*4, py0+8, qimen.QMJuType[qimen.QMJuTypeSelf])
+
+	p.opStartSplit = ui.NewOptionBox(px0+72*5, py0+8, qimen.QMJuType[qimen.QMJuTypeSplit])
+	p.opStartMaoShan = ui.NewOptionBox(px0+72*6, py0+8, qimen.QMJuType[qimen.QMJuTypeMaoShan])
+	p.opStartZhiRun = ui.NewOptionBox(px0+72*7, py0+8, qimen.QMJuType[qimen.QMJuTypeZhiRun])
 
 	py0 += 32
 	p.textJu = ui.NewTextBox(image.Rect(px0, py0, px0+72*4+64, py0+h*2))
+	p.opHideGan0 = ui.NewOptionBox(px0+72*5, py0+8, qimen.QMHideGanType[qimen.QMHideGanDutyDoorHour])
+	p.opHideGan1 = ui.NewOptionBox(px0+72*7, py0+8, qimen.QMHideGanType[qimen.QMHideGanDoorHomeGan])
 	py0 += 32
 	p.opHourPan = ui.NewOptionBox(px0+72*5, py0+8, "时家")
 	p.opDayPan = ui.NewOptionBox(px0+72*6, py0+8, "_日家")
@@ -177,6 +164,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.inputSDay.DefaultText = "day"
 	p.inputSHour.DefaultText = "hour"
 	p.inputSMin.DefaultText = "minute"
+	p.inputSelfJu.DefaultText = "手选局数"
 	p.panelSDate.AddChild(p.inputSYear)
 	p.panelSDate.AddChild(p.inputSMonth)
 	p.panelSDate.AddChild(p.inputSDay)
@@ -192,8 +180,8 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.AddChild(p.textLDay)
 	p.AddChild(p.textLHour)
 
-	p.AddChild(p.btnPreHour2)
-	p.AddChild(p.btnNextHour2)
+	p.AddChild(p.btnPreJu)
+	p.AddChild(p.btnNextJu)
 	p.AddChild(p.cbHostingType)
 	p.AddChild(p.cbFlyType)
 
@@ -207,9 +195,12 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.AddChild(p.textDayTB)
 	p.AddChild(p.textHourTB)
 	p.AddChild(p.opStartSplit)
-	p.AddChild(p.opStartMao)
-	p.AddChild(p.opStartZhi)
+	p.AddChild(p.opStartMaoShan)
+	p.AddChild(p.opStartZhiRun)
 	p.AddChild(p.opStartSelf)
+	p.AddChild(p.inputSelfJu)
+	p.AddChild(p.opHideGan0)
+	p.AddChild(p.opHideGan1)
 
 	p.AddChild(p.textJu)
 
@@ -225,30 +216,41 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	})
 	p.opTypeAmaze.SetOnSelect(func(c *ui.OptionBox) {
 		p.qmParams.Type = qimen.QMTypeAmaze
-		p.Apply(p.year, p.month, p.day, p.hour, p.minute)
+		p.opStartSplit.Select()
 	})
 
-	ui.MakeOptionBoxGroup(p.opStartSplit, p.opStartMao, p.opStartZhi, p.opStartSelf)
+	ui.MakeOptionBoxGroup(p.opStartSplit, p.opStartMaoShan, p.opStartZhiRun, p.opStartSelf)
 	p.opStartSplit.Select()
 	p.opStartSplit.SetOnSelect(func(c *ui.OptionBox) {
-		p.qmParams.StartType = qimen.QMStartTypeSplit
+		p.qmParams.JuType = qimen.QMJuTypeSplit
 		p.Apply(p.year, p.month, p.day, p.hour, p.minute)
 	})
-	p.opStartMao.SetOnSelect(func(c *ui.OptionBox) {
-		p.qmParams.StartType = qimen.QMStartTypeMao
+	p.opStartMaoShan.SetOnSelect(func(c *ui.OptionBox) {
+		p.qmParams.JuType = qimen.QMJuTypeMaoShan
 		p.Apply(p.year, p.month, p.day, p.hour, p.minute)
 	})
-	p.opStartZhi.SetOnSelect(func(c *ui.OptionBox) {
-		p.qmParams.StartType = qimen.QMStartTypeZhi
+	p.opStartZhiRun.SetOnSelect(func(c *ui.OptionBox) {
+		p.qmParams.JuType = qimen.QMJuTypeZhiRun
 		p.Apply(p.year, p.month, p.day, p.hour, p.minute)
 	})
 	p.opStartSelf.SetOnSelect(func(c *ui.OptionBox) {
-		p.qmParams.StartType = qimen.QMStartTypeSelf
+		p.opStartSelf.Visible = false
+		p.inputSelfJu.Visible = true
+		p.inputSelfJu.SetFocused(true)
+		p.qmParams.JuType = qimen.QMJuTypeSelf
+	})
+	p.opStartZhiRun.Disabled = true
+
+	ui.MakeOptionBoxGroup(p.opHideGan0, p.opHideGan1)
+	p.opHideGan0.Select()
+	p.opHideGan0.SetOnSelect(func(c *ui.OptionBox) {
+		p.qmParams.HideGanType = qimen.QMHideGanDutyDoorHour
 		p.Apply(p.year, p.month, p.day, p.hour, p.minute)
 	})
-	p.opStartMao.Disabled = true
-	p.opStartZhi.Disabled = true
-	p.opStartSelf.Visible = false
+	p.opHideGan1.SetOnSelect(func(c *ui.OptionBox) {
+		p.qmParams.HideGanType = qimen.QMHideGanDoorHomeGan
+		p.Apply(p.year, p.month, p.day, p.hour, p.minute)
+	})
 
 	ui.MakeOptionBoxGroup(p.opHourPan, p.opDayPan, p.opMonthPan, p.opYearPan)
 	p.opHourPan.Select()
@@ -270,7 +272,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	})
 	p.opDayPan.Disabled = true
 
-	p.cbHostingType.SetChecked(true)
+	p.cbHostingType.SetChecked(false)
 	p.cbHostingType.Visible = p.opTypeRoll.Selected()
 	p.cbHostingType.SetOnCheckChanged(func(c *ui.CheckBox) {
 		if c.Checked() {
@@ -297,9 +299,21 @@ func NewUIQiMen(width, height int) *UIQiMen {
 		day, _ := strconv.Atoi(p.inputSDay.Text())
 		hour, _ := strconv.Atoi(p.inputSHour.Text())
 		minute, _ := strconv.Atoi(p.inputSMin.Text())
+
+		if p.qmParams.JuType == qimen.QMJuTypeSelf {
+			ju, err := strconv.Atoi(p.inputSelfJu.Text())
+			if err != nil || !((ju >= 1 && ju <= 9) || (ju >= -9 && ju <= -1)) {
+				UIShowMsgBox("局数不对,限([-9,-1],[1,9])", "确定", "取消", nil, nil)
+				return
+			}
+			p.qmParams.SelfJu = ju
+		} else {
+			p.qmParams.SelfJu = 0
+		}
+
 		p.Apply(year, month, day, hour, minute)
 	})
-	p.btnPreHour2.SetOnClick(func(b *ui.Button) {
+	p.btnPreJu.SetOnClick(func(b *ui.Button) {
 		year, month, day, hour, minute := p.year, p.month, p.day, p.hour, p.minute
 
 		switch p.qmParams.YMDH {
@@ -347,7 +361,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 		}
 		p.Apply(year, month, day, hour, minute)
 	})
-	p.btnNextHour2.SetOnClick(func(b *ui.Button) {
+	p.btnNextJu.SetOnClick(func(b *ui.Button) {
 		year, month, day, hour, minute := p.year, p.month, p.day, p.hour, p.minute
 
 		switch p.qmParams.YMDH {
@@ -444,8 +458,8 @@ func (p *UIQiMen) checkDate(year, month, day, hour, minute int) error {
 func (p *UIQiMen) Apply(year, month, day, hour, minute int) {
 	pan, err := qimen.NewPan(year, month, day, hour, minute, p.qmParams)
 	if err != nil {
-		UIShowMsgBox("时间不对", "确定", "取消", func(b *ui.Button) {
-		}, func(b *ui.Button) {})
+		UIShowMsgBox("时间不对", "确定", "取消", nil, nil)
+		return
 	}
 	p.year, p.month, p.day, p.hour, p.minute = year, month, day, hour, minute
 	//pan.DayArr
@@ -467,6 +481,16 @@ func (p *UIQiMen) Apply(year, month, day, hour, minute int) {
 
 	p.cbHostingType.Visible = p.qmParams.Type == qimen.QMTypeRotating
 	p.cbFlyType.Visible = p.qmParams.Type == qimen.QMTypeFly
+
+	shiPan := p.qmParams.YMDH == qimen.QMGameHour
+	p.opStartSplit.Visible = shiPan // && p.qmParams.Type != qimen.QMTypeAmaze
+	p.opStartMaoShan.Visible = shiPan && p.qmParams.Type != qimen.QMTypeAmaze
+	p.opStartZhiRun.Visible = shiPan && p.qmParams.Type != qimen.QMTypeAmaze
+	p.opStartSelf.Visible = !p.opStartSelf.Selected()
+	p.inputSelfJu.Visible = p.opStartSelf.Selected()
+
+	p.opHideGan0.Visible = p.qmParams.Type != qimen.QMTypeAmaze
+	p.opHideGan1.Visible = p.qmParams.Type != qimen.QMTypeAmaze
 
 	//fmt
 	switch p.qmParams.YMDH {
@@ -498,11 +522,14 @@ func (p *UIQiMen) show9Gong(pp *qimen.QMPan) {
 		if qimen.ZhiGong9[pp.Horse] == i {
 			horse = "马"
 		}
-		p.textGong[i].Text = fmt.Sprintf("\n  %s  %s    %s\n\n%s    %s%s%s\n\n%s    %s    %s\n\n      %s%s",
+		p.textGong[i].Text = fmt.Sprintf("\n  %s  %s    %s\n\n"+
+			"%s %s %s%s%s\n\n"+
+			"%s    %s    %s\n\n"+
+			"      %s%s",
 			empty, g.God, horse,
-			g.PathGan, g.Star, hosting, g.GuestGan,
-			g.PathZhi, g.Door, g.HostGan, qimen.Diagrams9(i),
-			LunarUtil.NUMBER[i])
+			g.PathGan, g.HideGan, qimen.Star0+g.Star, hosting, g.GuestGan,
+			g.PathZhi, g.Door+qimen.Door0, g.HostGan,
+			qimen.Diagrams9(i), LunarUtil.NUMBER[i])
 	}
 }
 func (p *UIQiMen) ShowHourGame(pan *qimen.QMGame) {
