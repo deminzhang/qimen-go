@@ -70,10 +70,10 @@ const (
 var QMJuType = []string{"拆补", "茅山", "_置闰", "自选"}
 
 const (
-	QMJuTypeSplit = 0 //节气和日干符头定三元
-	QMJuTypeMao   = 1 //无视符头，节气开始上元60时辰,中元60时辰,再下元60时辰,下元满60时辰不到下个节气继用下元
-	QMJuTypeZhi   = 2 //符头和节气的关系
-	QMJuTypeSelf  = 3 //自选
+	QMJuTypeSplit   = 0 //节气和日干符头定三元
+	QMJuTypeMaoShan = 1 //无视符头，节气开始上元60时辰,中元60时辰,再下元60时辰,下元满60时辰不到下个节气继用下元
+	QMJuTypeZhiRun  = 2 //符头和节气的关系
+	QMJuTypeSelf    = 3 //自选
 )
 
 // QMHideGanType 暗干起法

@@ -460,7 +460,7 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 			//ju = getQiMenJuIndex(jieQiName, yuan)
 			jqi := _JieQiIndex[jieQiName]
 			ju = _QiMenJu[jqi][yuan-1]
-		case QMJuTypeMao:
+		case QMJuTypeMaoShan:
 			jieQiTime := jieQi.GetSolar()
 			qiHour := jieQiTime.GetHour() //交气所在时辰起时
 			if qiHour%2 == 0 {
@@ -472,7 +472,7 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 			yuan = min(yuan, 3)       //三元完新节气不到用下元
 			jqi := _JieQiIndex[jieQiName]
 			ju = _QiMenJu[jqi][yuan-1]
-		case QMJuTypeZhi:
+		case QMJuTypeZhiRun:
 			//TODO
 		case QMJuTypeSelf:
 			ju = params.SelfJu

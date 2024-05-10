@@ -110,6 +110,14 @@ func (u *BaseUI) AddChild(c IUIPanel) {
 		return u.children[a].GetDepth() > u.children[b].GetDepth()
 	})
 }
+func (u *BaseUI) AddChildren(cs ...IUIPanel) {
+	for _, c := range cs {
+		u.children = append(u.children, c)
+	}
+	sort.Slice(u.children, func(a, b int) bool {
+		return u.children[a].GetDepth() > u.children[b].GetDepth()
+	})
+}
 
 func (u *BaseUI) RemoveChild(c IUIPanel) {
 	for i, child := range u.children {
