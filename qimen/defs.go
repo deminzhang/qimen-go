@@ -80,8 +80,8 @@ const (
 var QMHideGanType = []string{"暗干值使门起", "暗干门地盘起"}
 
 const (
-	QMHideGanDutyDoorPos = 0 //值使门起 值使落宫起时干 地盘干与时干相同时,时干入中宫
-	QMHideGanDoorHome    = 1 //门地盘起 八门带原始宫的地盘干
+	QMHideGanDutyDoorHour = 0 //值使门起 值使落宫起时干 地盘干与时干相同时,时干入中宫
+	QMHideGanDoorHomeGan  = 1 //门地盘起 八门带原始宫的地盘干
 )
 
 // Idx8 序环
@@ -144,17 +144,29 @@ const (
 	QMDayGod12YB = "_黄黄黑黑黄黄黑黄黑黑黄黑"              //十二黄黑道
 )
 
+// StarHome 星原始宫位
+var StarHome = map[string]int{
+	"蓬": 1, "芮": 2, "冲": 3, "辅": 4, "禽": 5, "心": 6, "柱": 7, "任": 8, "英": 9,
+}
+
+// DoorHome 门原始宫位
+var DoorHome = map[string]int{
+	"休": 1, "生": 8, "伤": 3, "杜": 4, "中": 5, "景": 9, "死": 2, "惊": 7, "开": 6,
+}
+
 func Diagrams9(i int) string {
 	i = Idx9[i]
 	return string([]rune(Diagrams8In9)[i : i+1])
 }
 func QMStar9(i int) string {
 	i = Idx9[i]
-	return Star0 + string([]rune(Star9)[i:i+1])
+	//return Star0 + string([]rune(Star9)[i:i+1])
+	return string([]rune(Star9)[i : i+1])
 }
 func QMStar8(i int) string {
 	i = Idx8[i]
-	return Star0 + string([]rune(Star8)[i:i+1])
+	//return Star0 + string([]rune(Star8)[i:i+1])
+	return string([]rune(Star8)[i : i+1])
 }
 func QM3Qi6Yi(i int) string {
 	i = Idx9[i]
@@ -162,11 +174,11 @@ func QM3Qi6Yi(i int) string {
 }
 func QMDoor8(i int) string {
 	i = Idx8[i]
-	return string([]rune(Door8)[i:i+1]) + Door0
+	return string([]rune(Door8)[i : i+1]) // + Door0
 }
 func QMDoor9(i int) string {
 	i = Idx9[i]
-	return string([]rune(Door9)[i:i+1]) + Door0
+	return string([]rune(Door9)[i : i+1]) // + Door0
 }
 func QMGod9S(i int) string {
 	i = Idx9[i] * 2

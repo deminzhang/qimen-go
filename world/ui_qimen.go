@@ -85,7 +85,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 			HostingType: qimen.QMHostingType28,
 			FlyType:     qimen.QMFlyTypeAllOrder,
 			StartType:   qimen.QMStartTypeSplit,
-			HideGanType: 0,
+			HideGanType: qimen.QMHideGanDutyDoorHour,
 		},
 	}
 	px0, py0 := 32, 0
@@ -124,8 +124,8 @@ func NewUIQiMen(width, height int) *UIQiMen {
 
 	py0 += 32
 	p.textJu = ui.NewTextBox(image.Rect(px0, py0, px0+72*4+64, py0+h*2))
-	p.opHideGan0 = ui.NewOptionBox(px0+72*5, py0+8, qimen.QMHideGanType[qimen.QMHideGanDutyDoorPos])
-	p.opHideGan1 = ui.NewOptionBox(px0+72*7, py0+8, qimen.QMHideGanType[qimen.QMHideGanDoorHome])
+	p.opHideGan0 = ui.NewOptionBox(px0+72*5, py0+8, qimen.QMHideGanType[qimen.QMHideGanDutyDoorHour])
+	p.opHideGan1 = ui.NewOptionBox(px0+72*7, py0+8, qimen.QMHideGanType[qimen.QMHideGanDoorHomeGan])
 	py0 += 32
 	p.opHourPan = ui.NewOptionBox(px0+72*5, py0+8, "时家")
 	p.opDayPan = ui.NewOptionBox(px0+72*6, py0+8, "_日家")
@@ -259,7 +259,14 @@ func NewUIQiMen(width, height int) *UIQiMen {
 
 	ui.MakeOptionBoxGroup(p.opHideGan0, p.opHideGan1)
 	p.opHideGan0.Select()
-	p.opHideGan1.Disabled = true
+	p.opHideGan0.SetOnSelect(func(c *ui.OptionBox) {
+		p.qmParams.HideGanType = qimen.QMHideGanDutyDoorHour
+		p.Apply(p.year, p.month, p.day, p.hour, p.minute)
+	})
+	p.opHideGan1.SetOnSelect(func(c *ui.OptionBox) {
+		p.qmParams.HideGanType = qimen.QMHideGanDoorHomeGan
+		p.Apply(p.year, p.month, p.day, p.hour, p.minute)
+	})
 
 	ui.MakeOptionBoxGroup(p.opHourPan, p.opDayPan, p.opMonthPan, p.opYearPan)
 	p.opHourPan.Select()
@@ -281,7 +288,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	})
 	p.opDayPan.Disabled = true
 
-	p.cbHostingType.SetChecked(true)
+	p.cbHostingType.SetChecked(false)
 	p.cbHostingType.Visible = p.opTypeRoll.Selected()
 	p.cbHostingType.SetOnCheckChanged(func(c *ui.CheckBox) {
 		if c.Checked() {
@@ -516,8 +523,8 @@ func (p *UIQiMen) show9Gong(pp *qimen.QMPan) {
 			"%s    %s    %s\n\n"+
 			"      %s%s",
 			empty, g.God, horse,
-			g.PathGan, g.HideGan, g.Star, hosting, g.GuestGan,
-			g.PathZhi, g.Door, g.HostGan,
+			g.PathGan, g.HideGan, qimen.Star0+g.Star, hosting, g.GuestGan,
+			g.PathZhi, g.Door+qimen.Door0, g.HostGan,
 			qimen.Diagrams9(i), LunarUtil.NUMBER[i])
 	}
 }

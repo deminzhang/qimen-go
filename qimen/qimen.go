@@ -71,7 +71,8 @@ type QMPan struct {
 	Type                int //盘式
 	RotatingHostingType int //转盘.寄中法
 	FlyType             int //飞盘.飞星法
-	StartType           int //起局.起局法
+	StartType           int //QMStartType 起局.起局法
+	HideGanType         int //QMHideGanType
 
 	Yuan3 int //三元1~3
 	Ju    int //格局-1~-9,1~9, 年家为-1,-4,-7
@@ -374,20 +375,29 @@ func (p *QMGame) calcGong(pp *QMPan) {
 		for i := 1; i <= +9; i++ {
 			g9[i].PathGan = "  "
 			g9[i].PathZhi = "  "
-			g9[i].HideGan = "暗"
+			g9[i].HideGan = "  "
 		}
-		//值使门起暗干
-		hideGanStart := dutyDoorPos
-		if dutyGan == g9[dutyDoorPos].HostGan { //时干同地盘干,暗干起中宫
-			hideGanStart = 5
-		}
-		if pp.Ju > 0 { //阳遁
-			for i := hideGanStart; i < hideGanStart+9; i++ {
-				g9[Idx9[i]].HideGan = QM3Qi6Yi(dutyGan36Idx + i - hideGanStart)
+		switch pp.HideGanType {
+		case QMHideGanDutyDoorHour: //值使门起暗干
+			hideGanStart := dutyDoorPos
+			if dutyGan == g9[dutyDoorPos].HostGan { //时干同地盘干,暗干起中宫
+				hideGanStart = 5
 			}
-		} else {
-			for i := hideGanStart + 9; i > hideGanStart; i-- {
-				g9[Idx9[i]].HideGan = QM3Qi6Yi(dutyGan36Idx + hideGanStart + 9 - i)
+			if pp.Ju > 0 { //阳遁
+				for i := hideGanStart; i < hideGanStart+9; i++ {
+					g9[Idx9[i]].HideGan = QM3Qi6Yi(dutyGan36Idx + i - hideGanStart)
+				}
+			} else {
+				for i := hideGanStart + 9; i > hideGanStart; i-- {
+					g9[Idx9[i]].HideGan = QM3Qi6Yi(dutyGan36Idx + hideGanStart + 9 - i)
+				}
+			}
+		case QMHideGanDoorHomeGan: //门地盘起
+			for i := 1; i < 9; i++ {
+				if i != 5 {
+					doorHomeGong := DoorHome[g9[i].Door]
+					g9[i].HideGan = g9[doorHomeGong].HostGan
+				}
 			}
 		}
 	}
@@ -454,9 +464,6 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 		case QMStartTypeSelf:
 			ju = params.SelfJu
 		}
-		switch hideGanType {
-		//TODO
-		}
 		p.HourPan = &QMPan{
 			Yuan3:  dayYuanIdx,
 			Ju:     ju,
@@ -466,6 +473,7 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 			RotatingHostingType: qmHostingType,
 			FlyType:             pqmFlyType,
 			StartType:           startType,
+			HideGanType:         hideGanType,
 		}
 		//排九宫
 		p.calcGong(p.HourPan)
@@ -499,7 +507,10 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 		//	RotatingHostingType: qmHostingType,
 		//	FlyType:             pqmFlyType,
 		//	StartType:           startType,
+		//  HideGanType:         hideGanType,
 		//}
+	case QMGameDay2:
+
 	case QMGameMonth:
 		yuan, ju := GetMonthYuanJu(p.YearTB)
 		p.MonthPan = &QMPan{
@@ -511,6 +522,7 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 			RotatingHostingType: qmHostingType,
 			FlyType:             pqmFlyType,
 			StartType:           startType,
+			HideGanType:         hideGanType,
 		}
 		p.calcGong(p.MonthPan)
 	case QMGameYear: //排年家奇门
@@ -524,6 +536,7 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 			RotatingHostingType: qmHostingType,
 			FlyType:             pqmFlyType,
 			StartType:           startType,
+			HideGanType:         hideGanType,
 		}
 		p.calcGong(p.YearPan)
 	}
