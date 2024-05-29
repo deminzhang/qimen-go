@@ -18,14 +18,12 @@ var Yuan3Name = []string{"", "上元", "中元", "下元"}
 
 // 节气索引
 var _JieQiIndex = map[string]int{
-	"冬至": 1, "小寒": 2, "大寒": 3,
-	"立春": 4, "雨水": 5, "惊蛰": 6,
-	"春分": 7, "清明": 8, "谷雨": 9,
-	"立夏": 10, "小满": 11, "芒种": 12,
-	"夏至": 13, "小暑": 14, "大暑": 15,
-	"立秋": 16, "处暑": 17, "白露": 18,
-	"秋分": 19, "寒露": 20, "霜降": 21,
-	"立冬": 22, "小雪": 23, "大雪": 24,
+	"冬至": 1, "小寒": 2, "大寒": 3, "立春": 4,
+	"雨水": 5, "惊蛰": 6, "春分": 7, "清明": 8,
+	"谷雨": 9, "立夏": 10, "小满": 11, "芒种": 12,
+	"夏至": 13, "小暑": 14, "大暑": 15, "立秋": 16,
+	"处暑": 17, "白露": 18, "秋分": 19, "寒露": 20,
+	"霜降": 21, "立冬": 22, "小雪": 23, "大雪": 24,
 }
 
 // 奇门局数
@@ -320,9 +318,9 @@ const (
 var _QiMenJuMonth = []int{0, -7, -1, -4} //秋分局
 
 // GetHeadGanZhi 找甲己符头
-func GetHeadGanZhi(yearTB string) (string, string) {
-	gan := yearTB[:len(yearTB)/2]
-	zhi := yearTB[len(yearTB)/2:]
+func GetHeadGanZhi(ganZhi string) (string, string) {
+	gan := ganZhi[:len(ganZhi)/2]
+	zhi := ganZhi[len(ganZhi)/2:]
 	var ganIdx, zhiIdx int
 	for i, g := range LunarUtil.GAN {
 		if g == gan {
@@ -347,4 +345,14 @@ func GetMonthYuanJu(yearTB string) (int, int) {
 		return 2, _QiMenJuMonth[2]
 	}
 	return 3, _QiMenJuMonth[3]
+}
+
+var _QiMenJuDay = []int{0, 1, 7, 4, -1, -7, -4}
+
+func GetDayYuanJu(jieQiName string) (int, int) {
+	jqi := _JieQiIndex[jieQiName]
+	yuan := jqi/4 + 1
+	ju := _QiMenJuDay[yuan]
+	yuan = yuan % 3
+	return yuan, ju
 }

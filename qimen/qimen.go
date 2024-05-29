@@ -65,6 +65,7 @@ type QMGame struct {
 	MonthPan *QMPan //月家奇门盘
 	DayPan   *QMPan //日家奇门盘
 	HourPan  *QMPan //时家奇门盘
+	DayPan2  *QMPan //日家奇门盘2
 }
 
 type QMPan struct {
@@ -112,11 +113,6 @@ func getQiMenYuan3Index(dayGanZhi string) int {
 		return 2
 	}
 	return 3
-}
-
-func getQiMenJuIndex(jieQi string, yuan3Idx int) int {
-	jqi := _JieQiIndex[jieQi]
-	return _QiMenJu[jqi][yuan3Idx-1]
 }
 
 // GetTermTime 返回solar年的第n(1小寒)个节气进入时间 以1970-01-01 00:00:00 UTC为0,正后前负
@@ -355,15 +351,21 @@ func (p *QMGame) calcGong(pp *QMPan) {
 		}
 	}
 	//排天盘 三奇六仪
-	if pp.Ju > 0 {
-		for i := dutyStarPos; i < dutyStarPos+9; i++ {
-			g9[Idx9[i]].GuestGan = QM3Qi6Yi(xunGanIdx)
-			xunGanIdx++
+	if pp.Type == QMTypeRotating {
+		for i := 1; i <= 9; i++ {
+			g9[i].GuestGan = g9[StarHome[g9[i].Star]].HostGan
 		}
 	} else {
-		for i := dutyStarPos + 9; i > dutyStarPos; i-- {
-			g9[Idx9[i]].GuestGan = QM3Qi6Yi(xunGanIdx)
-			xunGanIdx++
+		if pp.Ju > 0 {
+			for i := dutyStarPos; i < dutyStarPos+9; i++ {
+				g9[Idx9[i]].GuestGan = QM3Qi6Yi(xunGanIdx)
+				xunGanIdx++
+			}
+		} else {
+			for i := dutyStarPos + 9; i > dutyStarPos; i-- {
+				g9[Idx9[i]].GuestGan = QM3Qi6Yi(xunGanIdx)
+				xunGanIdx++
+			}
 		}
 	}
 
@@ -401,6 +403,10 @@ func (p *QMGame) calcGong(pp *QMPan) {
 			}
 		}
 	}
+}
+
+func (p *QMGame) calcGongDay2(pp *QMPan) {
+
 }
 
 func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error) {
@@ -511,19 +517,33 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 			}
 		}
 	case QMGameDay:
-		//p.DayPan = &QMPan{
-		//	//Yuan3:  ,
-		//	//Ju:    ,
-		//	GanZhi: c8[2],
-		//
-		//	Type:                qmType,
-		//	RotatingHostingType: qmHostingType,
-		//	FlyType:             pqmFlyType,
-		//	JuType:           startType,
-		//  HideGanType:         hideGanType,
-		//}
-	case QMGameDay2:
+		yuan, ju := GetDayYuanJu(jieQiName)
+		p.DayPan = &QMPan{
+			Yuan3:  yuan,
+			Ju:     ju,
+			GanZhi: c8[2],
 
+			Type:                qmType,
+			RotatingHostingType: qmHostingType,
+			FlyType:             pqmFlyType,
+			StartType:           startType,
+			HideGanType:         hideGanType,
+		}
+		p.calcGong(p.DayPan)
+	case QMGameDay2:
+		yuan, ju := GetDayYuanJu(jieQiName)
+		p.DayPan = &QMPan{
+			Yuan3:  yuan,
+			Ju:     ju,
+			GanZhi: c8[2],
+
+			Type:                qmType,
+			RotatingHostingType: qmHostingType,
+			FlyType:             pqmFlyType,
+			StartType:           startType,
+			HideGanType:         hideGanType,
+		}
+		p.calcGongDay2(p.DayPan)
 	case QMGameMonth:
 		yuan, ju := GetMonthYuanJu(p.YearTB)
 		p.MonthPan = &QMPan{
