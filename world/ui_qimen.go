@@ -533,7 +533,7 @@ func (p *UIQiMen) ShowHourGame(pan *qimen.QMGame) {
 		"\n%s月建%s %s月将%s",
 		jieQi.GetName(), jieQi.GetSolar().ToYmdHms(), jieQiNext.GetName(), jieQiNext.GetSolar().ToYmdHms(),
 		qimen.Yuan3Name[pp.Yuan3], juName, pp.Xun, qimen.HideJia[pp.Xun],
-		pp.DutyStar, pp.DutyStarPos, pp.DutyDoor, pp.DutyDoorPos,
+		qimen.Star0+pp.DutyStar, pp.DutyStarPos, pp.DutyDoor+qimen.Door0, pp.DutyDoorPos,
 		jie.GetName(), pan.YueJian, qi.GetName(), pan.YueJiang,
 	)
 	p.textJu.SetText(juText)
@@ -590,7 +590,7 @@ func (p *UIQiMen) ShowDayGame(pan *qimen.QMGame) {
 		"\n%s %s %s遁%s 值符%s落%d宫 值使%s落%d宫",
 		jieQi.GetName(), jieQi.GetSolar().ToYmdHms(), jieQiNext.GetName(), jieQiNext.GetSolar().ToYmdHms(),
 		qimen.Yuan3Name[pp.Yuan3], juName, pp.Xun, qimen.HideJia[pp.Xun],
-		pp.DutyStar, pp.DutyStarPos, pp.DutyDoor, pp.DutyDoorPos,
+		qimen.Star0+pp.DutyStar, pp.DutyStarPos, pp.DutyDoor+qimen.Door0, pp.DutyDoorPos,
 	)
 	p.textJu.SetText(juText)
 	p.show9Gong(pp)
@@ -612,7 +612,7 @@ func (p *UIQiMen) ShowMonthGame(pan *qimen.QMGame) {
 	juText := fmt.Sprintf("月家"+
 		"\n%s %s %s遁%s 值符%s落%d宫 值使%s落%d宫",
 		qimen.Yuan3Name[pp.Yuan3], juName, pp.Xun, qimen.HideJia[pp.Xun],
-		pp.DutyStar, pp.DutyStarPos, pp.DutyDoor, pp.DutyDoorPos,
+		qimen.Star0+pp.DutyStar, pp.DutyStarPos, pp.DutyDoor+qimen.Door0, pp.DutyDoorPos,
 	)
 	p.textJu.SetText(juText)
 	p.show9Gong(pp)
@@ -630,7 +630,7 @@ func (p *UIQiMen) ShowYearGame(pan *qimen.QMGame) {
 	juText := fmt.Sprintf("年家"+
 		"\n%s %s %s遁%s 值符%s落%d宫 值使%s落%d宫",
 		qimen.Yuan3Name[pp.Yuan3], juName, pp.Xun, qimen.HideJia[pp.Xun],
-		pp.DutyStar, pp.DutyStarPos, pp.DutyDoor, pp.DutyDoorPos,
+		qimen.Star0+pp.DutyStar, pp.DutyStarPos, pp.DutyDoor+qimen.Door0, pp.DutyDoorPos,
 	)
 	p.textJu.SetText(juText)
 	p.show9Gong(pp)
