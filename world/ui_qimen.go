@@ -117,7 +117,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	py0 += 32
 	p.opDay2Pan = ui.NewOptionBox(px0+72*6, py0+8, "_日家2")
 
-	px4, py4 := 128, 256
+	px4, py4 := 64, 256
 	const gongWidth = 128
 	gongOffset := [][]int{{0, 0},
 		{1, 2}, {2, 0}, {0, 1},

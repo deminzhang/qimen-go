@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	lineHeight     = 16
-	textBoxPadding = 8
+	defaultLineHeight     = 16
+	defaultTextBoxPadding = 8
 )
 
 type TextBox struct {
@@ -25,6 +25,8 @@ type TextBox struct {
 	hScrollBar     *HScrollBar
 	offsetX        int
 	offsetY        int
+	lineHeight     int
+	textBoxPadding int
 	DisableVScroll bool
 	DisableHScroll bool
 
@@ -34,11 +36,12 @@ type TextBox struct {
 
 func NewTextBox(rect image.Rectangle) *TextBox {
 	return &TextBox{
-		BaseUI: BaseUI{Visible: true, X: 0, Y: 0},
-		Rect:   rect,
-
-		UIImage:   GetDefaultUIImage(),
-		ImageRect: imageSrcRects[imageTypeTextBox],
+		BaseUI:         BaseUI{Visible: true, X: 0, Y: 0},
+		Rect:           rect,
+		lineHeight:     defaultLineHeight,
+		textBoxPadding: defaultTextBoxPadding,
+		UIImage:        GetDefaultUIImage(),
+		ImageRect:      imageSrcRects[imageTypeTextBox],
 	}
 }
 func (t *TextBox) SetText(v interface{}) {
@@ -58,11 +61,11 @@ func (t *TextBox) Update() {
 		if t.vScrollBar == nil {
 			t.vScrollBar = NewVScrollBar()
 		}
-		t.vScrollBar.X = t.Rect.Max.X - VScrollBarWidth
+		t.vScrollBar.X = t.Rect.Max.X - t.vScrollBar.ScrollBarWidth
 		t.vScrollBar.Y = t.Rect.Min.Y
 		t.vScrollBar.Height = t.Rect.Dy()
 		if t.hScrollBar != nil {
-			t.vScrollBar.Height -= HScrollBarHeight
+			t.vScrollBar.Height -= t.hScrollBar.ScrollBarHeight
 		}
 
 		t.vScrollBar.Update(h)
@@ -77,10 +80,10 @@ func (t *TextBox) Update() {
 			t.hScrollBar = NewHScrollBar()
 		}
 		t.hScrollBar.X = t.Rect.Min.X
-		t.hScrollBar.Y = t.Rect.Max.Y - HScrollBarHeight
+		t.hScrollBar.Y = t.Rect.Max.Y - t.hScrollBar.ScrollBarHeight
 		t.hScrollBar.Width = t.Rect.Dx()
 		if t.vScrollBar != nil {
-			t.hScrollBar.Width -= VScrollBarWidth
+			t.hScrollBar.Width -= t.vScrollBar.ScrollBarWidth
 		}
 
 		t.hScrollBar.Update(w)
@@ -94,11 +97,11 @@ func (t *TextBox) Update() {
 
 func (t *TextBox) contentSize() (int, int) {
 	lines := strings.Split(t.Text, "\n")
-	h := len(lines) * lineHeight
+	h := len(lines) * t.lineHeight
 	w := t.Rect.Dx()
 	for _, line := range lines {
 		bounds, _ := font.BoundString(uiFont, line)
-		w = max(w, (bounds.Max.X-bounds.Min.X).Ceil()+2*textBoxPadding)
+		w = max(w, (bounds.Max.X-bounds.Min.X).Ceil()+2*t.textBoxPadding)
 		h = max(h, (bounds.Max.Y - bounds.Min.Y).Ceil())
 	}
 	return w, h
@@ -107,12 +110,12 @@ func (t *TextBox) contentSize() (int, int) {
 func (t *TextBox) viewSize() (int, int) {
 	vsb, hsb := 0, 0
 	if t.vScrollBar != nil {
-		vsb = VScrollBarWidth
+		vsb = t.vScrollBar.ScrollBarWidth
 	}
 	if t.hScrollBar != nil {
-		hsb = HScrollBarHeight
+		hsb = t.hScrollBar.ScrollBarHeight
 	}
-	return t.Rect.Dx() - vsb - textBoxPadding, t.Rect.Dy() - hsb
+	return t.Rect.Dx() - vsb - t.textBoxPadding, t.Rect.Dy() - hsb
 }
 
 func (t *TextBox) contentOffset() (int, int) {
@@ -140,12 +143,12 @@ func (t *TextBox) Draw(dst *ebiten.Image) {
 
 	t.contentBuf.Clear()
 	for i, line := range strings.Split(t.Text, "\n") {
-		x := -t.offsetX + textBoxPadding
-		y := -t.offsetY + i*lineHeight + lineHeight - (lineHeight-uiFontMHeight)/2
-		if y < -lineHeight {
+		x := -t.offsetX + t.textBoxPadding
+		y := -t.offsetY + i*t.lineHeight + t.lineHeight - (t.lineHeight-uiFontMHeight)/2
+		if y < -t.lineHeight {
 			continue
 		}
-		if _, h := t.viewSize(); y >= h+lineHeight {
+		if _, h := t.viewSize(); y >= h+t.lineHeight {
 			continue
 		}
 		text.Draw(t.contentBuf, line, uiFont, x, y, color.Black)

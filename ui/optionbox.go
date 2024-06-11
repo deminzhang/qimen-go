@@ -9,20 +9,21 @@ import (
 )
 
 const (
-	optionBoxWidth       = 16
-	optionBoxPaddingLeft = 8
+	defaultOptionBoxWidth       = 16
+	defaultOptionBoxPaddingLeft = 8
 )
 
 type OptionBox struct {
 	BaseUI
 	Text string
 
-	selected    bool
-	mouseDown   bool
-	optionGroup map[*OptionBox]struct{}
+	selected       bool
+	mouseDown      bool
+	boxWidth       int
+	boxPaddingLeft int
+	optionGroup    map[*OptionBox]struct{}
 
-	onSelect func(c *OptionBox)
-
+	onSelect         func(c *OptionBox)
 	UIImage          *ebiten.Image
 	ImageRect        image.Rectangle
 	ImageRectPressed image.Rectangle
@@ -31,9 +32,10 @@ type OptionBox struct {
 
 func NewOptionBox(x, y int, text string) *OptionBox {
 	return &OptionBox{
-		BaseUI: BaseUI{Visible: true, X: x, Y: y},
-		Text:   text,
-
+		BaseUI:           BaseUI{Visible: true, X: x, Y: y},
+		Text:             text,
+		boxWidth:         defaultOptionBoxWidth,
+		boxPaddingLeft:   defaultOptionBoxPaddingLeft,
 		UIImage:          GetDefaultUIImage(),
 		ImageRect:        imageSrcRects[imageTypeOptionBox],
 		ImageRectPressed: imageSrcRects[imageTypeOptionBoxPressed],
@@ -49,7 +51,7 @@ func MakeOptionBoxGroup(a ...*OptionBox) {
 	}
 }
 
-func (o *OptionBox) width() int {
+func (o *OptionBox) Width() int {
 	b, _ := font.BoundString(uiFont, o.Text)
 	w := (b.Max.X - b.Min.X).Ceil()
 	return checkBoxWidth + checkBoxPaddingLeft + w
@@ -58,7 +60,7 @@ func (o *OptionBox) width() int {
 func (o *OptionBox) Update() {
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
-		if o.X <= x && x < o.X+o.width() && o.Y <= y && y < o.Y+checkBoxWidth {
+		if o.X <= x && x < o.X+o.Width() && o.Y <= y && y < o.Y+checkBoxWidth {
 			o.mouseDown = true
 		} else {
 			o.mouseDown = false
@@ -75,7 +77,7 @@ func (o *OptionBox) Draw(dst *ebiten.Image) {
 	if !o.Visible {
 		return
 	}
-	r := image.Rect(o.X, o.Y, o.X+optionBoxWidth, o.Y+optionBoxWidth)
+	r := image.Rect(o.X, o.Y, o.X+o.boxWidth, o.Y+o.boxWidth)
 	if o.mouseDown {
 		drawNinePatches(dst, o.UIImage, r, o.ImageRectPressed)
 	} else {
@@ -85,7 +87,7 @@ func (o *OptionBox) Draw(dst *ebiten.Image) {
 		drawNinePatches(dst, o.UIImage, r, o.ImageRectMark)
 	}
 
-	x := o.X + optionBoxWidth + optionBoxPaddingLeft
+	x := o.X + o.boxWidth + o.boxPaddingLeft
 	y := (o.Y + 16) - (16-uiFontMHeight)/2
 	if o.Disabled {
 		text.Draw(dst, o.Text, uiFont, x, y, color.Gray16{Y: 0x8888})

@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"github.com/atotto/clipboard"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"image"
 	"image/color"
 	"strings"
 )
 
 const (
-	textInputPadding = 8
+	defaultTextInputPadding = 8
 )
 
 var textSelectColor = color.RGBA{B: 200, A: 128}
@@ -26,6 +26,7 @@ type InputBox struct {
 	MaxChars     int    //最大长度
 	PasswordChar string //密文显示
 	offsetX      int    //文本偏移 TODO
+	textPadding  int
 	Editable     bool
 	Selectable   bool
 
@@ -52,8 +53,9 @@ func NewInputBox(rect image.Rectangle) *InputBox {
 		Editable:   true,
 		Selectable: true,
 		//default resource
-		UIImage:   GetDefaultUIImage(),
-		ImageRect: imageSrcRects[imageTypeTextBox],
+		textPadding: defaultTextInputPadding,
+		UIImage:     GetDefaultUIImage(),
+		ImageRect:   imageSrcRects[imageTypeTextBox],
 	}
 }
 
@@ -90,7 +92,7 @@ func (i *InputBox) Update() {
 				pos := len(i.textRune)
 				for ii := 0; ii < pos; ii++ {
 					w := getFontWidth(uiFont, string(i.textRune[:ii]))
-					if x < i.Rect.Min.X+textInputPadding+w {
+					if x < i.Rect.Min.X+i.textPadding+w {
 						pos = ii
 						break
 					}
@@ -118,7 +120,7 @@ func (i *InputBox) Update() {
 				pos := len(i.textRune)
 				for ii := 0; ii < pos; ii++ {
 					w := getFontWidth(uiFont, string(i.textRune[:ii]))
-					if x < i.Rect.Min.X+textInputPadding+w {
+					if x < i.Rect.Min.X+i.textPadding+w {
 						pos = ii
 						break
 					}
@@ -311,7 +313,7 @@ func (i *InputBox) Draw(dst *ebiten.Image) {
 	drawNinePatches(dst, i.UIImage, i.Rect, i.ImageRect)
 
 	//drawText
-	x := i.Rect.Min.X + textInputPadding //居左  //居中 + (i.Rect.Dx()-w)/2
+	x := i.Rect.Min.X + i.textPadding //居左  //居中 + (i.Rect.Dx()-w)/2
 	y := i.Rect.Max.Y - (i.Rect.Dy()-uiFontMHeight)/2
 
 	if len(i.textRune) == 0 && i.DefaultText != "" && !i.Focused() {
@@ -337,15 +339,15 @@ func (i *InputBox) Draw(dst *ebiten.Image) {
 				s1 := string(r[:left])
 				s2 := string(r[:right])
 				wl, wr := getFontSelectWidth(uiFont, s, len(s1), len(s2))
-				ebitenutil.DrawRect(dst, float64(x+wl), float64(i.Rect.Min.Y+4),
-					float64(wr-wl), float64(i.Rect.Dy()-8), textSelectColor)
+				vector.DrawFilledRect(dst, float32(x+wl), float32(i.Rect.Min.Y+4),
+					float32(wr-wl), float32(i.Rect.Dy()-8), textSelectColor, false)
 			}
 			if i.cursorCounter%10 < 5 {
 				w := getFontWidth(uiFont, string(r[:i.cursorPos]))
 				//太矮 text.Draw(dst, "|", uiFont, x+w, y, color.Black)
 				//太窄 ebitenutil.DrawLine(dst, float64(x+w), float64(i.Rect.Min.Y+4), float64(x+w), float64(i.Rect.Min.Y+i.Rect.Dy()-4), color.Black)
-				ebitenutil.DrawRect(dst, float64(x+w), float64(i.Rect.Min.Y+4),
-					float64(2), float64(i.Rect.Dy()-8), color.Black)
+				vector.DrawFilledRect(dst, float32(x+w), float32(i.Rect.Min.Y+4),
+					float32(2), float32(i.Rect.Dy()-8), color.Black, false)
 			}
 		}
 	}
