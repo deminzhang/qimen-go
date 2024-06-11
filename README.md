@@ -16,3 +16,10 @@
 5. 美化字色
 6. UI坐标承父坐标
 7. 阴盘奇门 年/时/刻
+
+
+# build apk
+```shell
+ebitenmobile bind -target android -javapkg com.deminzhang.qimen -o ./mobile/android/qimen/qimen.aar ./mobile
+cd ./mobile/android
+./gradlew assembleRelease
