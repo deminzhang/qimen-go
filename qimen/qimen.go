@@ -117,7 +117,7 @@ func getQiMenYuan3Index(dayGanZhi string) int {
 
 // GetTermTime 返回solar年的第n(1小寒)个节气进入时间 以1970-01-01 00:00:00 UTC为0,正后前负
 func GetTermTime(year, n int) int64 {
-	t := int64(31556925974.7*float64(year-1900)/1000) + int64(termData[n-1]*60-2208549300)
+	t := int64(31556925974.7*float64(year-1900)/1000) + int64(termData[n-1]*60) - 2208549300
 	return t
 }
 
