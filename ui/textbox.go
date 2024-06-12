@@ -15,10 +15,13 @@ const (
 	defaultTextBoxPadding = 8
 )
 
+var defaultTextColor = color.Black
+
 type TextBox struct {
 	BaseUI
-	Rect image.Rectangle
-	Text string
+	Rect      image.Rectangle
+	Text      string
+	TextColor color.Color
 
 	contentBuf     *ebiten.Image
 	vScrollBar     *VScrollBar
@@ -38,6 +41,7 @@ func NewTextBox(rect image.Rectangle) *TextBox {
 	return &TextBox{
 		BaseUI:         BaseUI{Visible: true, X: 0, Y: 0},
 		Rect:           rect,
+		TextColor:      defaultTextColor,
 		lineHeight:     defaultLineHeight,
 		textBoxPadding: defaultTextBoxPadding,
 		UIImage:        GetDefaultUIImage(),
@@ -126,13 +130,15 @@ func (t *TextBox) Draw(dst *ebiten.Image) {
 	if !t.Visible {
 		return
 	}
-	drawNinePatches(dst, t.UIImage, t.Rect, t.ImageRect)
+	if t.UIImage != nil {
+		drawNinePatches(dst, t.UIImage, t.Rect, t.ImageRect)
+	}
 
 	if t.contentBuf != nil {
 		vw, vh := t.viewSize()
-		w, h := t.contentBuf.Size()
+		w, h := t.contentBuf.Bounds().Dx(), t.contentBuf.Bounds().Dy()
 		if vw > w || vh > h {
-			t.contentBuf.Dispose()
+			t.contentBuf.Deallocate()
 			t.contentBuf = nil
 		}
 	}
@@ -151,7 +157,7 @@ func (t *TextBox) Draw(dst *ebiten.Image) {
 		if _, h := t.viewSize(); y >= h+t.lineHeight {
 			continue
 		}
-		text.Draw(t.contentBuf, line, uiFont, x, y, color.Black)
+		text.Draw(t.contentBuf, line, uiFont, x, y, t.TextColor)
 	}
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(float64(t.Rect.Min.X), float64(t.Rect.Min.Y))

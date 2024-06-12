@@ -153,7 +153,6 @@ func (p *QMGame) calcGong(pp *QMPan) {
 	zhi := pp.GanZhi[len(pp.GanZhi)/2:]
 	pp.Xun = xun
 	pp.Horse = Horse[zhi]
-
 	for i := 1; i <= 9; i++ {
 		g9[i].Idx = i
 	}

@@ -55,8 +55,7 @@ func init() {
 }
 
 func NewWorld() ebiten.Game {
-	g := NewGame0()
-	//g := NewGame1()
-	UIShowQiMen(ScreenWidth, ScreenHeight)
+	//g := NewGame0()
+	g := NewGame1()
 	return g
 }

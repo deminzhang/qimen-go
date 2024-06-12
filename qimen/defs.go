@@ -106,6 +106,22 @@ var KongWang = map[string][]string{
 	"甲辰": {"寅", "卯"},
 	"甲寅": {"子", "丑"},
 }
+var KongWangClock = map[string]float32{
+	"甲子": 10.5, //戌亥
+	"甲戌": 8.5,  //申酉
+	"甲申": 6.5,  //午未
+	"甲午": 4.5,  //辰巳
+	"甲辰": 2.5,  //寅卯
+	"甲寅": 0.5,  //子丑
+}
+var SkyDoor3 = map[string]bool{
+	"太冲": true, "卯": true,
+	"小吉": true, "未": true,
+	"从魁": true, "酉": true,
+}
+var GroundDoor4 = map[string]bool{
+	"除": true, "危": true, "定": true, "开": true,
+}
 
 // ZhiGong9 支九宫位
 var ZhiGong9 = map[string]int{
