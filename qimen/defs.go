@@ -114,12 +114,12 @@ var KongWangClock = map[string]float32{
 	"甲辰": 2.5,  //寅卯
 	"甲寅": 0.5,  //子丑
 }
-var SkyDoor3 = map[string]bool{
+var SkyGate3 = map[string]bool{
 	"太冲": true, "卯": true,
 	"小吉": true, "未": true,
 	"从魁": true, "酉": true,
 }
-var GroundDoor4 = map[string]bool{
+var GroundGate4 = map[string]bool{
 	"除": true, "危": true, "定": true, "开": true,
 }
 
@@ -133,7 +133,7 @@ const (
 	Trunk10  = "_甲乙丙丁戊已庚辛壬癸"   //天干
 	Branch12 = "_子丑寅卯辰巳午末申酉戌亥" //地支
 
-	Diagrams8In9 = "_坎坤震巽中乾竞艮离" //九宫八卦
+	Diagrams8In9 = "_坎坤震巽中乾兑艮离" //九宫八卦
 	//Term24    = "__小寒大寒立春雨水惊蛰春分清明谷雨立夏小满芒种夏至小暑大暑立秋处暑白露秋分寒露霜降立冬小雪大雪冬至"
 
 	Star0 = "天"

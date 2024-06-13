@@ -1,9 +1,7 @@
 package world
 
 const (
-	TPSRate      = 10
-	ScreenWidth  = 1024
-	ScreenHeight = 768
-	//ScreenWidth  = 2700
-	//ScreenHeight = 1224
+	TPSRate      = 30
+	screenWidth  = 1024
+	screenHeight = 768
 )

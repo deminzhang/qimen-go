@@ -66,6 +66,7 @@ type QMGame struct {
 	DayPan   *QMPan //日家奇门盘
 	HourPan  *QMPan //时家奇门盘
 	DayPan2  *QMPan //日家奇门盘2
+	ShowPan  *QMPan //显示盘
 }
 
 type QMPan struct {
@@ -370,11 +371,11 @@ func (p *QMGame) calcGong(pp *QMPan) {
 
 	if pp.Type == QMTypeAmaze {
 		for i := 1; i <= +9; i++ {
-			g9[i].HideGan = "  "
+			g9[i].HideGan = ""
 		}
 	} else {
 		for i := 1; i <= +9; i++ {
-			g9[i].PathGan = "  "
+			g9[i].PathGan = ""
 			g9[i].PathZhi = "  "
 			g9[i].HideGan = "  "
 		}

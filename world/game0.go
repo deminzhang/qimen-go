@@ -18,11 +18,11 @@ func (g *game0) Draw(screen *ebiten.Image) {
 }
 
 func (g *game0) Layout(outsideWidth, outsideHeight int) (int, int) {
-	return ScreenWidth, ScreenHeight
+	return screenWidth, screenHeight
 }
 
 func NewGame0() *game0 {
 	g := &game0{}
-	UIShowQiMen(ScreenWidth, ScreenHeight)
+	UIShowQiMen(screenWidth, screenHeight)
 	return g
 }

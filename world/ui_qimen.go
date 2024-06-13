@@ -6,7 +6,6 @@ import (
 	"github.com/6tail/lunar-go/LunarUtil"
 	"github.com/6tail/lunar-go/SolarUtil"
 	"image"
-	"image/color"
 	"qimen/qimen"
 	"qimen/ui"
 	"strconv"
@@ -73,7 +72,7 @@ func UIHideQiMen() {
 }
 
 func NewUIQiMen(width, height int) *UIQiMen {
-	//cx, cy := width/2, height/2 //win center
+	//centerX, centerY := width/2, height/2 //win center
 	p := &UIQiMen{
 		BaseUI: ui.BaseUI{Visible: true},
 		qmParams: qimen.QMParams{
@@ -521,25 +520,26 @@ func (p *UIQiMen) show9Gong(pp *qimen.QMPan) {
 			star = ""
 		}
 		p.textGong[i].Text = fmt.Sprintf("\n  %s  %s    %s\n\n"+
-			"%s %s %s%s%s\n\n"+
-			"%s    %s    %s\n\n"+
+			"   %s %s%s%s\n\n"+
+			"   %s %s    %s\n\n"+
 			"      %s%s",
 			empty, g.God, horse,
-			g.PathGan, g.HideGan, star, hosting, g.GuestGan,
+			g.PathGan+g.HideGan, star, hosting, g.GuestGan,
 			g.PathZhi, door, g.HostGan,
 			qimen.Diagrams9(i), LunarUtil.NUMBER[i])
+
 	}
 }
 
-func (p *UIQiMen) hide9GongBackGround(c color.Color) {
+func (p *UIQiMen) hide9GongUI() {
 	for i := 1; i <= 9; i++ {
-		p.textGong[i].TextColor = c
-		p.textGong[i].UIImage = nil
+		p.textGong[i].Visible = false
 	}
 }
 
 func (p *UIQiMen) ShowHourGame(pan *qimen.QMGame) {
 	pp := pan.HourPan
+	pan.ShowPan = pp
 	var juName string
 	if pp.Ju < 0 {
 		juName = fmt.Sprintf("阴%d局", -pp.Ju)
@@ -612,6 +612,7 @@ func (p *UIQiMen) noShow12Gong() {
 
 func (p *UIQiMen) ShowDayGame(pan *qimen.QMGame) {
 	pp := pan.DayPan
+	pan.ShowPan = pp
 	var juName string
 	if pp.Ju < 0 {
 		juName = fmt.Sprintf("阴%d局", -pp.Ju)
@@ -620,7 +621,7 @@ func (p *UIQiMen) ShowDayGame(pan *qimen.QMGame) {
 	}
 	jieQi := pan.Lunar.GetPrevJieQi()
 	jieQiNext := pan.Lunar.GetNextJieQi()
-	juText := fmt.Sprintf("日家%s%s %s%s"+
+	juText := fmt.Sprintf("%s%s %s%s"+
 		"\n%s %s %s遁%s 值符%s落%d宫 值使%s落%d宫",
 		jieQi.GetName(), jieQi.GetSolar().ToYmdHms(), jieQiNext.GetName(), jieQiNext.GetSolar().ToYmdHms(),
 		qimen.Yuan3Name[pp.Yuan3], juName, pp.Xun, qimen.HideJia[pp.Xun],
@@ -637,6 +638,7 @@ func (p *UIQiMen) ShowDayGame2(pan *qimen.QMGame) {
 
 func (p *UIQiMen) ShowMonthGame(pan *qimen.QMGame) {
 	pp := pan.MonthPan
+	pan.ShowPan = pp
 	var juName string
 	if pp.Ju < 0 {
 		juName = fmt.Sprintf("阴%d局", -pp.Ju)
@@ -655,6 +657,7 @@ func (p *UIQiMen) ShowMonthGame(pan *qimen.QMGame) {
 
 func (p *UIQiMen) ShowYearGame(pan *qimen.QMGame) {
 	pp := pan.YearPan
+	pan.ShowPan = pp
 	var juName string
 	if pp.Ju < 0 {
 		juName = fmt.Sprintf("阴%d局", -pp.Ju)
