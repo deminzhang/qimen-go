@@ -50,8 +50,8 @@ func init() {
 	ebiten.SetTPS(TPSRate)
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
-	//ebiten.SetWindowTitle("众妙之门")
-	ebiten.SetWindowTitle("奇门遁甲")
+	ebiten.SetWindowTitle("众妙之门")
+	//ebiten.SetWindowTitle("奇门遁甲")
 }
 
 func NewWorld() ebiten.Game {

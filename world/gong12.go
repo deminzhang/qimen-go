@@ -12,5 +12,6 @@ type Gong12 struct {
 	Jian    string //建星名 建除满平...
 	IsJian  bool   //是否建星
 
-	IsHorse bool //是否驿马
+	IsHorse    bool //是否驿马
+	IsSkyHorse bool //是否天马
 }

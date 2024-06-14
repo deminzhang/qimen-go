@@ -9,7 +9,7 @@ import (
 
 const (
 	starsLineScale = 64
-	starsLineCount = 1024
+	starsLineCount = 512
 )
 
 type StarLine struct {

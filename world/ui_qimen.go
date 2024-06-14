@@ -584,6 +584,7 @@ func (p *UIQiMen) show12Gong(pan *qimen.QMGame) {
 		g12.Jian = bs
 		g12.IsJian = bs == "建"
 		g12.IsHorse = z == pan.HourPan.Horse
+		g12.IsSkyHorse = g == "太冲"
 
 		var j, h string
 		if g12.IsJiang {

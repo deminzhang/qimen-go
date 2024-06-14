@@ -2,6 +2,7 @@ package world
 
 import (
 	"fmt"
+	"github.com/6tail/lunar-go/LunarUtil"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
@@ -65,7 +66,7 @@ func (g *game1) Draw(screen *ebiten.Image) {
 	}
 	ui.Draw(screen)
 	drawQM(screen)
-	//drawStar(screen)
+	drawStar(screen)
 }
 
 func (g *game1) Layout(outsideWidth, outsideHeight int) (int, int) {
@@ -160,8 +161,7 @@ func draw12Gong(screen *ebiten.Image) {
 		vector.StrokeCircle(screen, centerX, centerY, r2, zhiPanWidth/2, colorSkyGateCircle, true)
 
 		for i := 1; i <= 12; i++ {
-			angleDegrees := float64(i-45) * 30 //+ float64(g.count)
-
+			angleDegrees := float64(i+2) * 30 //+ float64(g.count)
 			lx1, ly1 := calRadiansPos(float64(centerX), float64(centerY), float64(r1-zhiPanWidth/4), angleDegrees-15)
 			lx2, ly2 := calRadiansPos(float64(centerX), float64(centerY), float64(r2+zhiPanWidth/4), angleDegrees-15)
 			vector.StrokeLine(screen, float32(lx1), float32(ly1), float32(lx2), float32(ly2), 1, colorGongSplit, true)
@@ -189,9 +189,13 @@ func draw12Gong(screen *ebiten.Image) {
 			x22, y22 := calRadiansPos(float64(centerX), float64(centerY), float64(r1), angleDegrees+10)
 			text.Draw(screen, gong12.JianZhi, ft, int(x22-8), int(y22+4), jianColor)
 
-			if gong12.IsHorse {
+			if uiQiMen.pan.ShowPan.Horse == LunarUtil.ZHI[i] {
 				x3, y3 := calRadiansPos(float64(centerX), float64(centerY), float64(r1), angleDegrees-10)
-				text.Draw(screen, "马", ft, int(x3-8), int(y3+4), colorLeader)
+				text.Draw(screen, "驿马", ft, int(x3-8), int(y3+4), colorLeader)
+			}
+			if gong12.IsSkyHorse {
+				x4, y4 := calRadiansPos(float64(centerX), float64(centerY), float64(r2), angleDegrees-10)
+				text.Draw(screen, "天马", ft, int(x4-14), int(y4+4), colorLeader)
 			}
 		}
 	}
