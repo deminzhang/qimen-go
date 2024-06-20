@@ -167,6 +167,21 @@ var StarHome = map[string]int{
 var DoorHome = map[string]int{
 	"休": 1, "生": 8, "伤": 3, "杜": 4, "中": 5, "景": 9, "死": 2, "惊": 7, "开": 6,
 }
+var Gong9Color = []string{"",
+	"白", "黑", "青", "碧", "黄", "白", "赤", "白", "紫",
+}
+var Diagrams8Color = map[string]string{
+	"坎": "白", "坤": "黑", "震": "青", "巽": "碧", "中": "黄", "乾": "白", "兑": "赤", "艮": "白", "离": "紫",
+}
+var DiagramsWuxing = map[string]string{
+	"坎": "水", "坤": "土", "震": "木", "巽": "木", "中": "土", "乾": "金", "兑": "金", "艮": "土", "离": "火",
+}
+var ZhiWuxing = map[string]string{
+	"子": "水", "丑": "土", "寅": "木", "卯": "木", "辰": "土", "巳": "火", "午": "火", "未": "土", "申": "金", "酉": "金", "戌": "土", "亥": "水",
+}
+var GanWuxing = map[string]string{
+	"甲": "木", "乙": "木", "丙": "火", "丁": "火", "戊": "土", "己": "土", "庚": "金", "辛": "金", "壬": "水", "癸": "水",
+}
 
 func Diagrams9(i int) string {
 	i = Idx9[i]
@@ -313,15 +328,24 @@ var termData = []int{
 
 // 黄帝有熊氏即位的甲子年(公元前2697年起甲子下元)
 // 公元前1年为0,前2年为-1,60年换元
-const _QiMenYearJuStart = 60 - 2697 + 1
-
 var _QiMenJuYear = []int{0, -1, -4, -7}
 
-func GetYearYuanJu(lYear int) (int, int) {
-	if lYear < _QiMenYearJuStart {
-		lYear += ((_QiMenYearJuStart-lYear)/180 + 1) * 180
+// GetHuangDiYear 黄帝纪元
+func GetHuangDiYear(year int) int {
+	if year < 0 {
+		return 2698 - year
 	}
-	yuan := 1 + (lYear-_QiMenYearJuStart)%180/60
+	return year + 2697
+}
+
+func GetYear9Yun(year int) int {
+	y := GetHuangDiYear(year)
+	return (y-60-1)%180/20 + 1
+}
+
+func GetYearYuanJu(year int) (int, int) {
+	y := GetHuangDiYear(year)
+	yuan := (y-60-1)%180/60 + 1
 	return yuan, _QiMenJuYear[yuan]
 }
 

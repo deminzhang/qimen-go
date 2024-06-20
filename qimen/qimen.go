@@ -33,7 +33,7 @@ type QMGame struct {
 	SolarHour   int //0-23
 	SolarMinute int //分
 
-	lunarYear    int //农历年
+	LunarYear    int //农历年
 	lunarMonth   int //农历月 1~12 闰-1~-12
 	lunarDay     int //农历日 1~30
 	lunarHour    int //农历时
@@ -439,7 +439,7 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 		SolarDay:    day,
 		SolarHour:   hour,
 		SolarMinute: minute,
-		lunarYear:   lunar.GetYear(),
+		LunarYear:   lunar.GetYear(),
 		lunarMonth:  lunar.GetMonth(),
 		lunarDay:    lunar.GetYear(),
 		lunarHour:   lunar.GetHour(),
@@ -559,7 +559,7 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 		}
 		p.calcGong(p.MonthPan)
 	case QMGameYear: //排年家奇门
-		yuan, ju := GetYearYuanJu(p.lunarYear)
+		yuan, ju := GetYearYuanJu(p.LunarYear)
 		p.YearPan = &QMPan{
 			Yuan3:  yuan,
 			Ju:     ju,

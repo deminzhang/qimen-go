@@ -513,7 +513,7 @@ func (p *UIQiMen) show9Gong(pp *qimen.QMPan) {
 		}
 		door := g.Door + qimen.Door0
 		if g.Door == "" {
-			door = ""
+			door = "    "
 		}
 		star := qimen.Star0 + g.Star
 		if g.Star == "" {
@@ -665,8 +665,13 @@ func (p *UIQiMen) ShowYearGame(pan *qimen.QMGame) {
 	} else {
 		juName = fmt.Sprintf("阳%d局", pp.Ju)
 	}
-	juText := fmt.Sprintf("年家"+
+	y9 := qimen.GetYear9Yun(pan.LunarYear)
+	d8 := qimen.Diagrams9(y9)
+	y3y9 := fmt.Sprintf("三元九运:%s%s%s%s%s", qimen.Yuan3Name[pp.Yuan3],
+		LunarUtil.NUMBER[y9], qimen.Gong9Color[y9], d8, qimen.DiagramsWuxing[d8])
+	juText := fmt.Sprintf("年家 黄帝纪元:%d %s"+
 		"\n%s %s %s遁%s 值符%s落%d宫 值使%s落%d宫",
+		qimen.GetHuangDiYear(pan.LunarYear), y3y9,
 		qimen.Yuan3Name[pp.Yuan3], juName, pp.Xun, qimen.HideJia[pp.Xun],
 		qimen.Star0+pp.DutyStar, pp.DutyStarPos, pp.DutyDoor+qimen.Door0, pp.DutyDoorPos,
 	)
