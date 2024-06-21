@@ -12,6 +12,8 @@ github.com/hajimehoshi/bitmapfont/v3 v3.0.0 h1:r2+6gYK38nfztS/et50gHAswb9hXgxXEC
 github.com/hajimehoshi/bitmapfont/v3 v3.0.0/go.mod h1:+CxxG+uMmgU4mI2poq944i3uZ6UYFfAkj9V6WqmuvZA=
 github.com/hajimehoshi/ebiten/v2 v2.7.4 h1:X+heODRQ3Ie9F9QFjm24gEZqQd5FSfR9XuT2XfHwgf8=
 github.com/hajimehoshi/ebiten/v2 v2.7.4/go.mod h1:H2pHVgq29rfm5yeQ7jzWOM3VHsjo7/AyucODNLOhsVY=
+github.com/hebl/gofa v1.19.1 h1:/aVMeT0MXDrq5oMdTAKn1qyfIFlsDKvzx8DDLnsEx9s=
+github.com/hebl/gofa v1.19.1/go.mod h1:UmDlahQBVbigXqA+ghdTtaXADoyQSWeiW+7nEB86HXU=
 github.com/jezek/xgb v1.1.1 h1:bE/r8ZZtSv7l9gk6nU0mYx51aXrvnyb44892TwSaqS4=
 github.com/jezek/xgb v1.1.1/go.mod h1:nrhwO0FX/enq75I7Y7G8iN1ubpSGZEiA3v9e9GyRFlk=
 golang.org/x/image v0.16.0 h1:9kloLAKhUufZhA12l5fwnx2NZW39/we1UhBesW433jw=

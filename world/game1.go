@@ -42,7 +42,7 @@ func (g *game1) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 func NewGame1() *game1 {
 	g := &game1{
-		astrolabe: &Astrolabe{},
+		astrolabe: NewAstrolabe(),
 		qimen:     NewQimenShow(),
 	}
 	for i := 0; i < starsLineCount; i++ {

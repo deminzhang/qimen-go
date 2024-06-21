@@ -6,6 +6,7 @@ require (
 	github.com/6tail/lunar-go v1.3.11
 	github.com/atotto/clipboard v0.1.4
 	github.com/hajimehoshi/ebiten/v2 v2.7.4
+	github.com/hebl/gofa v1.19.1
 	golang.org/x/image v0.16.0
 )
 
