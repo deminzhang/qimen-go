@@ -10,6 +10,7 @@ import (
 	"math"
 	"qimen/qimen"
 	"qimen/ui"
+	"qimen/util"
 )
 
 const (
@@ -120,8 +121,8 @@ func draw12Gong(screen *ebiten.Image) {
 
 		for i := 1; i <= 12; i++ {
 			angleDegrees := float64(i+2) * 30 //+ float64(g.count)
-			lx1, ly1 := calRadiansPos(float64(centerX), float64(centerY), float64(r1-zhiPanWidth/4), angleDegrees-15)
-			lx2, ly2 := calRadiansPos(float64(centerX), float64(centerY), float64(r2+zhiPanWidth/4), angleDegrees-15)
+			lx1, ly1 := util.CalRadiansPos(float64(centerX), float64(centerY), float64(r1-zhiPanWidth/4), angleDegrees-15)
+			lx2, ly2 := util.CalRadiansPos(float64(centerX), float64(centerY), float64(r2+zhiPanWidth/4), angleDegrees-15)
 			vector.StrokeLine(screen, float32(lx1), float32(ly1), float32(lx2), float32(ly2), 1, colorGongSplit, true)
 
 			gong12 := uiQiMen.gong12[i]
@@ -131,9 +132,9 @@ func draw12Gong(screen *ebiten.Image) {
 			} else if qimen.SkyGate3[gong12.Jiang] {
 				jiangColor = colorGate
 			}
-			x1, y1 := calRadiansPos(float64(centerX), float64(centerY), float64(r2), angleDegrees)
+			x1, y1 := util.CalRadiansPos(float64(centerX), float64(centerY), float64(r2), angleDegrees)
 			text.Draw(screen, gong12.Jiang, ft, int(x1-14), int(y1+4), jiangColor)
-			x12, y12 := calRadiansPos(float64(centerX), float64(centerY), float64(r2), angleDegrees+10)
+			x12, y12 := util.CalRadiansPos(float64(centerX), float64(centerY), float64(r2), angleDegrees+10)
 			text.Draw(screen, gong12.JiangZhi, ft, int(x12-14), int(y12+4), jiangColor)
 
 			jianColor := colorJian
@@ -142,17 +143,17 @@ func draw12Gong(screen *ebiten.Image) {
 			} else if qimen.GroundGate4[gong12.Jian] {
 				jianColor = colorGate
 			}
-			x2, y2 := calRadiansPos(float64(centerX), float64(centerY), float64(r1), angleDegrees)
+			x2, y2 := util.CalRadiansPos(float64(centerX), float64(centerY), float64(r1), angleDegrees)
 			text.Draw(screen, gong12.Jian, ft, int(x2-8), int(y2+4), jianColor)
-			x22, y22 := calRadiansPos(float64(centerX), float64(centerY), float64(r1), angleDegrees+10)
+			x22, y22 := util.CalRadiansPos(float64(centerX), float64(centerY), float64(r1), angleDegrees+10)
 			text.Draw(screen, gong12.JianZhi, ft, int(x22-8), int(y22+4), jianColor)
 
 			if uiQiMen.pan.ShowPan.Horse == LunarUtil.ZHI[i] {
-				x3, y3 := calRadiansPos(float64(centerX), float64(centerY), float64(r1), angleDegrees-10)
+				x3, y3 := util.CalRadiansPos(float64(centerX), float64(centerY), float64(r1), angleDegrees-10)
 				text.Draw(screen, "驿马", ft, int(x3-8), int(y3+4), colorLeader)
 			}
 			if gong12.IsSkyHorse {
-				x4, y4 := calRadiansPos(float64(centerX), float64(centerY), float64(r2), angleDegrees-10)
+				x4, y4 := util.CalRadiansPos(float64(centerX), float64(centerY), float64(r2), angleDegrees-10)
 				text.Draw(screen, "天马", ft, int(x4-14), int(y4+4), colorLeader)
 			}
 		}
