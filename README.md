@@ -16,6 +16,11 @@
 5. UI坐标承父坐标
 6. 阴盘奇门 年/时/刻
 
+# 总结
+1. 建星的位置就是太阳的位置
+2. 木星,岁星就是年柱的力量
+
+
 # 引用
 	github.com/6tail/lunar-go //年历
 	github.com/hajimehoshi/ebiten/v2 //2D游戏引擎
