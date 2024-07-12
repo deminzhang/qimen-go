@@ -42,6 +42,7 @@ type UIQiMen struct {
 	opHideGan0, opHideGan1 *ui.OptionBox
 
 	btnCalc             *ui.Button
+	btnNow              *ui.Button
 	btnPreJu, btnNextJu *ui.Button
 
 	opHourPan, opDayPan, opMonthPan, opYearPan *ui.OptionBox
@@ -95,6 +96,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.opTypeFly = ui.NewOptionBox(px0+72*6, py0+8, qimen.QMType[1])
 	p.opTypeAmaze = ui.NewOptionBox(px0+72*7, py0+8, qimen.QMType[2])
 	p.btnCalc = ui.NewButton(image.Rect(px0+72*8, py0, px0+72*8+64, py0+h), "排局")
+	p.btnNow = ui.NewButton(image.Rect(px0+72*9, py0, px0+72*9+64, py0+h), "当前")
 
 	py0 += 32
 	p.textLYear = ui.NewInputBox(image.Rect(px0, py0, px0+64, py0+h))
@@ -176,7 +178,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.inputSMin.DefaultText = "分"
 	p.inputSelfJu.DefaultText = "手选局数"
 	p.panelSDate.AddChildren(p.inputSYear, p.inputSMonth, p.inputSDay, p.inputSHour, p.inputSMin)
-	p.AddChildren(p.btnCalc, p.opTypeRoll, p.opTypeFly, p.opTypeAmaze)
+	p.AddChildren(p.btnCalc, p.btnNow, p.opTypeRoll, p.opTypeFly, p.opTypeAmaze)
 	p.AddChildren(p.textLYear, p.textLMonth, p.textLDay, p.textLHour)
 	p.AddChildren(p.btnPreJu, p.btnNextJu, p.cbHostingType, p.cbFlyType)
 	p.AddChildren(p.opHourPan, p.opDayPan, p.opMonthPan, p.opYearPan, p.opDay2Pan)
@@ -286,6 +288,27 @@ func NewUIQiMen(width, height int) *UIQiMen {
 		day, _ := strconv.Atoi(p.inputSDay.Text())
 		hour, _ := strconv.Atoi(p.inputSHour.Text())
 		minute, _ := strconv.Atoi(p.inputSMin.Text())
+
+		if p.qmParams.JuType == qimen.QMJuTypeSelf {
+			ju, err := strconv.Atoi(p.inputSelfJu.Text())
+			if err != nil || !((ju >= 1 && ju <= 9) || (ju >= -9 && ju <= -1)) {
+				UIShowMsgBox("局数不对,限([-9,-1],[1,9])", "确定", "取消", nil, nil)
+				return
+			}
+			p.qmParams.SelfJu = ju
+		} else {
+			p.qmParams.SelfJu = 0
+		}
+
+		p.Apply(year, month, day, hour, minute)
+	})
+	p.btnNow.SetOnClick(func(b *ui.Button) {
+		now := time.Now()
+		year := now.Year()
+		month := int(now.Month())
+		day := now.Day()
+		hour := now.Hour()
+		minute := now.Minute()
 
 		if p.qmParams.JuType == qimen.QMJuTypeSelf {
 			ju, err := strconv.Atoi(p.inputSelfJu.Text())
