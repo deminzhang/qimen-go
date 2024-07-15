@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	starsLineScale = 64
-	starsLineCount = 512
+	starsLineScale = 32
+	starsLineCount = 256
 )
 
 type StarLine struct {
