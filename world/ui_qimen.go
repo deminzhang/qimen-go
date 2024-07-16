@@ -58,9 +58,9 @@ type UIQiMen struct {
 
 var uiQiMen *UIQiMen
 
-func UIShowQiMen(width, height int) *UIQiMen {
+func UIShowQiMen() *UIQiMen {
 	if uiQiMen == nil {
-		uiQiMen = NewUIQiMen(width, height)
+		uiQiMen = NewUIQiMen()
 		ui.ActiveUI(uiQiMen)
 	}
 	return uiQiMen
@@ -72,8 +72,7 @@ func UIHideQiMen() {
 	}
 }
 
-func NewUIQiMen(width, height int) *UIQiMen {
-	//centerX, centerY := width/2, height/2 //win center
+func NewUIQiMen() *UIQiMen {
 	p := &UIQiMen{
 		BaseUI: ui.BaseUI{Visible: true},
 		qmParams: qimen.QMParams{

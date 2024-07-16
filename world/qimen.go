@@ -40,28 +40,34 @@ var (
 	colorGate             = color.RGBA{0x00, 0xff, 0x00, 0xff}
 	colorOrbits           = color.RGBA{0x20, 0x20, 0x20, 0x20}
 	colorCross            = color.RGBA{0x60, 0x60, 0x60, 0x20}
+	colorRedShift         = color.RGBA{0xff, 0x00, 0x00, 0xff}
+	colorBlueShift        = color.RGBA{0x60, 0x60, 0xFF, 0xFF}
 )
 
 type QMShow struct {
+	centerX float32
+	centerY float32
 }
 
-func NewQimenShow() *QMShow {
-	return &QMShow{}
+func NewQimenShow(centerX, centerY float32) *QMShow {
+	return &QMShow{
+		centerX: centerX, centerY: centerY,
+	}
 }
-func (q *QMShow) Update() error {
-	return nil
+func (q *QMShow) Update() {
+
 }
 
 func (q *QMShow) Draw(screen *ebiten.Image) {
-	draw9Gong(screen)
-	draw12Gong(screen)
+	q.draw9Gong(screen)
+	q.draw12Gong(screen)
 }
-func draw9Gong(screen *ebiten.Image) {
+func (q *QMShow) draw9Gong(screen *ebiten.Image) {
 	ft := ui.GetDefaultUIFont()
 	//画九宫
 	for i := 1; i <= 9; i++ {
 		offX, offZ := gongOffset[i][0]*_GongWidth-_GongWidth/2, gongOffset[i][1]*_GongWidth-_GongWidth/2
-		px, py := centerX-_GongWidth+float32(offX), centerY-_GongWidth+float32(offZ)
+		px, py := q.centerX-_GongWidth+float32(offX), q.centerY-_GongWidth+float32(offZ)
 
 		//vector.StrokeCircle(screen, px+_GongWidth/2, py+_GongWidth/2,
 		//	float32(_GongWidth/2), 1, color.RGBA{0xff, 0x80, 0xff, 0xff}, true)
@@ -102,61 +108,62 @@ func draw9Gong(screen *ebiten.Image) {
 		text.Draw(screen, txt, ft, int(px), int(py), color.White)
 	}
 }
-func draw12Gong(screen *ebiten.Image) {
+func (q *QMShow) draw12Gong(screen *ebiten.Image) {
 	ft := ui.GetDefaultUIFont()
 	//画12宫
-	if uiQiMen.qmParams.YMDH == qimen.QMGameHour {
-		r1, r2 := float32(_GongWidth)*1.5+zhiPanWidth*1.5, float32(_GongWidth)*1.5+zhiPanWidth*2
-		//空亡偏心环
-		r0 := r1 - zhiPanWidth/8
-		emptyClock := qimen.KongWangClock[uiQiMen.pan.ShowPan.Xun]
-		angle := float64(emptyClock-45) * 30 //+ float64(g.count)
-		rad := angle * math.Pi / 180
-		x0 := float64(centerX) + float64(zhiPanWidth/8)*math.Cos(rad)
-		y0 := float64(centerY) + float64(zhiPanWidth/8)*math.Sin(rad)
-		vector.StrokeCircle(screen, float32(x0), float32(y0), r0, zhiPanWidth/2, colorPowerCircle, true)
-		//建星地户盘
-		vector.StrokeCircle(screen, centerX, centerY, r1, zhiPanWidth/2, colorGroundGateCircle, true)
-		//月将天门盘
-		vector.StrokeCircle(screen, centerX, centerY, r2, zhiPanWidth/2, colorSkyGateCircle, true)
+	//if uiQiMen.qmParams.YMDH != qimen.QMGameHour {
+	//	return
+	//}
+	r1, r2 := float32(_GongWidth)*1.5+zhiPanWidth*1.5, float32(_GongWidth)*1.5+zhiPanWidth*2
+	//空亡偏心环
+	r0 := r1 - zhiPanWidth/8
+	emptyClock := qimen.KongWangClock[uiQiMen.pan.ShowPan.Xun]
+	angle := float64(emptyClock-45) * 30 //+ float64(g.count)
+	rad := angle * math.Pi / 180
+	x0 := float64(q.centerX) + float64(zhiPanWidth/8)*math.Cos(rad)
+	y0 := float64(q.centerY) + float64(zhiPanWidth/8)*math.Sin(rad)
+	vector.StrokeCircle(screen, float32(x0), float32(y0), r0, zhiPanWidth/2, colorPowerCircle, true)
+	//建星地户盘
+	vector.StrokeCircle(screen, q.centerX, q.centerY, r1, zhiPanWidth/2, colorGroundGateCircle, true)
+	//月将天门盘
+	vector.StrokeCircle(screen, q.centerX, q.centerY, r2, zhiPanWidth/2, colorSkyGateCircle, true)
 
-		for i := 1; i <= 12; i++ {
-			angleDegrees := float64(i+2) * 30 //+ float64(g.count)
-			lx1, ly1 := util.CalRadiansPos(float64(centerX), float64(centerY), float64(r1-zhiPanWidth/4), angleDegrees-15)
-			lx2, ly2 := util.CalRadiansPos(float64(centerX), float64(centerY), float64(r2+zhiPanWidth/4), angleDegrees-15)
-			vector.StrokeLine(screen, float32(lx1), float32(ly1), float32(lx2), float32(ly2), 1, colorGongSplit, true)
+	for i := 1; i <= 12; i++ {
+		angleDegrees := float64(i+2) * 30 //+ float64(g.count)
+		lx1, ly1 := util.CalRadiansPos(float64(q.centerX), float64(q.centerY), float64(r1-zhiPanWidth/4), angleDegrees-15)
+		lx2, ly2 := util.CalRadiansPos(float64(q.centerX), float64(q.centerY), float64(r2+zhiPanWidth/4), angleDegrees-15)
+		vector.StrokeLine(screen, float32(lx1), float32(ly1), float32(lx2), float32(ly2), 1, colorGongSplit, true)
 
-			gong12 := uiQiMen.gong12[i]
-			jiangColor := colorJiang
-			if gong12.IsJiang {
-				jiangColor = colorLeader
-			} else if qimen.SkyGate3[gong12.Jiang] {
-				jiangColor = colorGate
-			}
-			x1, y1 := util.CalRadiansPos(float64(centerX), float64(centerY), float64(r2), angleDegrees)
-			text.Draw(screen, gong12.Jiang, ft, int(x1-14), int(y1+4), jiangColor)
-			x12, y12 := util.CalRadiansPos(float64(centerX), float64(centerY), float64(r2), angleDegrees+10)
-			text.Draw(screen, gong12.JiangZhi, ft, int(x12-14), int(y12+4), jiangColor)
+		gong12 := uiQiMen.gong12[i]
+		jiangColor := colorJiang
+		if gong12.IsJiang {
+			jiangColor = colorLeader
+		} else if qimen.SkyGate3[gong12.Jiang] {
+			jiangColor = colorGate
+		}
+		x1, y1 := util.CalRadiansPos(float64(q.centerX), float64(q.centerY), float64(r2), angleDegrees)
+		text.Draw(screen, gong12.Jiang, ft, int(x1-14), int(y1+4), jiangColor)
+		x12, y12 := util.CalRadiansPos(float64(q.centerX), float64(q.centerY), float64(r2), angleDegrees+10)
+		text.Draw(screen, gong12.JiangZhi, ft, int(x12-14), int(y12+4), jiangColor)
 
-			jianColor := colorJian
-			if gong12.IsJian {
-				jianColor = colorLeader
-			} else if qimen.GroundGate4[gong12.Jian] {
-				jianColor = colorGate
-			}
-			x2, y2 := util.CalRadiansPos(float64(centerX), float64(centerY), float64(r1), angleDegrees)
-			text.Draw(screen, gong12.Jian, ft, int(x2-8), int(y2+4), jianColor)
-			x22, y22 := util.CalRadiansPos(float64(centerX), float64(centerY), float64(r1), angleDegrees+10)
-			text.Draw(screen, gong12.JianZhi, ft, int(x22-8), int(y22+4), jianColor)
+		jianColor := colorJian
+		if gong12.IsJian {
+			jianColor = colorLeader
+		} else if qimen.GroundGate4[gong12.Jian] {
+			jianColor = colorGate
+		}
+		x2, y2 := util.CalRadiansPos(float64(q.centerX), float64(q.centerY), float64(r1), angleDegrees)
+		text.Draw(screen, gong12.Jian, ft, int(x2-8), int(y2+4), jianColor)
+		x22, y22 := util.CalRadiansPos(float64(q.centerX), float64(q.centerY), float64(r1), angleDegrees+10)
+		text.Draw(screen, gong12.JianZhi, ft, int(x22-8), int(y22+4), jianColor)
 
-			if uiQiMen.pan.ShowPan.Horse == LunarUtil.ZHI[i] {
-				x3, y3 := util.CalRadiansPos(float64(centerX), float64(centerY), float64(r1), angleDegrees-10)
-				text.Draw(screen, "驿马", ft, int(x3-8), int(y3+4), colorLeader)
-			}
-			if gong12.IsSkyHorse {
-				x4, y4 := util.CalRadiansPos(float64(centerX), float64(centerY), float64(r2), angleDegrees-10)
-				text.Draw(screen, "天马", ft, int(x4-14), int(y4+4), colorLeader)
-			}
+		if uiQiMen.pan.ShowPan.Horse == LunarUtil.ZHI[i] {
+			x3, y3 := util.CalRadiansPos(float64(q.centerX), float64(q.centerY), float64(r1), angleDegrees-10)
+			text.Draw(screen, "驿马", ft, int(x3-8), int(y3+4), colorLeader)
+		}
+		if gong12.IsSkyHorse {
+			x4, y4 := util.CalRadiansPos(float64(q.centerX), float64(q.centerY), float64(r2), angleDegrees-10)
+			text.Draw(screen, "天马", ft, int(x4-14), int(y4+4), colorLeader)
 		}
 	}
 }

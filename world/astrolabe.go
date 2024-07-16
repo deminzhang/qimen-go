@@ -6,8 +6,10 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"image/color"
 	"io"
 	"log"
+	"math"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -16,6 +18,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -31,56 +34,57 @@ const (
 	DateTimeOE  = "2006-Jan-02 15:04"
 )
 
+var Constellation = map[string]string{
+	"Ari": "白羊座", "Tau": "金牛座", "Gem": "双子座", "Can": "巨蟹座",
+	"Leo": "狮子座", "Vir": "室女座", "Lib": "天秤座", "Sco": "天蝎座",
+	"Sgr": "射手座", "Cap": "摩羯座", "Aqr": "水瓶座", "Psc": "双鱼座",
+}
+
+var AstrolabeGong = []string{"", "命宫", "财帛", "交流", "田宅", "娱乐", "健康", "夫妻", "疾厄", "迁移", "事业", "福德", "玄秘"}
+
 type Astrolabe struct {
 	centerX, centerY float32
 	solarX, solarY   float32
-	moonX, moonY     float32
 	observer         int //观察者
 
 	DT       calendar.Solar
 	timezone string
 	tzOffset int
 
-	OEData map[int]*ObserveEphemeris
+	DataQuery bool
+	OEData    map[int]*ObserveEphemeris
 }
 
 type CelestialBody struct {
 	Id          int
 	Name        string
 	NameCN      string
-	SubBody     []int   //行星系子体
-	Satellite   []int   //卫星
-	Mass        float64 //质量 kg
-	R           float32 //轨道半径 AU
-	Gravitation float64 //引力 N
+	SubBody     []int      //行星系子体
+	Satellite   []int      //卫星
+	Mass        float64    //质量 kg
+	R           float32    //轨道半径 AU
+	orbitCenter int        //轨道中心
+	Gravity     float64    //引力 N
+	color       color.RGBA //RedShift红移/BlueShift蓝移
 
-	AR    float32 //星盘半径
-	DrawX float32 //星盘坐标
-	DrawY float32 //星盘坐标
+	AR               float32 //星盘半径
+	DrawX, DrawY     float32 //星盘坐标
+	SphereX, SphereY float32 //天球坐标
 }
 
 func (c *CelestialBody) DrawR() float32 {
 	if c.R > 0 {
-		return c.R * 20
+		return c.R * 200
 	} else {
 		return 5
 	}
 }
 
 var Bodies = map[int]*CelestialBody{
-	//水星：近日点约为0.31 AU，远日点约为0.47 AU。
-	//金星：近日点约为0.72 AU，远日点约为0.72 AU。
-	//地球：近日点和远日点都是1 AU。
-	//火星：近日点约为1.38 AU，远日点约为1.66 AU。
-	//木星：近日点约为4.95 AU，远日点约为5.46 AU。
-	//土星：近日点约为9.03 AU，远日点约为9.54 AU。
-	//天王星：近日点约为18.31 AU，远日点约为19.19 AU。
-	//海王星：近日点约为29.81 AU，远日点约为30.36 AU。
-	//冥王星：近日点约为29.66 AU，远日点约为49.31 AU。
 	10:  {Id: 10, Name: "Sun", NameCN: "日", AR: 0, Mass: 1988500 * 1e24},
 	199: {Id: 199, Name: "Mercury", NameCN: "水", R: (0.31 + 0.47) / 2, AR: 15, Mass: 3.302 * 1e23},
 	299: {Id: 299, Name: "Venus", NameCN: "金", R: 0.72, AR: 30, Mass: 4.8685 * 1e24},
-	301: {Id: 301, Name: "Satellite", NameCN: "月", AR: 5, Mass: 7.349 * 1e22},
+	301: {Id: 301, Name: "Satellite", NameCN: "月", AR: 5, Mass: 7.349 * 1e22, orbitCenter: 399},
 	399: {Id: 399, Name: "Earth", NameCN: "地", R: 1, AR: 50, Mass: 5.97219 * 1e24, //+-0.0006
 		Satellite: []int{301}},
 	3: {Id: 3, Name: "EarthBarycenter", NameCN: "地月系重心", AR: 50,
@@ -118,11 +122,10 @@ var Draws = []int{
 	10, 199, 299, 399, 499, 599, 699, // 799, 899, 999,
 }
 
-func NewAstrolabe() *Astrolabe {
+func NewAstrolabe(centerX, centerY float32) *Astrolabe {
 	tz, offset := time.Now().Local().Zone()
 	return &Astrolabe{
-		centerX:  770,
-		centerY:  450,
+		centerX: centerX, centerY: centerY,
 		observer: 399,
 		timezone: tz,
 		tzOffset: offset,
@@ -130,15 +133,16 @@ func NewAstrolabe() *Astrolabe {
 	}
 }
 
-func (a *Astrolabe) Update() error {
+func (a *Astrolabe) Update() {
 	sCal := uiQiMen.pan.Solar
 	if a.DT == *sCal {
-		return nil
+		return
 	}
 	a.DT = *sCal
 	hour := sCal.GetHour()
 	minute := sCal.GetMinute()
 
+	cx, cy := a.centerX, a.centerY
 	//计算太阳位置 暂用时辰近似
 	degreesOS := 360 - (float64(hour)+float64(minute)/60)*15 //0~360
 	degreesSO := 360 - degreesOS
@@ -148,37 +152,73 @@ func (a *Astrolabe) Update() error {
 	//计算月球位置 暂以农历近似
 	lDay := uiQiMen.pan.Lunar.GetDay()
 	degreesM := -(float64(hour)+float64(minute)/60)*15 + float64(lDay)/29*360
-	moonY, moonX := util.CalRadiansPos(float64(a.centerY), float64(a.centerX),
-		float64(Bodies[Bodies[a.observer].Satellite[0]].DrawR()), degreesM)
-	a.moonX, a.moonY = float32(moonX), float32(moonY)
-
+	moon := Bodies[301]
+	moonY, moonX := util.CalRadiansPos(float64(a.centerY), float64(a.centerX), float64(moon.DrawR()), degreesM)
+	moon.DrawX, moon.DrawY = float32(moonX), float32(moonY)
+	v1 := (&util.Vec2[float32]{X: moon.DrawX - cx, Y: moon.DrawY - cy}).ScaledToLength(outCircleR - outCircleW)
+	moon.SphereX = cx + v1.X
+	moon.SphereY = cy + v1.Y
+	m := Bodies[a.observer].Mass
 	for _, id := range Draws {
 		body := Bodies[id]
+		if id == a.observer {
+			body.DrawX, body.DrawY = a.centerX, a.centerY
+			body.color = colorBlueShift
+			for _, id := range body.Satellite {
+				body := Bodies[id]
+				oe := a.GetEphemeris(id, sCal)
+				if oe == nil {
+					a.DT = calendar.Solar{}
+					continue
+				}
+				fmt.Printf("%s: RA%f D%f \n", body.NameCN, oe.RARadius(), degreesM)
+				body.Gravity = G * body.Mass * m / math.Pow(oe.Delta()*AU, 2)
+				if oe.Deldot() > 0 {
+					body.color = colorBlueShift
+				} else {
+					body.color = colorRedShift
+				}
+			}
+			continue
+		}
+		oe := a.GetEphemeris(id, sCal)
+		if oe == nil {
+			a.DT = calendar.Solar{}
+			continue
+		}
 		if id == 10 {
-			body.DrawX, body.DrawY = a.solarX, a.solarY
-		} else if id != a.observer {
 			oe := a.GetEphemeris(id, sCal)
 			if oe == nil {
+				a.DT = calendar.Solar{}
 				continue
 			}
-			fmt.Println(id, oe.SOT(), oe.SOTR(), oe.STO(), oe.Cnst())
-
+			fmt.Printf("%s: RA%f \n", body.NameCN, oe.RARadius())
+			body.DrawX, body.DrawY = a.solarX, a.solarY
+		} else {
+			//fmt.Println(id, oe.SOT(), oe.SOTR(), oe.STO(), oe.Cnst())
 			ost := 180 - oe.STO() - oe.SOT()
 			var degrees float64
 			switch oe.SOTR() {
-			case "/T": //目标跟踪太阳（傍晚天空：太阳升起和落下后）
+			case "/T": //TRAILS 目标跟踪太阳
 				degrees = 90 - 270 - degreesSO - ost
-			case "/L": //目标引领太阳（早晨天空：太阳升起和落下之前）
+			case "/L": //LEADS 目标引领太阳
 				degrees = 90 - 270 - degreesSO + ost
 			}
 			y, x := util.CalRadiansPos(solarY, solarX, float64(body.DrawR()), degrees)
 			body.DrawX = float32(x)
 			body.DrawY = float32(y)
+			v1 := (&util.Vec2[float32]{X: body.DrawX - cx, Y: body.DrawY - cy}).ScaledToLength(outCircleR - outCircleW)
+			body.SphereX = cx + v1.X
+			body.SphereY = cy + v1.Y
 		}
-
+		body.Gravity = G * body.Mass * m / math.Pow(oe.Delta()*AU, 2)
+		if oe.Deldot() > 0 {
+			body.color = colorBlueShift
+		} else {
+			body.color = colorRedShift
+		}
 	}
-
-	return nil
+	return
 }
 
 func (a *Astrolabe) Draw(screen *ebiten.Image) {
@@ -186,8 +226,9 @@ func (a *Astrolabe) Draw(screen *ebiten.Image) {
 	cx, cy := a.centerX, a.centerY
 	sX, sY := a.solarX, a.solarY
 	//外圈
-	vector.StrokeCircle(screen, cx, cy, outCircleR, outCircleW, colorSkyGateCircle, true)
-	vector.StrokeCircle(screen, cx, cy, outCircleR-outCircleW/2, outCircleW/2, colorPowerCircle, true)
+	vector.StrokeCircle(screen, cx, cy, outCircleR, outCircleW, colorSkyGateCircle, true)                   //星座
+	vector.StrokeCircle(screen, cx, cy, outCircleR-outCircleW/2, outCircleW/2, colorGroundGateCircle, true) //宫位
+	vector.StrokeCircle(screen, cx, cy, outCircleR-outCircleW, outCircleW/2, colorPowerCircle, true)        //天球celestial sphere
 	//十字线
 	vector.StrokeLine(screen, cx-outCircleR, cy, cx+outCircleR, cy, 1, colorCross, true)
 	vector.StrokeLine(screen, cx, cy-outCircleR, cx, cy+outCircleR, 1, colorCross, true)
@@ -197,38 +238,53 @@ func (a *Astrolabe) Draw(screen *ebiten.Image) {
 		lx1, ly1 := util.CalRadiansPos(float64(cx), float64(cy), float64(outCircleR-outCircleW/2), angleDegrees)
 		lx2, ly2 := util.CalRadiansPos(float64(cx), float64(cy), float64(outCircleR+outCircleW/2), angleDegrees)
 		vector.StrokeLine(screen, float32(lx1), float32(ly1), float32(lx2), float32(ly2), 1, colorGongSplit, true)
+
+		y2, x2 := util.CalRadiansPos(float64(cy), float64(cx), float64(outCircleR-outCircleW/2), angleDegrees-15-90)
+		text.Draw(screen, fmt.Sprintf("%d", i), ft, int(x2-4), int(y2+4), colorJiang) //宫位 AstrolabeGong[i]
 	}
 
 	for _, id := range Draws {
 		obj := Bodies[id]
 		vector.StrokeCircle(screen, sX, sY, obj.DrawR(), 1, colorOrbits, true) //planet Orbit
-		var px, py float32
-		if a.observer == obj.Id {
-			px, py = cx, cy
-		} else {
-			px, py = obj.DrawX, obj.DrawY
-
-			v1 := (&util.Vec2[float32]{X: px - cx, Y: py - cy}).ScaledToLength(outCircleR - outCircleW*2)
-			vector.StrokeLine(screen, cx, cy, cx+v1.X, cy+v1.Y, 1, colorPowerCircle, true)
-			vector.StrokeLine(screen, cx, cy, px, py, 1, colorGongSplit, true)
-			text.Draw(screen, obj.NameCN, ft, int(cx+v1.X), int(cy+v1.Y), colorLeader)
+		if a.observer != obj.Id {
+			vector.StrokeLine(screen, cx, cy, obj.SphereX, obj.SphereY, 1, colorOrbits, true)
+			vector.DrawFilledCircle(screen, obj.SphereX, obj.SphereY, 2, obj.color, true)
+			text.Draw(screen, obj.NameCN, ft, int(obj.SphereX), int(obj.SphereY), obj.color)
 		}
+		vector.DrawFilledCircle(screen, obj.DrawX, obj.DrawY, 2, obj.color, true) //planet
 
-		vector.DrawFilledCircle(screen, px, py, 2, colorLeader, true) //planet
 		for _, sid := range obj.Satellite {
 			ob := Bodies[sid]
 			if ob.Id == 301 {
-				vector.StrokeCircle(screen, px, py, ob.DrawR(), 1, colorOrbits, true)   //satellite Orbit
-				vector.DrawFilledCircle(screen, a.moonX, a.moonY, 1, colorLeader, true) //moon
-				v1 := (&util.Vec2[float32]{X: a.moonX - cx, Y: a.moonY - cy}).ScaledToLength(outCircleR - outCircleW*2)
-				vector.StrokeLine(screen, cx, cy, cx+v1.X, cy+v1.Y, 1, colorPowerCircle, true)
-				vector.StrokeLine(screen, cx, cy, px, py, 1, colorGongSplit, true)
-				text.Draw(screen, ob.NameCN, ft, int(cx+v1.X), int(cy+v1.Y), colorLeader)
+				vector.StrokeCircle(screen, obj.DrawX, obj.DrawY, ob.DrawR(), 1, colorOrbits, true) //satellite Orbit
+				vector.DrawFilledCircle(screen, ob.DrawX, ob.DrawY, 1, ob.color, true)              //moon
+
+				vector.StrokeLine(screen, cx, cy, ob.SphereX, ob.SphereY, 1, colorOrbits, true)
+				vector.DrawFilledCircle(screen, ob.DrawX, ob.DrawY, 1, ob.color, true) //moon sphere
+				text.Draw(screen, ob.NameCN, ft, int(ob.SphereX), int(ob.SphereY), ob.color)
 			} else {
-				mx, my := util.CalRadiansPos(float64(px), float64(py), float64(ob.DrawR()), float64(rand.Intn(360)))
-				vector.DrawFilledCircle(screen, float32(mx), float32(my), 1, colorLeader, true) //satellite
+				mx, my := util.CalRadiansPos(float64(obj.DrawX), float64(obj.DrawY), float64(ob.DrawR()), float64(rand.Intn(360)))
+				vector.DrawFilledCircle(screen, float32(mx), float32(my), 1, obj.color, true) //satellite
 			}
 		}
+	}
+	var desX, desY float32 = 1024, 200
+	for _, id := range Draws {
+		obj := Bodies[id]
+		if obj.Gravity > 0 {
+			desY += 20
+			text.Draw(screen, fmt.Sprintf("%s:G:%.2f", obj.NameCN, obj.Gravity), ft, int(desX), int(desY), color.White)
+		}
+		for _, sid := range obj.Satellite {
+			ob := Bodies[sid]
+			if ob.Gravity > 0 {
+				desY += 20
+				text.Draw(screen, fmt.Sprintf("%s:G:%.2f", ob.NameCN, ob.Gravity), ft, int(desX), int(desY), color.White)
+			}
+		}
+	}
+	if a.DataQuery {
+		text.Draw(screen, "Query..", ft, int(cx), int(cy-40), color.White)
 	}
 }
 
@@ -242,11 +298,11 @@ func (a *Astrolabe) GetNASAData(id int, sts, ets string) *ObserveEphemeris {
 
 	resp, err := http.Get(urls)
 	if err != nil {
-		log.Fatalf("Error sending GET request: %v", err)
+		log.Printf("Error sending GET request: %v\n", err)
 		return nil
 	}
 	if resp.StatusCode != http.StatusOK {
-		log.Fatalf("Unexpected Status Code: %d", resp.StatusCode)
+		log.Printf("Unexpected Status Code: %d\n", resp.StatusCode)
 		return nil
 	}
 	body, _ := io.ReadAll(resp.Body)
@@ -316,15 +372,26 @@ func (a *Astrolabe) GetEphemeris(id int, dt *calendar.Solar) *ObserveData {
 	if d == nil {
 		ets := te.Format(DataTimeMin)
 		d = a.GetNASAData(id, sts, ets)
+		if d == nil {
+			return nil
+		}
 		a.OEData[id] = d
 	}
 	oe := d.GetOE(sts)
 	if oe == nil {
 		ets := te.Format(DataTimeMin)
-		d = a.GetNASAData(id, sts, ets)
-		for s, data := range d.data {
-			a.OEData[id].data[s] = data
+		if a.DataQuery {
+			return nil
 		}
+		a.DataQuery = true
+		go func() {
+			d = a.GetNASAData(id, sts, ets)
+			if d == nil {
+				return
+			}
+			a.OEData[id].ApplyData(d.data)
+			a.DataQuery = false
+		}()
 	}
 	return d.GetOE(sts)
 }
@@ -357,13 +424,13 @@ func (c *ObserveData) DEC() string {
 	return c.data["R.A._____(ICRF)_____DEC"][12:] //+23 15 24.3
 }
 
-// Delta 距离AU
+// Delta 距离 AU
 func (c *ObserveData) Delta() float64 {
 	v, _ := strconv.ParseFloat(c.data["delta"], 64)
 	return v
 }
 
-// Deldot 距离变化AU/d
+// Deldot delta-dot 距离变化 KM/S 为正表示远离观察者
 func (c *ObserveData) Deldot() float64 {
 	v, _ := strconv.ParseFloat(c.data["deldot"], 64)
 	return v
@@ -372,6 +439,8 @@ func (c *ObserveData) SOT() float64 {
 	v, _ := strconv.ParseFloat(c.data["S-O-T"], 64)
 	return v
 }
+
+// SOTR  "/T": TRAILS 目标跟踪S  "/L": LEADS 目标引领S
 func (c *ObserveData) SOTR() string {
 	return c.data["/r"]
 }
@@ -380,15 +449,11 @@ func (c *ObserveData) STO() float64 {
 	return v
 }
 func (c *ObserveData) Cnst() string {
-	//var Cnst = map[string]string{
-	//	"Ari": "白羊座", "Tau": "金牛座", "Gem": "双子座", "Can": "巨蟹座",
-	//	"Leo": "狮子座", "Vir": "室女座", "Lib": "天秤座", "Sco": "天蝎座",
-	//	"Sgr": "射手座", "Cap": "摩羯座", "Aqr": "水瓶座", "Psc": "双鱼座",
-	//}
-	return c.data["Cnst"]
+	return c.data["Cnst"] //,Constellation[c.data["Cnst"]]
 }
 
 type ObserveEphemeris struct {
+	sync.Mutex
 	id   int
 	data map[string]*ObserveData
 }
@@ -397,5 +462,15 @@ func (c *ObserveEphemeris) Id() int {
 	return c.id
 }
 func (c *ObserveEphemeris) GetOE(dataTime string) *ObserveData {
+	c.Lock()
+	defer c.Unlock()
 	return c.data[dataTime]
+}
+
+func (c *ObserveEphemeris) ApplyData(datas map[string]*ObserveData) {
+	c.Lock()
+	defer c.Unlock()
+	for s, data := range datas {
+		c.data[s] = data
+	}
 }

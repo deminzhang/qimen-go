@@ -23,6 +23,6 @@ func (g *game0) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 func NewGame0() *game0 {
 	g := &game0{}
-	UIShowQiMen(screenWidth, screenHeight)
+	UIShowQiMen()
 	return g
 }
