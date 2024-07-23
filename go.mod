@@ -6,8 +6,7 @@ require (
 	github.com/6tail/lunar-go v1.3.11
 	github.com/atotto/clipboard v0.1.4
 	github.com/hajimehoshi/ebiten/v2 v2.7.4
-	github.com/mattn/go-sqlite3 v1.14.22
-	golang.org/x/image v0.16.0
+	golang.org/x/image v0.18.0
 )
 
 require (
@@ -17,5 +16,5 @@ require (
 	github.com/jezek/xgb v1.1.1 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
-	golang.org/x/text v0.15.0 // indirect
+	golang.org/x/text v0.16.0 // indirect
 )
