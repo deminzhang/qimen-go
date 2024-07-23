@@ -12,8 +12,20 @@ import (
 	"time"
 )
 
+const (
+	gongWidth   = 128
+	zhiPanWidth = 48
+)
+
+var gongOffset = [][]int{{0, 0},
+	{1, 2}, {2, 0}, {0, 1},
+	{0, 0}, {1, 1}, {2, 2},
+	{2, 1}, {0, 2}, {1, 0},
+}
+
 type UIQiMen struct {
 	ui.BaseUI
+	pan                                                       *qimen.QMGame
 	panelSDate                                                *ui.Panel
 	inputSYear, inputSMonth, inputSDay, inputSHour, inputSMin *ui.InputBox
 	textLYear, textLMonth, textLDay, textLHour                *ui.InputBox
@@ -30,6 +42,7 @@ type UIQiMen struct {
 	opHideGan0, opHideGan1 *ui.OptionBox
 
 	btnCalc             *ui.Button
+	btnNow              *ui.Button
 	btnPreJu, btnNextJu *ui.Button
 
 	opHourPan, opDayPan, opMonthPan, opYearPan *ui.OptionBox
@@ -37,6 +50,7 @@ type UIQiMen struct {
 
 	textGong []*ui.TextBox
 	zhiPan   []*ui.TextBox
+	gong12   [12 + 1]Gong12
 
 	year, month, day, hour, minute int
 	qmParams                       qimen.QMParams
@@ -44,11 +58,12 @@ type UIQiMen struct {
 
 var uiQiMen *UIQiMen
 
-func UIShowQiMen(width, height int) {
+func UIShowQiMen() *UIQiMen {
 	if uiQiMen == nil {
-		uiQiMen = NewUIQiMen(width, height)
+		uiQiMen = NewUIQiMen()
 		ui.ActiveUI(uiQiMen)
 	}
+	return uiQiMen
 }
 func UIHideQiMen() {
 	if uiQiMen != nil {
@@ -57,8 +72,7 @@ func UIHideQiMen() {
 	}
 }
 
-func NewUIQiMen(width, height int) *UIQiMen {
-	//cx, cy := width/2, height/2 //win center
+func NewUIQiMen() *UIQiMen {
 	p := &UIQiMen{
 		BaseUI: ui.BaseUI{Visible: true},
 		qmParams: qimen.QMParams{
@@ -81,6 +95,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.opTypeFly = ui.NewOptionBox(px0+72*6, py0+8, qimen.QMType[1])
 	p.opTypeAmaze = ui.NewOptionBox(px0+72*7, py0+8, qimen.QMType[2])
 	p.btnCalc = ui.NewButton(image.Rect(px0+72*8, py0, px0+72*8+64, py0+h), "排局")
+	p.btnNow = ui.NewButton(image.Rect(px0+72*9, py0, px0+72*9+64, py0+h), "当前")
 
 	py0 += 32
 	p.textLYear = ui.NewInputBox(image.Rect(px0, py0, px0+64, py0+h))
@@ -106,7 +121,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.opStartZhiRun = ui.NewOptionBox(px0+72*7, py0+8, qimen.QMJuType[qimen.QMJuTypeZhiRun])
 
 	py0 += 32
-	p.textJu = ui.NewTextBox(image.Rect(px0, py0, px0+72*4+64, py0+h*2))
+	p.textJu = ui.NewTextBox(image.Rect(px0, py0, px0+72*4+64, py0+h+16+8))
 	p.opHideGan0 = ui.NewOptionBox(px0+72*5, py0+8, qimen.QMHideGanType[qimen.QMHideGanDutyDoorHour])
 	p.opHideGan1 = ui.NewOptionBox(px0+72*7, py0+8, qimen.QMHideGanType[qimen.QMHideGanDoorHomeGan])
 	py0 += 32
@@ -117,13 +132,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	py0 += 32
 	p.opDay2Pan = ui.NewOptionBox(px0+72*6, py0+8, "_日家2")
 
-	px4, py4 := 128, 256
-	const gongWidth = 128
-	gongOffset := [][]int{{0, 0},
-		{1, 2}, {2, 0}, {0, 1},
-		{0, 0}, {1, 1}, {2, 2},
-		{2, 1}, {0, 2}, {1, 0},
-	}
+	px4, py4 := 256, 256
 	p.textGong = append(p.textGong, nil)
 	for i := 1; i <= 9; i++ {
 		offX, offZ := gongOffset[i][0]*gongWidth, gongOffset[i][1]*gongWidth
@@ -133,7 +142,6 @@ func NewUIQiMen(width, height int) *UIQiMen {
 		p.AddChild(txtGong)
 	}
 
-	const zhiPanWidth = 48
 	zhiPanLoc := [][]int{
 		{2, 3, gongWidth, zhiPanWidth}, {1, 3, gongWidth, zhiPanWidth}, {0, 3, gongWidth, zhiPanWidth}, //亥子丑
 		{0, 2, -zhiPanWidth, gongWidth}, {0, 1, -zhiPanWidth, gongWidth}, {0, 0, -zhiPanWidth, gongWidth}, //寅卯辰
@@ -169,7 +177,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 	p.inputSMin.DefaultText = "分"
 	p.inputSelfJu.DefaultText = "手选局数"
 	p.panelSDate.AddChildren(p.inputSYear, p.inputSMonth, p.inputSDay, p.inputSHour, p.inputSMin)
-	p.AddChildren(p.btnCalc, p.opTypeRoll, p.opTypeFly, p.opTypeAmaze)
+	p.AddChildren(p.btnCalc, p.btnNow, p.opTypeRoll, p.opTypeFly, p.opTypeAmaze)
 	p.AddChildren(p.textLYear, p.textLMonth, p.textLDay, p.textLHour)
 	p.AddChildren(p.btnPreJu, p.btnNextJu, p.cbHostingType, p.cbFlyType)
 	p.AddChildren(p.opHourPan, p.opDayPan, p.opMonthPan, p.opYearPan, p.opDay2Pan)
@@ -250,6 +258,7 @@ func NewUIQiMen(width, height int) *UIQiMen {
 		p.Apply(p.year, p.month, p.day, p.hour, p.minute)
 	})
 	p.opDay2Pan.Disabled = true
+	p.opDay2Pan.Visible = false
 
 	p.cbHostingType.SetChecked(false)
 	p.cbHostingType.Visible = p.opTypeRoll.Selected()
@@ -278,6 +287,27 @@ func NewUIQiMen(width, height int) *UIQiMen {
 		day, _ := strconv.Atoi(p.inputSDay.Text())
 		hour, _ := strconv.Atoi(p.inputSHour.Text())
 		minute, _ := strconv.Atoi(p.inputSMin.Text())
+
+		if p.qmParams.JuType == qimen.QMJuTypeSelf {
+			ju, err := strconv.Atoi(p.inputSelfJu.Text())
+			if err != nil || !((ju >= 1 && ju <= 9) || (ju >= -9 && ju <= -1)) {
+				UIShowMsgBox("局数不对,限([-9,-1],[1,9])", "确定", "取消", nil, nil)
+				return
+			}
+			p.qmParams.SelfJu = ju
+		} else {
+			p.qmParams.SelfJu = 0
+		}
+
+		p.Apply(year, month, day, hour, minute)
+	})
+	p.btnNow.SetOnClick(func(b *ui.Button) {
+		now := time.Now()
+		year := now.Year()
+		month := int(now.Month())
+		day := now.Day()
+		hour := now.Hour()
+		minute := now.Minute()
 
 		if p.qmParams.JuType == qimen.QMJuTypeSelf {
 			ju, err := strconv.Atoi(p.inputSelfJu.Text())
@@ -440,6 +470,7 @@ func (p *UIQiMen) Apply(year, month, day, hour, minute int) {
 		UIShowMsgBox("时间不对", "确定", "取消", nil, nil)
 		return
 	}
+	p.pan = pan
 	p.year, p.month, p.day, p.hour, p.minute = year, month, day, hour, minute
 	//pan.DayArr
 	p.inputSYear.SetText(pan.SolarYear)
@@ -504,20 +535,33 @@ func (p *UIQiMen) show9Gong(pp *qimen.QMPan) {
 		}
 		door := g.Door + qimen.Door0
 		if g.Door == "" {
-			door = ""
+			door = "    "
+		}
+		star := qimen.Star0 + g.Star
+		if g.Star == "" {
+			star = ""
 		}
 		p.textGong[i].Text = fmt.Sprintf("\n  %s  %s    %s\n\n"+
-			"%s %s %s%s%s\n\n"+
-			"%s    %s    %s\n\n"+
+			"   %s %s%s%s\n\n"+
+			"   %s %s    %s\n\n"+
 			"      %s%s",
 			empty, g.God, horse,
-			g.PathGan, g.HideGan, qimen.Star0+g.Star, hosting, g.GuestGan,
+			g.PathGan+g.HideGan, star, hosting, g.GuestGan,
 			g.PathZhi, door, g.HostGan,
 			qimen.Diagrams9(i), LunarUtil.NUMBER[i])
+
 	}
 }
+
+func (p *UIQiMen) hide9GongUI() {
+	for i := 1; i <= 9; i++ {
+		p.textGong[i].Visible = false
+	}
+}
+
 func (p *UIQiMen) ShowHourGame(pan *qimen.QMGame) {
 	pp := pan.HourPan
+	pan.ShowPan = pp
 	var juName string
 	if pp.Ju < 0 {
 		juName = fmt.Sprintf("阴%d局", -pp.Ju)
@@ -533,7 +577,7 @@ func (p *UIQiMen) ShowHourGame(pan *qimen.QMGame) {
 		"\n%s月建%s %s月将%s",
 		jieQi.GetName(), jieQi.GetSolar().ToYmdHms(), jieQiNext.GetName(), jieQiNext.GetSolar().ToYmdHms(),
 		qimen.Yuan3Name[pp.Yuan3], juName, pp.Xun, qimen.HideJia[pp.Xun],
-		pp.DutyStar, pp.DutyStarPos, pp.DutyDoor, pp.DutyDoorPos,
+		qimen.Star0+pp.DutyStar, pp.DutyStarPos, pp.DutyDoor+qimen.Door0, pp.DutyDoorPos,
 		jie.GetName(), pan.YueJian, qi.GetName(), pan.YueJiang,
 	)
 	p.textJu.SetText(juText)
@@ -548,24 +592,36 @@ func (p *UIQiMen) show12Gong(pan *qimen.QMGame) {
 	yueJianIdx := pan.YueJianZhiIdx
 	shiZhiIdx := pan.HourZhiIdx
 	for i := shiZhiIdx; i < shiZhiIdx+12; i++ {
-		//var s []string
 		js := LunarUtil.ZHI[qimen.Idx12[yueJiangIdx]]
 		g := fmt.Sprintf("%s", qimen.YueJiangName[js])
-		var j, h, b, bs string
-		if i == shiZhiIdx {
+		z := LunarUtil.ZHI[qimen.Idx12[i]]
+		bs := qimen.BuildStar(1 + i - shiZhiIdx)
+
+		g12 := &p.gong12[qimen.Idx12[i]]
+		g12.Idx = qimen.Idx12[i]
+		g12.JiangZhi = js
+		g12.Jiang = g
+		g12.IsJiang = i == shiZhiIdx
+		g12.JianZhi = LunarUtil.ZHI[qimen.Idx12[yueJianIdx+i-shiZhiIdx]]
+		g12.Jian = bs
+		g12.IsJian = bs == "建"
+		g12.IsHorse = z == pan.HourPan.Horse
+		g12.IsSkyHorse = g == "太冲"
+
+		var j, h string
+		if g12.IsJiang {
 			j = "月将"
 		}
-		z := LunarUtil.ZHI[qimen.Idx12[i]]
-		if z == pan.HourPan.Horse {
+		if g12.IsHorse {
 			h = "驿马"
 		}
-		b = LunarUtil.ZHI[qimen.Idx12[yueJianIdx+i-shiZhiIdx]]
-		bs = qimen.BuildStar(1 + i - shiZhiIdx)
 		switch qimen.Idx12[i] {
 		case 1, 2, 6, 7, 8, 12:
-			p.zhiPan[qimen.Idx12[i]].SetText(fmt.Sprintf("%s %s %s\n%s   %s\n%s", g, js, j, bs, b, h))
+			p.zhiPan[qimen.Idx12[i]].SetText(fmt.Sprintf("%s %s %s\n%s   %s\n%s",
+				g12.Jiang, g12.JiangZhi, j, g12.Jian, g12.JianZhi, h))
 		default:
-			p.zhiPan[qimen.Idx12[i]].SetText(fmt.Sprintf("%s\n  %s\n%s\n----\n%s%s\n%s", g, js, j, bs, b, h))
+			p.zhiPan[qimen.Idx12[i]].SetText(fmt.Sprintf("%s\n  %s\n%s\n----\n%s%s\n%s",
+				g12.Jiang, g12.JiangZhi, j, g12.Jian, g12.JianZhi, h))
 		}
 		yueJiangIdx++
 	}
@@ -573,11 +629,13 @@ func (p *UIQiMen) show12Gong(pan *qimen.QMGame) {
 func (p *UIQiMen) noShow12Gong() {
 	for i := 1; i <= 12; i++ {
 		p.zhiPan[i].SetText("")
+		p.zhiPan[i].Visible = false
 	}
 }
 
 func (p *UIQiMen) ShowDayGame(pan *qimen.QMGame) {
 	pp := pan.DayPan
+	pan.ShowPan = pp
 	var juName string
 	if pp.Ju < 0 {
 		juName = fmt.Sprintf("阴%d局", -pp.Ju)
@@ -586,11 +644,11 @@ func (p *UIQiMen) ShowDayGame(pan *qimen.QMGame) {
 	}
 	jieQi := pan.Lunar.GetPrevJieQi()
 	jieQiNext := pan.Lunar.GetNextJieQi()
-	juText := fmt.Sprintf("日家%s%s %s%s"+
+	juText := fmt.Sprintf("%s%s %s%s"+
 		"\n%s %s %s遁%s 值符%s落%d宫 值使%s落%d宫",
 		jieQi.GetName(), jieQi.GetSolar().ToYmdHms(), jieQiNext.GetName(), jieQiNext.GetSolar().ToYmdHms(),
 		qimen.Yuan3Name[pp.Yuan3], juName, pp.Xun, qimen.HideJia[pp.Xun],
-		pp.DutyStar, pp.DutyStarPos, pp.DutyDoor, pp.DutyDoorPos,
+		qimen.Star0+pp.DutyStar, pp.DutyStarPos, pp.DutyDoor+qimen.Door0, pp.DutyDoorPos,
 	)
 	p.textJu.SetText(juText)
 	p.show9Gong(pp)
@@ -598,11 +656,12 @@ func (p *UIQiMen) ShowDayGame(pan *qimen.QMGame) {
 }
 
 func (p *UIQiMen) ShowDayGame2(pan *qimen.QMGame) {
-
+	//TODO 	太乙日家
 }
 
 func (p *UIQiMen) ShowMonthGame(pan *qimen.QMGame) {
 	pp := pan.MonthPan
+	pan.ShowPan = pp
 	var juName string
 	if pp.Ju < 0 {
 		juName = fmt.Sprintf("阴%d局", -pp.Ju)
@@ -612,7 +671,7 @@ func (p *UIQiMen) ShowMonthGame(pan *qimen.QMGame) {
 	juText := fmt.Sprintf("月家"+
 		"\n%s %s %s遁%s 值符%s落%d宫 值使%s落%d宫",
 		qimen.Yuan3Name[pp.Yuan3], juName, pp.Xun, qimen.HideJia[pp.Xun],
-		pp.DutyStar, pp.DutyStarPos, pp.DutyDoor, pp.DutyDoorPos,
+		qimen.Star0+pp.DutyStar, pp.DutyStarPos, pp.DutyDoor+qimen.Door0, pp.DutyDoorPos,
 	)
 	p.textJu.SetText(juText)
 	p.show9Gong(pp)
@@ -621,16 +680,22 @@ func (p *UIQiMen) ShowMonthGame(pan *qimen.QMGame) {
 
 func (p *UIQiMen) ShowYearGame(pan *qimen.QMGame) {
 	pp := pan.YearPan
+	pan.ShowPan = pp
 	var juName string
 	if pp.Ju < 0 {
 		juName = fmt.Sprintf("阴%d局", -pp.Ju)
 	} else {
 		juName = fmt.Sprintf("阳%d局", pp.Ju)
 	}
-	juText := fmt.Sprintf("年家"+
+	y9 := qimen.GetYear9Yun(pan.LunarYear)
+	d8 := qimen.Diagrams9(y9)
+	y3y9 := fmt.Sprintf("三元九运:%s%s%s%s%s", qimen.Yuan3Name[pp.Yuan3],
+		LunarUtil.NUMBER[y9], qimen.Gong9Color[y9], d8, qimen.DiagramsWuxing[d8])
+	juText := fmt.Sprintf("年家 黄帝纪元:%d %s"+
 		"\n%s %s %s遁%s 值符%s落%d宫 值使%s落%d宫",
+		qimen.GetHuangDiYear(pan.LunarYear), y3y9,
 		qimen.Yuan3Name[pp.Yuan3], juName, pp.Xun, qimen.HideJia[pp.Xun],
-		pp.DutyStar, pp.DutyStarPos, pp.DutyDoor, pp.DutyDoorPos,
+		qimen.Star0+pp.DutyStar, pp.DutyStarPos, pp.DutyDoor+qimen.Door0, pp.DutyDoorPos,
 	)
 	p.textJu.SetText(juText)
 	p.show9Gong(pp)

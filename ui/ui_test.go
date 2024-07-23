@@ -83,7 +83,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 func main() {
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("uiBase (Ebiten Demo)")
-	ebiten.SetMaxTPS(TPSRate)
+	ebiten.SetTPS(TPSRate)
 	if err := ebiten.RunGame(NewGame()); err != nil {
 		log.Fatal(err)
 	}

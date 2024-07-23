@@ -12,14 +12,6 @@ import (
 	"runtime"
 )
 
-type game struct {
-}
-
-func (g *game) Update() error {
-	ui.Update()
-	return nil
-}
-
 func init() {
 	options := &opentype.FaceOptions{
 		Size:    14,
@@ -45,9 +37,7 @@ func init() {
 		log.Fatal(err)
 	}
 	ui.SetDefaultUIFont(f)
-}
 
-func (g *game) Init() *game {
 	icon16, err := asset.LoadImage("images/icon_16x16.png")
 	if err != nil {
 		log.Fatal("loading icon_16: %w", err)
@@ -57,18 +47,15 @@ func (g *game) Init() *game {
 		log.Fatal("loading icon_32: %w", err)
 	}
 	ebiten.SetWindowIcon([]image.Image{icon32, icon16})
-	ebiten.SetMaxTPS(TPSRate)
-	ebiten.SetWindowSize(ScreenWidth, ScreenHeight)
+	ebiten.SetTPS(TPSRate)
+	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
-	//ebiten.SetWindowTitle("众妙之门")
-	ebiten.SetWindowTitle("奇门遁甲")
-
-	UIShowQiMen(ScreenWidth, ScreenHeight)
-	return g
+	ebiten.SetWindowTitle("众妙之门")
+	//ebiten.SetWindowTitle("奇门遁甲")
 }
 
-func NewWorld() *game {
-	g := &game{}
-	g.Init()
+func NewWorld() ebiten.Game {
+	//g := NewGame0()
+	g := NewGame1()
 	return g
 }

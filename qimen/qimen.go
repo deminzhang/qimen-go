@@ -33,7 +33,7 @@ type QMGame struct {
 	SolarHour   int //0-23
 	SolarMinute int //分
 
-	lunarYear    int //农历年
+	LunarYear    int //农历年
 	lunarMonth   int //农历月 1~12 闰-1~-12
 	lunarDay     int //农历日 1~30
 	lunarHour    int //农历时
@@ -66,6 +66,7 @@ type QMGame struct {
 	DayPan   *QMPan //日家奇门盘
 	HourPan  *QMPan //时家奇门盘
 	DayPan2  *QMPan //日家奇门盘2
+	ShowPan  *QMPan //显示盘
 }
 
 type QMPan struct {
@@ -117,7 +118,7 @@ func getQiMenYuan3Index(dayGanZhi string) int {
 
 // GetTermTime 返回solar年的第n(1小寒)个节气进入时间 以1970-01-01 00:00:00 UTC为0,正后前负
 func GetTermTime(year, n int) int64 {
-	t := int64(31556925974.7*float64(year-1900)/1000) + int64(termData[n-1]*60-2208549300)
+	t := int64(31556925974.7*float64(year-1900)/1000) + int64(termData[n-1]*60) - 2208549300
 	return t
 }
 
@@ -153,7 +154,6 @@ func (p *QMGame) calcGong(pp *QMPan) {
 	zhi := pp.GanZhi[len(pp.GanZhi)/2:]
 	pp.Xun = xun
 	pp.Horse = Horse[zhi]
-
 	for i := 1; i <= 9; i++ {
 		g9[i].Idx = i
 	}
@@ -371,11 +371,11 @@ func (p *QMGame) calcGong(pp *QMPan) {
 
 	if pp.Type == QMTypeAmaze {
 		for i := 1; i <= +9; i++ {
-			g9[i].HideGan = "  "
+			g9[i].HideGan = ""
 		}
 	} else {
 		for i := 1; i <= +9; i++ {
-			g9[i].PathGan = "  "
+			g9[i].PathGan = ""
 			g9[i].PathZhi = "  "
 			g9[i].HideGan = "  "
 		}
@@ -439,7 +439,7 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 		SolarDay:    day,
 		SolarHour:   hour,
 		SolarMinute: minute,
-		lunarYear:   lunar.GetYear(),
+		LunarYear:   lunar.GetYear(),
 		lunarMonth:  lunar.GetMonth(),
 		lunarDay:    lunar.GetYear(),
 		lunarHour:   lunar.GetHour(),
@@ -559,7 +559,7 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 		}
 		p.calcGong(p.MonthPan)
 	case QMGameYear: //排年家奇门
-		yuan, ju := GetYearYuanJu(p.lunarYear)
+		yuan, ju := GetYearYuanJu(p.LunarYear)
 		p.YearPan = &QMPan{
 			Yuan3:  yuan,
 			Ju:     ju,

@@ -6,8 +6,10 @@ import (
 	"image"
 )
 
-const VScrollBarWidth = 16
-const HScrollBarHeight = 16
+const (
+	defaultVScrollBarWidth  = 16
+	defaultHScrollBarHeight = 16
+)
 
 // 竖向ScrollBar
 type VScrollBar struct {
@@ -20,6 +22,7 @@ type VScrollBar struct {
 	draggingStartOffset int
 	draggingStartY      int
 	contentOffset       int
+	ScrollBarWidth      int
 
 	UIImage        *ebiten.Image
 	ImageRectBack  image.Rectangle
@@ -37,6 +40,7 @@ type HScrollBar struct {
 	draggingStartOffset int
 	draggingStartX      int
 	contentOffset       int
+	ScrollBarHeight     int
 
 	UIImage        *ebiten.Image
 	ImageRectBack  image.Rectangle
@@ -47,29 +51,29 @@ func NewVScrollBar() *VScrollBar {
 	return &VScrollBar{
 		BaseUI:         BaseUI{Visible: true, X: 0, Y: 0},
 		UIImage:        GetDefaultUIImage(),
+		ScrollBarWidth: defaultVScrollBarWidth,
 		ImageRectBack:  imageSrcRects[imageTypeScrollBarBack],
 		ImageRectFront: imageSrcRects[imageTypeScrollBarFront],
 	}
 }
 func NewHScrollBar() *HScrollBar {
 	return &HScrollBar{
-		BaseUI:         BaseUI{Visible: true, X: 0, Y: 0},
-		UIImage:        GetDefaultUIImage(),
-		ImageRectBack:  imageSrcRects[imageTypeScrollBarBack],
-		ImageRectFront: imageSrcRects[imageTypeScrollBarFront],
+		BaseUI:          BaseUI{Visible: true, X: 0, Y: 0},
+		UIImage:         GetDefaultUIImage(),
+		ScrollBarHeight: defaultHScrollBarHeight,
+		ImageRectBack:   imageSrcRects[imageTypeScrollBarBack],
+		ImageRectFront:  imageSrcRects[imageTypeScrollBarFront],
 	}
 }
 
 func (v *VScrollBar) thumbSize() int {
-	const minThumbSize = VScrollBarWidth
-
 	r := v.thumbRate
 	if r > 1 {
 		r = 1
 	}
 	s := int(float64(v.Height) * r)
-	if s < minThumbSize {
-		return minThumbSize
+	if s < v.ScrollBarWidth {
+		return v.ScrollBarWidth
 	}
 	return s
 }
@@ -80,7 +84,7 @@ func (v *VScrollBar) thumbRect() image.Rectangle {
 	}
 
 	s := v.thumbSize()
-	return image.Rect(v.X, v.Y+v.thumbOffset, v.X+VScrollBarWidth, v.Y+v.thumbOffset+s)
+	return image.Rect(v.X, v.Y+v.thumbOffset, v.X+v.ScrollBarWidth, v.Y+v.thumbOffset+s)
 }
 
 func (v *VScrollBar) maxThumbOffset() int {
@@ -128,7 +132,7 @@ func (v *VScrollBar) Draw(dst *ebiten.Image) {
 	if !v.Visible {
 		return
 	}
-	sd := image.Rect(v.X, v.Y, v.X+VScrollBarWidth, v.Y+v.Height)
+	sd := image.Rect(v.X, v.Y, v.X+v.ScrollBarWidth, v.Y+v.Height)
 	drawNinePatches(dst, v.UIImage, sd, v.ImageRectBack)
 
 	if v.thumbRate < 1 {
@@ -139,15 +143,13 @@ func (v *VScrollBar) Draw(dst *ebiten.Image) {
 //------------------------------------------
 
 func (v *HScrollBar) thumbSize() int {
-	const minThumbSize = HScrollBarHeight
-
 	r := v.thumbRate
 	if r > 1 {
 		r = 1
 	}
 	s := int(float64(v.Width) * r)
-	if s < minThumbSize {
-		return minThumbSize
+	if s < v.ScrollBarHeight {
+		return v.ScrollBarHeight
 	}
 	return s
 }
@@ -158,7 +160,7 @@ func (v *HScrollBar) thumbRect() image.Rectangle {
 	}
 
 	s := v.thumbSize()
-	return image.Rect(v.X+v.thumbOffset, v.Y, v.X+v.thumbOffset+s, v.Y+HScrollBarHeight)
+	return image.Rect(v.X+v.thumbOffset, v.Y, v.X+v.thumbOffset+s, v.Y+v.ScrollBarHeight)
 }
 
 func (v *HScrollBar) maxThumbOffset() int {
@@ -206,7 +208,7 @@ func (v *HScrollBar) Draw(dst *ebiten.Image) {
 	if !v.Visible {
 		return
 	}
-	sd := image.Rect(v.X, v.Y, v.X+v.Width, v.Y+HScrollBarHeight)
+	sd := image.Rect(v.X, v.Y, v.X+v.Width, v.Y+v.ScrollBarHeight)
 	drawNinePatches(dst, v.UIImage, sd, v.ImageRectBack)
 
 	if v.thumbRate < 1 {
