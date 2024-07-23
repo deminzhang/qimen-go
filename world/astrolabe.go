@@ -2,10 +2,12 @@ package world
 
 import (
 	"fmt"
+	"github.com/6tail/lunar-go/LunarUtil"
 	"github.com/6tail/lunar-go/calendar"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	//_ "github.com/mattn/go-sqlite3"
 	"image/color"
 	"io"
 	"log"
@@ -163,18 +165,19 @@ func (a *Astrolabe) Update() {
 	degreesSO := 360 - degreesS
 	solarY, solarX := util.CalRadiansPos(float64(a.centerY), float64(a.centerX), float64(Bodies[a.observer].DrawR()), degreesS)
 	a.solarX, a.solarY = float32(solarX), float32(solarY)
-	solar := Bodies[10]
-	solar.DrawX, solar.DrawY = a.solarX, a.solarY
 
 	//计算月球位置 暂以农历近似
 	lDay := uiQiMen.pan.Lunar.GetDay()
 	degreesM := -(float64(hour)+float64(minute)/60)*15 + float64(lDay)/29*360
-	moon := Bodies[301]
-	moonY, moonX := util.CalRadiansPos(float64(a.centerY), float64(a.centerX), float64(moon.DrawR()), degreesM)
-	moon.DrawX, moon.DrawY = float32(moonX), float32(moonY)
-	v1 := (&util.Vec2[float32]{X: moon.DrawX - cx, Y: moon.DrawY - cy}).ScaledToLength(outCircleR - outCircleW*2)
-	moon.SphereX = cx + v1.X
-	moon.SphereY = cy + v1.Y
+	{
+		moon := Bodies[301]
+		moonY, moonX := util.CalRadiansPos(float64(a.centerY), float64(a.centerX), float64(moon.DrawR()), degreesM)
+		moon.DrawX, moon.DrawY = float32(moonX), float32(moonY)
+		v1 := (&util.Vec2[float32]{X: moon.DrawX - cx, Y: moon.DrawY - cy}).ScaledToLength(outCircleR - outCircleW*2)
+		moon.SphereX = cx + v1.X
+		moon.SphereY = cy + v1.Y
+		moon.NameCN = fmt.Sprintf("%s月", LunarUtil.YUE_XIANG[lDay])
+	}
 
 	m := Bodies[a.observer].Mass
 	for _, id := range Draws {
@@ -205,19 +208,12 @@ func (a *Astrolabe) Update() {
 			continue
 		}
 		if id == 10 {
-			oe := a.GetEphemeris(id, sCal)
-			if oe == nil {
-				a.DT = calendar.Solar{}
-				continue
-			}
-			fmt.Printf("%s: RA%f \n", body.NameCN, oe.RARadius())
+			//fmt.Printf("%s: RA%f \n", body.NameCN, oe.RARadius())
 			body.DrawX, body.DrawY = a.solarX, a.solarY
-			v1 := (&util.Vec2[float32]{X: solar.DrawX - cx, Y: solar.DrawY - cy}).ScaledToLength(outCircleR - outCircleW*3)
+			v1 := (&util.Vec2[float32]{X: body.DrawX - cx, Y: body.DrawY - cy}).ScaledToLength(outCircleR - outCircleW*3)
 			body.SphereX = cx + v1.X
 			body.SphereY = cy + v1.Y
 
-			solarY, solarX := util.CalRadiansPos(float64(a.centerY), float64(a.centerX), float64(Bodies[a.observer].DrawR()), degreesS)
-			a.solarX, a.solarY = float32(solarX), float32(solarY)
 			a.tzRA0 = degreesS - oe.RARadius()
 		} else {
 			//fmt.Println(id, oe.SOT(), oe.SOTR(), oe.STO(), oe.Cnst())
@@ -242,16 +238,6 @@ func (a *Astrolabe) Update() {
 		} else {
 			body.color = colorRedShift
 		}
-
-		//for _, sid := range body.Satellite {
-		//	body := Bodies[id]
-		//	oe := a.GetEphemeris(id, sCal)
-		//	if oe == nil {
-		//		a.DT = calendar.Solar{}
-		//		continue
-		//	}
-		//
-		//}
 	}
 	for i := 1; i <= 12; i++ {
 		degrees := a.tzRA0 + float64(i-1)*30
@@ -326,7 +312,7 @@ func (a *Astrolabe) Draw(screen *ebiten.Image) {
 		obj := Bodies[id]
 		if obj.Gravity > 0 {
 			desY += 20
-			text.Draw(screen, fmt.Sprintf("%s:G:%.2f", obj.NameCN, obj.Gravity), ft, int(desX), int(desY), color.White)
+			text.Draw(screen, fmt.Sprintf("%s:G:%.2fN", obj.NameCN, obj.Gravity), ft, int(desX), int(desY), color.White)
 		}
 		for _, sid := range obj.Satellite {
 			ob := Bodies[sid]
@@ -337,7 +323,7 @@ func (a *Astrolabe) Draw(screen *ebiten.Image) {
 		}
 	}
 	if a.DataQuery {
-		text.Draw(screen, "Query..", ft, int(cx), int(cy-40), color.White)
+		text.Draw(screen, "查询星体..", ft, int(cx-32), int(cy-40), color.White)
 	}
 }
 
@@ -416,26 +402,25 @@ func (a *Astrolabe) GetNASAData(id int, sts, ets string) *ObserveEphemeris {
 }
 
 func (a *Astrolabe) GetEphemeris(id int, dt *calendar.Solar) *ObserveData {
-	tl := time.Date(dt.GetYear(), time.Month(dt.GetMonth()), dt.GetDay(), dt.GetHour(), dt.GetMinute(), 0, 0, time.Local)
-	st := tl.In(time.UTC)
-	te := st.Add(time.Hour * 24)
-	sts := st.Format(DataTimeMin)
 	d := a.OEData[id]
 	if d == nil {
-		ets := te.Format(DataTimeMin)
-		d = a.GetNASAData(id, sts, ets)
-		if d == nil {
-			return nil
-		}
+		d = &ObserveEphemeris{id: id, data: make(map[string]*ObserveData)}
 		a.OEData[id] = d
 	}
+	tl := time.Date(dt.GetYear(), time.Month(dt.GetMonth()), dt.GetDay(), dt.GetHour(), dt.GetMinute(), 0, 0, time.Local)
+	st := tl.In(time.UTC)
+	sts := st.Format(DataTimeMin)
 	oe := d.GetOE(sts)
 	if oe == nil {
-		ets := te.Format(DataTimeMin)
+		//get from db
+		//if dbData {
+		//}
 		if a.DataQuery {
 			return nil
 		}
 		a.DataQuery = true
+		te := st.Add(time.Hour * 24)
+		ets := te.Format(DataTimeMin)
 		go func() {
 			d = a.GetNASAData(id, sts, ets)
 			if d == nil {
