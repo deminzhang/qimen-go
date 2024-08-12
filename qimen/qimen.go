@@ -27,37 +27,10 @@ type QMGame struct {
 	Solar *calendar.Solar
 	Lunar *calendar.Lunar
 
-	SolarYear   int //1900-2100
-	SolarMonth  int //1-12
-	SolarDay    int //1-31
-	SolarHour   int //0-23
-	SolarMinute int //分
-
-	LunarYear    int //农历年
-	lunarMonth   int //农历月 1~12 闰-1~-12
-	lunarDay     int //农历日 1~30
-	lunarHour    int //农历时
-	lunarQuarter int //农历刻
-	LunarYearC   string
-	LunarMonthC  string
-	LunarDayC    string
-	LunarHourC   string
-
-	YearTB  string //年干支
-	MonthTB string //月干支
-	DayTB   string //日干支
-	HourTB  string //时干支
-
 	YueJian        string //月建
 	YueJianZhiIdx  int    //月建地支号
 	YueJiang       string //月将
 	YueJiangZhiIdx int    //月将地支号
-
-	HourGan    string //时干
-	HourZhi    string //时支
-	HourZhiIdx int    //时支序
-
-	YMDH string //年月日时家
 
 	JieQi string //节气文本
 
@@ -76,8 +49,9 @@ type QMPan struct {
 	StartType           int //QMJuType 起局.起局法
 	HideGanType         int //QMHideGanType
 
-	Yuan3 int //三元1~3
-	Ju    int //格局-1~-9,1~9, 年家为-1,-4,-7
+	Yuan3  int //三元1~3
+	Ju     int //格局-1~-9,1~9, 年家为-1,-4,-7
+	JuText string
 
 	GanZhi string //干支 年家为年干支,,,时家为时干支
 	Xun    string //干支旬首
@@ -417,9 +391,9 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 	}
 	solar := calendar.NewSolar(year, month, day, hour, minute, 0)
 	lunar := calendar.NewLunarFromSolar(solar)
-	c8 := lunar.GetBaZi()
-	dayGanZhi := c8[2]
-	hourGanZhi := c8[3]
+	c8 := lunar.GetEightChar()
+	dayGanZhi := c8.GetDay()
+	hourGanZhi := c8.GetTime()
 	if hour == 23 { //晚子时日柱作次日
 		di := LunarUtil.GetJiaZiIndex(dayGanZhi) + 1
 		if di > 59 {
@@ -430,37 +404,17 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 	jieQi := lunar.GetPrevJieQi()
 	jieQiName := lunar.GetPrevJieQi().GetName()
 
-	hourZhi := hourGanZhi[len(hourGanZhi)/2:]
 	p := QMGame{
-		Solar:       solar,
-		Lunar:       lunar,
-		SolarYear:   year,
-		SolarMonth:  month,
-		SolarDay:    day,
-		SolarHour:   hour,
-		SolarMinute: minute,
-		LunarYear:   lunar.GetYear(),
-		lunarMonth:  lunar.GetMonth(),
-		lunarDay:    lunar.GetYear(),
-		lunarHour:   lunar.GetHour(),
-		LunarYearC:  lunar.GetYearInChinese(),
-		LunarMonthC: lunar.GetMonthInChinese() + "月",
-		LunarDayC:   lunar.GetDayInChinese(),
-		LunarHourC:  hourZhi + "时",
-		HourGan:     hourGanZhi[:len(hourGanZhi)/2],
-		HourZhi:     hourZhi,
-		YearTB:      c8[0],
-		MonthTB:     c8[1],
-		DayTB:       dayGanZhi,
-		HourTB:      hourGanZhi,
-		YueJian:     Jie2YueJian(lunar.GetPrevJie().GetName()),
-		YueJiang:    Qi2YueJiang(lunar.GetPrevQi().GetName()),
-		JieQi:       jieQiName,
+		Solar:    solar,
+		Lunar:    lunar,
+		YueJian:  Jie2YueJian(lunar.GetPrevJie().GetName()),
+		YueJiang: Qi2YueJiang(lunar.GetPrevQi().GetName()),
+		JieQi:    jieQiName,
 	}
 	switch ymdh {
 	case QMGameHour: //排时家奇门
 		var yuan, ju int
-		yuan = getQiMenYuan3Index(c8[2])
+		yuan = getQiMenYuan3Index(c8.GetDay())
 		switch startType {
 		case QMJuTypeSplit:
 			//ju = getQiMenJuIndex(jieQiName, yuan)
@@ -510,18 +464,12 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 				break
 			}
 		}
-		for i := 1; i <= 12; i++ {
-			if p.HourZhi == LunarUtil.ZHI[i] {
-				p.HourZhiIdx = i
-				break
-			}
-		}
 	case QMGameDay:
 		yuan, ju := GetDayYuanJu(jieQiName)
 		p.DayPan = &QMPan{
 			Yuan3:  yuan,
 			Ju:     ju,
-			GanZhi: c8[2],
+			GanZhi: c8.GetDay(),
 
 			Type:                qmType,
 			RotatingHostingType: qmHostingType,
@@ -535,7 +483,7 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 		p.DayPan = &QMPan{
 			Yuan3:  yuan,
 			Ju:     ju,
-			GanZhi: c8[2],
+			GanZhi: c8.GetDay(),
 
 			Type:                qmType,
 			RotatingHostingType: qmHostingType,
@@ -545,11 +493,11 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 		}
 		p.calcGongDay2(p.DayPan)
 	case QMGameMonth:
-		yuan, ju := GetMonthYuanJu(p.YearTB)
+		yuan, ju := GetMonthYuanJu(p.Lunar.GetYearInGanZhiExact())
 		p.MonthPan = &QMPan{
 			Yuan3:  yuan,
 			Ju:     ju,
-			GanZhi: c8[1],
+			GanZhi: c8.GetMonth(),
 
 			Type:                qmType,
 			RotatingHostingType: qmHostingType,
@@ -559,11 +507,11 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 		}
 		p.calcGong(p.MonthPan)
 	case QMGameYear: //排年家奇门
-		yuan, ju := GetYearYuanJu(p.LunarYear)
+		yuan, ju := GetYearYuanJu(p.Lunar.GetYear())
 		p.YearPan = &QMPan{
 			Yuan3:  yuan,
 			Ju:     ju,
-			GanZhi: c8[0],
+			GanZhi: c8.GetYear(),
 
 			Type:                qmType,
 			RotatingHostingType: qmHostingType,

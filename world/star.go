@@ -51,15 +51,15 @@ func (s *StarLine) Draw(screen *ebiten.Image) {
 }
 
 type StarEffect struct {
-	centerX, centerY float32
-	starScale        float32
-	starCount        int
-	starLines        []StarLine
+	X, Y      float32
+	starScale float32
+	starCount int
+	starLines []StarLine
 }
 
 func NewStarEffect(centerX, centerY float32) *StarEffect {
 	se := &StarEffect{
-		centerX: centerX, centerY: centerY,
+		X: centerX, Y: centerY,
 		starScale: starsLineScale,
 		starCount: starsLineCount,
 	}
@@ -72,7 +72,7 @@ func NewStarEffect(centerX, centerY float32) *StarEffect {
 
 func (se *StarEffect) Update() {
 	for i := 0; i < se.starCount; i++ {
-		se.starLines[i].Update(se.centerX*se.starScale, se.centerY*se.starScale)
+		se.starLines[i].Update(se.X*se.starScale, se.Y*se.starScale)
 	}
 }
 

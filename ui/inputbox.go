@@ -259,8 +259,8 @@ func (i *InputBox) Update() {
 			s, err := clipboard.ReadAll()
 			if err == nil {
 				left, right := i.cursorSelected()
-				r := append(i.textRune[:left], []rune(s)...)
-				i.textRune = append(i.textRune, r...)
+				r := append([]rune(s), i.textRune[right:]...)
+				i.textRune = append(i.textRune[:left], r...)
 				if left == right {
 					i.cursorPos += len(s)
 				} else {
