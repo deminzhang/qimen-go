@@ -1,10 +1,7 @@
 package qimen
 
 import (
-	"errors"
-	"fmt"
 	"github.com/6tail/lunar-go/LunarUtil"
-	"github.com/6tail/lunar-go/SolarUtil"
 	"github.com/6tail/lunar-go/calendar"
 )
 
@@ -94,31 +91,6 @@ func getQiMenYuan3Index(dayGanZhi string) int {
 func GetTermTime(year, n int) int64 {
 	t := int64(31556925974.7*float64(year-1900)/1000) + int64(termData[n-1]*60) - 2208549300
 	return t
-}
-
-func checkDate(year, month, day, hour, minute int) error {
-	if month < 1 || month > 12 {
-		return errors.New(fmt.Sprintf("wrong month %v", month))
-	}
-	if day < 1 || day > 31 {
-		return errors.New(fmt.Sprintf("wrong day %v", day))
-	}
-	if 1582 == year && 10 == month {
-		if day > 4 && day < 15 {
-			return errors.New(fmt.Sprintf("wrong solar year %v month %v day %v", year, month, day))
-		}
-	} else {
-		if day > SolarUtil.GetDaysOfMonth(year, month) {
-			return errors.New(fmt.Sprintf("wrong solar year %v month %v day %v", year, month, day))
-		}
-	}
-	if hour < 0 || hour > 23 {
-		return errors.New(fmt.Sprintf("wrong hour %v", hour))
-	}
-	if minute < 0 || minute > 59 {
-		return errors.New(fmt.Sprintf("wrong minute %v", minute))
-	}
-	return nil
 }
 
 func (p *QMGame) calcGong(pp *QMPan) {
@@ -369,7 +341,7 @@ func (p *QMGame) calcGong(pp *QMPan) {
 				}
 			}
 		case QMHideGanDoorHomeGan: //门地盘起
-			for i := 1; i < 9; i++ {
+			for i := 1; i <= 9; i++ {
 				if i != 5 {
 					doorHomeGong := DoorHome[g9[i].Door]
 					g9[i].HideGan = g9[doorHomeGong].HostGan
@@ -380,27 +352,16 @@ func (p *QMGame) calcGong(pp *QMPan) {
 }
 
 func (p *QMGame) calcGongDay2(pp *QMPan) {
-
+	//TODO
 }
 
-func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error) {
+func NewPan(solar *calendar.Solar, params QMParams) *QMGame {
 	ymdh, qmType, qmHostingType, pqmFlyType, startType, hideGanType :=
 		params.YMDH, params.Type, params.HostingType, params.FlyType, params.JuType, params.HideGanType
-	if err := checkDate(year, month, day, hour, minute); err != nil {
-		return nil, err
-	}
-	solar := calendar.NewSolar(year, month, day, hour, minute, 0)
 	lunar := calendar.NewLunarFromSolar(solar)
 	c8 := lunar.GetEightChar()
-	dayGanZhi := c8.GetDay()
+	//dayGanZhi := c8.GetDay()
 	hourGanZhi := c8.GetTime()
-	if hour == 23 { //晚子时日柱作次日
-		di := LunarUtil.GetJiaZiIndex(dayGanZhi) + 1
-		if di > 59 {
-			di -= 60
-		}
-		dayGanZhi = LunarUtil.JIA_ZI[di]
-	}
 	jieQi := lunar.GetPrevJieQi()
 	jieQiName := lunar.GetPrevJieQi().GetName()
 
@@ -522,5 +483,5 @@ func NewPan(year, month, day, hour, minute int, params QMParams) (*QMGame, error
 		p.calcGong(p.YearPan)
 	}
 
-	return &p, nil
+	return &p
 }

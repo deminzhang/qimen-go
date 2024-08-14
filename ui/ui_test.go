@@ -91,10 +91,4 @@ func main() {
 
 func TestUI(t *testing.T) {
 	main()
-	//r := bytes.NewReader(images.UI_png)
-	//img, _, err := image.Decode(r)
-	//if err != nil { // test里的image.Decode总是失败 为什么
-	//	log.Fatal(err)
-	//}
-	//ebiten.NewImageFromImage(img)
 }

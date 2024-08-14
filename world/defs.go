@@ -1,6 +1,9 @@
 package world
 
-import "image/color"
+import (
+	"github.com/6tail/lunar-go/LunarUtil"
+	"image/color"
+)
 
 const (
 	TPSRate      = 30
@@ -11,6 +14,12 @@ const (
 var (
 	colorWhite            = color.RGBA{0xff, 0xff, 0xff, 0xff}
 	colorBlack            = color.RGBA{0x00, 0x00, 0x00, 0xff}
+	colorRed              = color.RGBA{0xff, 0x00, 0x00, 0xff}
+	colorGreen            = color.RGBA{0x00, 0xff, 0x00, 0xff}
+	colorBlue             = color.RGBA{0x00, 0x00, 0xff, 0xff}
+	colorYellow           = color.RGBA{0xff, 0xff, 0x00, 0xff}
+	colorPurple           = color.RGBA{0xff, 0x00, 0xff, 0xff}
+	colorGray             = color.RGBA{0x80, 0x80, 0x80, 0xff}
 	colorGongSplit        = color.RGBA{0x00, 0x00, 0x00, 0xff}
 	colorPowerCircle      = color.RGBA{0x60, 0x60, 0xFF, 0xFF}
 	colorGroundGateCircle = color.RGBA{0x80, 0x80, 0x00, 0xff}
@@ -23,6 +32,11 @@ var (
 	colorCross            = color.RGBA{0x60, 0x60, 0x60, 0x20}
 	colorRedShift         = color.RGBA{0xff, 0xaa, 0x00, 0xff}
 	colorBlueShift        = color.RGBA{0x00, 0xff, 0x77, 0xff}
+	colorChong            = colorPurple
+	colorXing             = colorRed
+	colorHe               = colorGreen
+	colorHe6              = colorBlue
+	colorGong             = colorGreen
 
 	color9Gong = []color.RGBA{
 		{0x00, 0x00, 0x00, 0x00},
@@ -43,34 +57,17 @@ var (
 		"火": {0xff, 0x00, 0x00, 0xff},
 		"土": {0xff, 0x80, 0x00, 0xff},
 	}
-	colorGanZhi = map[string]color.RGBA{
-		"甲": color5Xing["木"],
-		"乙": color5Xing["木"],
-		"丙": color5Xing["火"],
-		"丁": color5Xing["火"],
-		"戊": color5Xing["土"],
-		"己": color5Xing["土"],
-		"庚": color5Xing["金"],
-		"辛": color5Xing["金"],
-		"壬": color5Xing["水"],
-		"癸": color5Xing["水"],
-		"子": color5Xing["水"],
-		"丑": color5Xing["土"],
-		"寅": color5Xing["木"],
-		"卯": color5Xing["木"],
-		"辰": color5Xing["土"],
-		"巳": color5Xing["火"],
-		"午": color5Xing["火"],
-		"未": color5Xing["土"],
-		"申": color5Xing["金"],
-		"酉": color5Xing["金"],
-		"戌": color5Xing["土"],
-		"亥": color5Xing["水"],
-	}
 )
 
-// HideGan 藏干
-var HideGan = map[string][]string{
+const (
+	GenderMale   = 1
+	GenderFemale = 0
+)
+
+var GenderName = []string{"女", "男"}
+
+// ZHI_HIDE_GAN 藏干
+var ZHI_HIDE_GAN = map[string][]string{
 	"子": {"癸"},
 	"丑": {"己", "辛", "癸"},
 	"寅": {"甲", "丙", "戊"},
@@ -85,6 +82,14 @@ var HideGan = map[string][]string{
 	"亥": {"壬", "甲"},
 }
 
+var SHI_SHEN_SHORT = map[string]string{
+	"比肩": "比", "劫财": "劫",
+	"食神": "食", "伤官": "伤",
+	"偏财": "才", "正财": "财",
+	"七杀": "杀", "正官": "官",
+	"偏印": "枭", "正印": "印",
+}
+
 // HideGanVal 藏干值比例
 var HideGanVal = map[int][]int{
 	1: {10},
@@ -93,12 +98,22 @@ var HideGanVal = map[int][]int{
 }
 
 func GetHideGan(gan string, idx int) string {
-	a := HideGan[gan]
-	if a == nil {
-		return ""
-	}
+	a := ZHI_HIDE_GAN[gan]
 	if idx < len(a) {
 		return a[idx]
 	}
 	return ""
+}
+
+func ColorGanZhi(gz string) color.RGBA {
+	wx := LunarUtil.WU_XING_GAN[gz]
+	if wx == "" {
+		wx = LunarUtil.WU_XING_ZHI[gz]
+	}
+	return color5Xing[wx]
+}
+
+func ShiShenShort(dayGan, gan string) string {
+	sx := LunarUtil.SHI_SHEN[dayGan+gan]
+	return gan + SHI_SHEN_SHORT[sx]
 }

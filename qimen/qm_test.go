@@ -3,6 +3,7 @@ package qimen_test
 import (
 	"fmt"
 	"github.com/6tail/lunar-go/LunarUtil"
+	"github.com/6tail/lunar-go/calendar"
 	"qimen/qimen"
 	"testing"
 	"time"
@@ -10,7 +11,8 @@ import (
 
 func TestQimen(t *testing.T) {
 	tm := time.Now()
-	pan, err := qimen.NewPan(tm.Year(), int(tm.Month()), tm.Day(), tm.Hour(), tm.Minute(),
+	solar := calendar.NewSolar(tm.Year(), int(tm.Month()), tm.Day(), tm.Hour(), tm.Minute(), 0)
+	pan := qimen.NewPan(solar,
 		qimen.QMParams{
 			Type:        qimen.QMTypeAmaze,
 			HostingType: qimen.QMHostingType28,
@@ -18,9 +20,6 @@ func TestQimen(t *testing.T) {
 			JuType:      qimen.QMJuTypeSplit,
 			HideGanType: 0,
 		})
-	if err != nil {
-		fmt.Println("时间不对")
-	}
 	//九宫文本
 	for i := 1; i <= 9; i++ {
 		g := pan.HourPan.Gongs[i]

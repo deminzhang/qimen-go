@@ -7,6 +7,7 @@ import (
 
 type UIMsgBox struct {
 	ui.BaseUI
+	panelBG    *ui.Panel
 	textMain   *ui.TextBox
 	btnConfirm *ui.Button
 	btnCancel  *ui.Button
@@ -19,9 +20,12 @@ func UIShowMsgBox(text, btnText1, btnText2 string, btnClick1, btnClick2 func(b *
 
 func NewUIMsgBox(text, btnText1, btnText2 string, btnClick1, btnClick2 func(b *ui.Button)) *UIMsgBox {
 	u := &UIMsgBox{BaseUI: ui.BaseUI{Visible: true}}
+	u.panelBG = ui.NewPanel(image.Rect(screenWidth/2-108, 230, screenWidth/2+108, 340), &colorGray)
 	u.textMain = ui.NewTextBox(image.Rect(screenWidth/2-96, 240, screenWidth/2+96, 300))
 	u.btnConfirm = ui.NewButton(image.Rect(screenWidth/2-64, 320, screenWidth/2-16, 336), "confirm")
 	u.btnCancel = ui.NewButton(image.Rect(screenWidth/2+16, 320, screenWidth/2+64, 336), "cancel")
+	u.AddChild(u.panelBG)
+	//u.AddChild(u.textBg)
 	u.AddChild(u.textMain)
 	u.AddChild(u.btnConfirm)
 	u.AddChild(u.btnCancel)

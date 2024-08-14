@@ -2,56 +2,57 @@ package world
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"qimen/qimen"
 	"qimen/ui"
 )
 
-type game1 struct {
+type game struct {
 	count     int
 	stars     *StarEffect
 	astrolabe *Astrolabe
-	qimen     *QMShow
-	bazi      *EightCharPan
+	qiMen     *QMShow
+	baZi      *EightCharPan
+	qmPan     *qimen.QMGame
 }
 
-func (g *game1) Update() error {
+func (g *game) Update() error {
 	g.count++
 	g.count %= 360
 	ui.Update()
 	g.stars.Update()
-	g.qimen.Update()
+	g.qiMen.Update()
 	if uiQiMen.IsShowBaZi() {
-		g.bazi.Update()
+		g.baZi.Update()
 	} else {
 		g.astrolabe.Update()
 	}
 	return nil
 }
 
-func (g *game1) Draw(screen *ebiten.Image) {
+func (g *game) Draw(screen *ebiten.Image) {
 	g.stars.Draw(screen)
-	ui.Draw(screen)
 	if uiQiMen.IsShowBaZi() {
-		g.bazi.Draw(screen)
+		g.baZi.Draw(screen)
 	} else {
 		g.astrolabe.Draw(screen)
 	}
-	g.qimen.Draw(screen)
+	g.qiMen.Draw(screen)
+	ui.Draw(screen)
 }
 
-func (g *game1) Layout(outsideWidth, outsideHeight int) (int, int) {
+func (g *game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return outsideWidth, outsideHeight
 	//return screenWidth, screenHeight
 }
 
-func NewGame1() *game1 {
-	g := &game1{
-		stars:     NewStarEffect(260, 460),
-		qimen:     NewQiMenShow(260, 460),
-		astrolabe: NewAstrolabe(770, 450),
-		bazi:      NewEightCharPan(770, 450),
-	}
+func NewGame() *game {
 	u := UIShowQiMen()
-	u.hide9GongUI()
-	u.noShow12Gong()
+	g := &game{
+		stars:     NewStarEffect(260, 460),
+		qiMen:     NewQiMenShow(260, 460),
+		astrolabe: NewAstrolabe(770, 450),
+		baZi:      NewEightCharPan(770, 450),
+		qmPan:     u.pan,
+	}
 	return g
 }

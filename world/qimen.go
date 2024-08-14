@@ -11,6 +11,7 @@ import (
 	"qimen/qimen"
 	"qimen/ui"
 	"qimen/util"
+	"strings"
 )
 
 const (
@@ -35,27 +36,29 @@ func (q *QMShow) Draw(screen *ebiten.Image) {
 	q.draw12Gong(screen)
 }
 func (q *QMShow) drawHead(screen *ebiten.Image) {
-	game := uiQiMen.pan
-	lunar := game.Lunar
-	pp := uiQiMen.pan.ShowPan
+	pan := ThisGame.qmPan
+	lunar := pan.Lunar
+	pp := ThisGame.qmPan.ShowPan
 	ft := ui.GetDefaultUIFont()
 	text.Draw(screen, fmt.Sprintf("  %s %s %s %s",
 		lunar.GetYearInChinese(), lunar.GetMonthInChinese()+"月", lunar.GetDayInChinese(), lunar.GetEightChar().GetTimeZhi()+"时"),
-		ft, 32, 48, colorLeader)
+		ft, 32, 48, colorWhite)
 	text.Draw(screen, fmt.Sprintf("干支  %s %s %s %s",
 		lunar.GetYearInGanZhiExact(), lunar.GetMonthInGanZhiExact(), lunar.GetDayInGanZhiExact(), lunar.GetTimeInGanZhi()),
 		ft, 32, 64, colorLeader)
 	text.Draw(screen, fmt.Sprintf("旬首  %s %s %s %s",
 		lunar.GetYearXunExact(), lunar.GetMonthXunExact(), lunar.GetDayXunExact(), lunar.GetTimeXun()),
-		ft, 32, 64+16, colorLeader)
+		ft, 32, 64+16, colorWhite)
 	text.Draw(screen, fmt.Sprintf("空亡  %s %s %s %s",
 		lunar.GetYearXunKongExact(), lunar.GetMonthXunKongExact(), lunar.GetDayXunKongExact(), lunar.GetTimeXunKong()),
-		ft, 32, 64+32, colorLeader)
-	text.Draw(screen, pp.JuText, ft, 32, 96+16, colorLeader)
+		ft, 32, 64+32, colorGray)
+	text.Draw(screen, pp.JuText, ft, 32, 96+16, colorWhite)
 }
 func (q *QMShow) draw9Gong(screen *ebiten.Image) {
 	ft := ui.GetDefaultUIFont()
+	pp := ThisGame.qmPan.ShowPan
 	//画九宫
+	kongWang := LunarUtil.GetXunKong(pp.Xun)
 	for i := 1; i <= 9; i++ {
 		offX, offZ := gongOffset[i][0]*_GongWidth-_GongWidth/2, gongOffset[i][1]*_GongWidth-_GongWidth/2
 		px, py := q.X-_GongWidth+float32(offX), q.Y-_GongWidth+float32(offZ)
@@ -65,19 +68,14 @@ func (q *QMShow) draw9Gong(screen *ebiten.Image) {
 		//vector.DrawFilledRect(screen, px, py, _GongWidth-1, _GongWidth-1, color9Gong[i], true)
 		vector.StrokeRect(screen, px, py, _GongWidth-1, _GongWidth-1, 1, color9Gong[i], true)
 
-		pp := uiQiMen.pan.ShowPan
-		kongWang := qimen.KongWang[pp.Xun]
 		g := pp.Gongs[i]
 		var hosting = "  "
 		if pp.RollHosting > 0 && i == pp.DutyStarPos {
 			hosting = "禽"
 		}
 		var empty, horse = "  ", "  "
-		for _, zhi := range kongWang {
-			if qimen.ZhiGong9[zhi] == i {
-				empty = "〇" //"空亡"
-				break
-			}
+		if strings.Contains(kongWang, LunarUtil.ZHI[i]) {
+			empty = "〇" //"空亡"
 		}
 		if qimen.ZhiGong9[pp.Horse] == i {
 			horse = "马"
@@ -108,7 +106,7 @@ func (q *QMShow) draw12Gong(screen *ebiten.Image) {
 	r1, r2 := float32(_GongWidth)*1.5+zhiPanWidth*1.5, float32(_GongWidth)*1.5+zhiPanWidth*2
 	//空亡偏心环
 	r0 := r1 - zhiPanWidth/8
-	emptyClock := qimen.KongWangClock[uiQiMen.pan.ShowPan.Xun]
+	emptyClock := qimen.KongWangClock[ThisGame.qmPan.ShowPan.Xun]
 	angle := float64(emptyClock-45) * 30 //+ float64(g.count)
 	rad := angle * math.Pi / 180
 	x0 := float64(q.X) + float64(zhiPanWidth/8)*math.Cos(rad)
@@ -148,7 +146,7 @@ func (q *QMShow) draw12Gong(screen *ebiten.Image) {
 		x22, y22 := util.CalRadiansPos(float64(q.X), float64(q.Y), float64(r1), angleDegrees+10)
 		text.Draw(screen, gong12.JianZhi, ft, int(x22-8), int(y22+4), jianColor)
 
-		if uiQiMen.pan.ShowPan.Horse == LunarUtil.ZHI[i] {
+		if ThisGame.qmPan.ShowPan.Horse == LunarUtil.ZHI[i] {
 			x3, y3 := util.CalRadiansPos(float64(q.X), float64(q.Y), float64(r1), angleDegrees-10)
 			text.Draw(screen, "驿马", ft, int(x3-8), int(y3+4), colorLeader)
 		}

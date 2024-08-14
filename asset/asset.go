@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
-	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
 	"image"
 	_ "image/gif"
@@ -30,28 +29,16 @@ func LoadImage(path string) (image.Image, error) {
 	return icon, nil
 }
 
-func LoadFont(path string, options *opentype.FaceOptions) (font.Face, error) {
-	bytes, err := FS.ReadFile(path)
+func LoadFont(path string) (*opentype.Font, error) {
+	bt, err := FS.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("loading font file: %s", err)
 	}
 
-	fontfile, err := opentype.Parse(bytes)
+	ff, err := opentype.Parse(bt)
 	if err != nil {
 		return nil, fmt.Errorf("parsing font file: %s", err)
 	}
 
-	if options == nil {
-		options = &opentype.FaceOptions{
-			Size:    11,
-			DPI:     72,
-			Hinting: font.HintingNone,
-		}
-	}
-	face, err := opentype.NewFace(fontfile, options)
-	if err != nil {
-		return nil, err
-	}
-
-	return face, nil
+	return ff, nil
 }

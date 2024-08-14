@@ -9,35 +9,55 @@ import (
 	"os"
 	"qimen/asset"
 	"qimen/ui"
-	"runtime"
+)
+
+var (
+	Font      *opentype.Font
+	FontFaces map[float64]font.Face
+	ThisGame  *game
 )
 
 func init() {
-	options := &opentype.FaceOptions{
-		Size:    14,
-		DPI:     72,
-		Hinting: font.HintingNone,
-	}
 	var f font.Face
+	var bytes []byte
 	var err error
-	if runtime.GOOS == "windows" {
-		bytes, err := os.ReadFile("C:/Windows/Fonts/simfang.ttf")
-		if err != nil {
-			log.Fatal(err)
-		}
-		ff, err := opentype.Parse(bytes)
-		if err != nil {
-			log.Fatal(err)
-		}
-		f, err = opentype.NewFace(ff, options)
-	} else {
-		f, err = asset.LoadFont("font/lana_pixel.ttf", options) //字不全,如癸显不出来
+	var ff *opentype.Font
+	if bytes, err = os.ReadFile(defaultUIFontPath); err == nil {
+		ff, err = opentype.Parse(bytes)
+	}
+	if err != nil {
+		log.Println("parse default font error:", err)
+		ff, err = asset.LoadFont("font/lana_pixel.ttf") //字不全,如癸显不出来
 	}
 	if err != nil {
 		log.Fatal(err)
 	}
+	Font = ff
+	f, err = GetFontFace(14)
 	ui.SetDefaultUIFont(f)
+}
 
+func GetFontFace(size float64) (font.Face, error) {
+	if FontFaces == nil {
+		FontFaces = make(map[float64]font.Face)
+	}
+	if f, ok := FontFaces[size]; ok {
+		return f, nil
+	}
+	options := &opentype.FaceOptions{
+		Size:    size,
+		DPI:     72,
+		Hinting: font.HintingNone,
+	}
+	f, err := opentype.NewFace(Font, options)
+	if err != nil {
+		return nil, err
+	}
+	FontFaces[size] = f
+	return f, nil
+}
+
+func setWindow() {
 	icon16, err := asset.LoadImage("images/icon_16x16.png")
 	if err != nil {
 		log.Fatal("loading icon_16: %w", err)
@@ -51,11 +71,11 @@ func init() {
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	ebiten.SetWindowTitle("众妙之门")
-	//ebiten.SetWindowTitle("奇门遁甲")
 }
 
 func NewWorld() ebiten.Game {
-	//g := NewGame0()
-	g := NewGame1()
+	setWindow()
+	g := NewGame()
+	ThisGame = g
 	return g
 }

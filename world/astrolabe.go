@@ -151,7 +151,7 @@ func NewAstrolabe(centerX, centerY float32) *Astrolabe {
 }
 
 func (a *Astrolabe) Update() {
-	sCal := uiQiMen.pan.Solar
+	sCal := ThisGame.qmPan.Solar
 	if a.DT == *sCal {
 		return
 	}
@@ -167,7 +167,7 @@ func (a *Astrolabe) Update() {
 	a.solarX, a.solarY = float32(solarX), float32(solarY)
 
 	//计算月球位置 暂以农历近似
-	lDay := uiQiMen.pan.Lunar.GetDay()
+	lDay := ThisGame.qmPan.Lunar.GetDay()
 	degreesM := -(float64(hour)+float64(minute)/60)*15 + float64(lDay)/29*360
 	{
 		moon := Bodies[301]
@@ -280,8 +280,8 @@ func (a *Astrolabe) Draw(screen *ebiten.Image) {
 		vector.StrokeLine(screen, l.lx1, l.ly1, l.lx2, l.ly2, 1, colorGongSplit, true)        //星宫
 		text.Draw(screen, fmt.Sprintf("%s", ConstellationS[i]), ft, l.x-6, l.y+6, colorJiang) //星座
 		l = a.AstrolabeLoc[i]
-		vector.StrokeLine(screen, l.lx1, l.ly1, l.lx2, l.ly2, 1, colorGongSplit, true)    //宫
-		text.Draw(screen, fmt.Sprintf("%d", i+1), ft, int(l.x-4), int(l.y+4), colorJiang) //宫位号
+		vector.StrokeLine(screen, l.lx1, l.ly1, l.lx2, l.ly2, 1, colorGongSplit, true) //宫
+		text.Draw(screen, fmt.Sprintf("%d", i+1), ft, l.x-4, l.y+4, colorJiang)        //宫位
 	}
 
 	for _, id := range Draws {
@@ -328,7 +328,7 @@ func (a *Astrolabe) Draw(screen *ebiten.Image) {
 		}
 	}
 	if a.DataQuery {
-		text.Draw(screen, "查询星体..", ft, int(cx-32), int(cy-40), color.White)
+		text.Draw(screen, "正在观星..", ft, int(cx-32), int(cy-40), color.White)
 	}
 }
 
