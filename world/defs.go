@@ -51,11 +51,11 @@ var (
 		{0x80, 0x00, 0x80, 0x20}, //离九
 	}
 	color5Xing = map[string]color.RGBA{
-		"金": {0xff, 0xff, 0x00, 0xff},
+		"金": {0xff, 0xff, 0x80, 0xff},
 		"水": {0x00, 0xff, 0xff, 0xff},
 		"木": {0x00, 0xff, 0x00, 0xff},
 		"火": {0xff, 0x00, 0x00, 0xff},
-		"土": {0xff, 0x80, 0x00, 0xff},
+		"土": {0xff, 0x70, 0x00, 0xff},
 	}
 )
 
@@ -113,7 +113,13 @@ func ColorGanZhi(gz string) color.RGBA {
 	return color5Xing[wx]
 }
 
+func ColorNaYin(gz string) color.RGBA {
+	ny := LunarUtil.NAYIN[gz]
+	wx := []rune(ny)[2:]
+	return color5Xing[string(wx)]
+}
+
 func ShiShenShort(dayGan, gan string) string {
 	sx := LunarUtil.SHI_SHEN[dayGan+gan]
-	return gan + SHI_SHEN_SHORT[sx]
+	return SHI_SHEN_SHORT[sx]
 }

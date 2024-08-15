@@ -11,7 +11,7 @@ const (
 	defaultHScrollBarHeight = 16
 )
 
-// 竖向ScrollBar
+// VScrollBar 竖向ScrollBar
 type VScrollBar struct {
 	BaseUI
 	Height int
@@ -29,7 +29,7 @@ type VScrollBar struct {
 	ImageRectFront image.Rectangle
 }
 
-// 横向ScrollBar
+// HScrollBar 横向ScrollBar
 type HScrollBar struct {
 	BaseUI
 	Width int

@@ -48,9 +48,6 @@ type UIQiMen struct {
 	cbBaZi                                     *ui.CheckBox
 	opDay2Pan                                  *ui.OptionBox
 
-	//zhiPan []*ui.TextBox
-	gong12 [12 + 1]Gong12
-
 	year, month, day, hour, minute int
 	qmParams                       qimen.QMParams
 }
@@ -423,9 +420,9 @@ func (p *UIQiMen) Apply(year, month, day, hour, minute int) {
 		}
 	}()
 	solar := calendar.NewSolar(year, month, day, hour, minute, 0)
-	pan := qimen.NewPan(solar, p.qmParams)
+	pan := qimen.NewQMGame(solar, p.qmParams)
 	if ThisGame != nil {
-		ThisGame.qmPan = pan
+		ThisGame.qmGame = pan
 	}
 	p.pan = pan
 	p.year, p.month, p.day, p.hour, p.minute = year, month, day, hour, minute
@@ -463,7 +460,7 @@ func (p *UIQiMen) Apply(year, month, day, hour, minute int) {
 }
 
 func (p *UIQiMen) ShowHourGame(pan *qimen.QMGame) {
-	pp := pan.HourPan
+	pp := pan.TimePan
 	pan.ShowPan = pp
 	var juName string
 	if pp.Ju < 0 {
@@ -484,34 +481,7 @@ func (p *UIQiMen) ShowHourGame(pan *qimen.QMGame) {
 		jie.GetName(), pan.YueJian, qi.GetName(), pan.YueJiang,
 	)
 	pp.JuText = juText
-
-	p.calBig6(pan)
-}
-
-// 大六壬 月将落时支 顺布余支 天三门兮地四户
-func (p *UIQiMen) calBig6(pan *qimen.QMGame) {
-	yueJiangIdx := pan.YueJiangZhiIdx
-	yueJianIdx := pan.YueJianZhiIdx
-	shiZhiIdx := pan.Lunar.GetTimeZhiIndex() + 1
-	for i := shiZhiIdx; i < shiZhiIdx+12; i++ {
-		js := LunarUtil.ZHI[qimen.Idx12[yueJiangIdx]]
-		g := fmt.Sprintf("%s", qimen.YueJiangName[js])
-		z := LunarUtil.ZHI[qimen.Idx12[i]]
-		bs := qimen.BuildStar(1 + i - shiZhiIdx)
-
-		g12 := &p.gong12[qimen.Idx12[i]]
-		g12.Idx = qimen.Idx12[i]
-		g12.JiangZhi = js
-		g12.Jiang = g
-		g12.IsJiang = i == shiZhiIdx
-		g12.JianZhi = LunarUtil.ZHI[qimen.Idx12[yueJianIdx+i-shiZhiIdx]]
-		g12.Jian = bs
-		g12.IsJian = bs == "建"
-		g12.IsHorse = z == pan.HourPan.Horse
-		g12.IsSkyHorse = g == "太冲"
-
-		yueJiangIdx++
-	}
+	pan.CalBig6()
 }
 
 func (p *UIQiMen) ShowDayGame(pan *qimen.QMGame) {

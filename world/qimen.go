@@ -36,9 +36,9 @@ func (q *QMShow) Draw(screen *ebiten.Image) {
 	q.draw12Gong(screen)
 }
 func (q *QMShow) drawHead(screen *ebiten.Image) {
-	pan := ThisGame.qmPan
+	pan := ThisGame.qmGame
 	lunar := pan.Lunar
-	pp := ThisGame.qmPan.ShowPan
+	pp := pan.ShowPan
 	ft := ui.GetDefaultUIFont()
 	text.Draw(screen, fmt.Sprintf("  %s %s %s %s",
 		lunar.GetYearInChinese(), lunar.GetMonthInChinese()+"月", lunar.GetDayInChinese(), lunar.GetEightChar().GetTimeZhi()+"时"),
@@ -56,7 +56,7 @@ func (q *QMShow) drawHead(screen *ebiten.Image) {
 }
 func (q *QMShow) draw9Gong(screen *ebiten.Image) {
 	ft := ui.GetDefaultUIFont()
-	pp := ThisGame.qmPan.ShowPan
+	pp := ThisGame.qmGame.ShowPan
 	//画九宫
 	kongWang := LunarUtil.GetXunKong(pp.Xun)
 	for i := 1; i <= 9; i++ {
@@ -99,6 +99,7 @@ func (q *QMShow) draw9Gong(screen *ebiten.Image) {
 }
 func (q *QMShow) draw12Gong(screen *ebiten.Image) {
 	ft := ui.GetDefaultUIFont()
+	pan := ThisGame.qmGame
 	//画12宫
 	//if uiQiMen.qmParams.YMDH != qimen.QMGameHour {
 	//	return
@@ -106,7 +107,7 @@ func (q *QMShow) draw12Gong(screen *ebiten.Image) {
 	r1, r2 := float32(_GongWidth)*1.5+zhiPanWidth*1.5, float32(_GongWidth)*1.5+zhiPanWidth*2
 	//空亡偏心环
 	r0 := r1 - zhiPanWidth/8
-	emptyClock := qimen.KongWangClock[ThisGame.qmPan.ShowPan.Xun]
+	emptyClock := qimen.KongWangClock[pan.ShowPan.Xun]
 	angle := float64(emptyClock-45) * 30 //+ float64(g.count)
 	rad := angle * math.Pi / 180
 	x0 := float64(q.X) + float64(zhiPanWidth/8)*math.Cos(rad)
@@ -123,7 +124,7 @@ func (q *QMShow) draw12Gong(screen *ebiten.Image) {
 		lx2, ly2 := util.CalRadiansPos(float64(q.X), float64(q.Y), float64(r2+zhiPanWidth/4), angleDegrees-15)
 		vector.StrokeLine(screen, float32(lx1), float32(ly1), float32(lx2), float32(ly2), 1, colorGongSplit, true)
 
-		gong12 := uiQiMen.gong12[i]
+		gong12 := pan.Big6[i-1]
 		jiangColor := colorJiang
 		if gong12.IsJiang {
 			jiangColor = colorLeader
@@ -146,7 +147,7 @@ func (q *QMShow) draw12Gong(screen *ebiten.Image) {
 		x22, y22 := util.CalRadiansPos(float64(q.X), float64(q.Y), float64(r1), angleDegrees+10)
 		text.Draw(screen, gong12.JianZhi, ft, int(x22-8), int(y22+4), jianColor)
 
-		if ThisGame.qmPan.ShowPan.Horse == LunarUtil.ZHI[i] {
+		if ThisGame.qmGame.ShowPan.Horse == LunarUtil.ZHI[i] {
 			x3, y3 := util.CalRadiansPos(float64(q.X), float64(q.Y), float64(r1), angleDegrees-10)
 			text.Draw(screen, "驿马", ft, int(x3-8), int(y3+4), colorLeader)
 		}
