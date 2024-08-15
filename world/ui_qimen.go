@@ -424,6 +424,9 @@ func (p *UIQiMen) Apply(year, month, day, hour, minute int) {
 	}()
 	solar := calendar.NewSolar(year, month, day, hour, minute, 0)
 	pan := qimen.NewPan(solar, p.qmParams)
+	if ThisGame != nil {
+		ThisGame.qmPan = pan
+	}
 	p.pan = pan
 	p.year, p.month, p.day, p.hour, p.minute = year, month, day, hour, minute
 	//pan.DayArr
