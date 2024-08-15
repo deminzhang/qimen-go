@@ -56,7 +56,7 @@ type Astrolabe struct {
 	solarX, solarY float32
 	observer       int //观察者
 
-	DT       calendar.Solar
+	solar    calendar.Solar
 	timezone string
 	tzOffset int
 	tzRA0    float64 //春分点角度
@@ -89,6 +89,7 @@ type CelestialBody struct {
 	SphereX, SphereY float32 //天球坐标
 }
 
+// DrawR 星盘半径
 func (c *CelestialBody) DrawR() float32 {
 	if c.R > 0 {
 		return c.R * 150
@@ -96,6 +97,17 @@ func (c *CelestialBody) DrawR() float32 {
 		return c.AR
 	}
 }
+
+// Primary 公转主星
+//func (c *CelestialBody) Primary() int {
+//	if c.Id < 100 {
+//		return c.Id
+//	}
+//	if c.Id%100 == 99 {
+//		return 10
+//	}
+//	return c.Id/100*100 + 99
+//}
 
 var Bodies = map[int]*CelestialBody{
 	10:  {Id: 10, Name: "Sun", NameCN: "日", AR: 0, Mass: 1988500 * 1e24},
@@ -151,11 +163,11 @@ func NewAstrolabe(centerX, centerY float32) *Astrolabe {
 }
 
 func (a *Astrolabe) Update() {
-	sCal := ThisGame.qmPan.Solar
-	if a.DT == *sCal {
+	sCal := ThisGame.qmGame.Solar
+	if a.solar == *sCal {
 		return
 	}
-	a.DT = *sCal
+	a.solar = *sCal
 	hour := sCal.GetHour()
 	minute := sCal.GetMinute()
 
@@ -167,7 +179,7 @@ func (a *Astrolabe) Update() {
 	a.solarX, a.solarY = float32(solarX), float32(solarY)
 
 	//计算月球位置 暂以农历近似
-	lDay := ThisGame.qmPan.Lunar.GetDay()
+	lDay := ThisGame.qmGame.Lunar.GetDay()
 	degreesM := -(float64(hour)+float64(minute)/60)*15 + float64(lDay)/29*360
 	{
 		moon := Bodies[301]
@@ -189,7 +201,7 @@ func (a *Astrolabe) Update() {
 				body := Bodies[id]
 				oe := a.GetEphemeris(id, sCal)
 				if oe == nil {
-					a.DT = calendar.Solar{}
+					a.solar = calendar.Solar{}
 					continue
 				}
 				body.Gravity = G * body.Mass * m / math.Pow(oe.Delta()*AU, 2)
@@ -203,7 +215,7 @@ func (a *Astrolabe) Update() {
 		}
 		oe := a.GetEphemeris(id, sCal)
 		if oe == nil {
-			a.DT = calendar.Solar{}
+			a.solar = calendar.Solar{}
 			continue
 		}
 		if id == 10 {
@@ -236,11 +248,11 @@ func (a *Astrolabe) Update() {
 			body.color = colorRedShift
 		}
 	}
-	a.calculateGongLocation()
+	a.calGongLocation()
 	return
 }
 
-func (a *Astrolabe) calculateGongLocation() {
+func (a *Astrolabe) calGongLocation() {
 	cx, cy := a.X, a.Y
 	for i := 1; i <= 12; i++ {
 		degrees := a.tzRA0 + float64(i-1)*30
@@ -328,7 +340,7 @@ func (a *Astrolabe) Draw(screen *ebiten.Image) {
 		}
 	}
 	if a.DataQuery {
-		text.Draw(screen, "正在观星..", ft, int(cx-32), int(cy-40), color.White)
+		text.Draw(screen, "正在观星..", ft, int(cx-32), int(cy-10), color.White)
 	}
 }
 

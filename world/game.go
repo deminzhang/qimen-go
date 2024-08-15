@@ -12,7 +12,7 @@ type game struct {
 	astrolabe *Astrolabe
 	qiMen     *QMShow
 	baZi      *EightCharPan
-	qmPan     *qimen.QMGame
+	qmGame    *qimen.QMGame
 }
 
 func (g *game) Update() error {
@@ -52,7 +52,7 @@ func NewGame() *game {
 		qiMen:     NewQiMenShow(260, 460),
 		astrolabe: NewAstrolabe(770, 450),
 		baZi:      NewEightCharPan(770, 450),
-		qmPan:     u.pan,
+		qmGame:    u.pan,
 	}
 	return g
 }

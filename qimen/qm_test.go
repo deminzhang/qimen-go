@@ -12,7 +12,7 @@ import (
 func TestQimen(t *testing.T) {
 	tm := time.Now()
 	solar := calendar.NewSolar(tm.Year(), int(tm.Month()), tm.Day(), tm.Hour(), tm.Minute(), 0)
-	pan := qimen.NewPan(solar,
+	pan := qimen.NewQMGame(solar,
 		qimen.QMParams{
 			Type:        qimen.QMTypeAmaze,
 			HostingType: qimen.QMHostingType28,
@@ -22,9 +22,9 @@ func TestQimen(t *testing.T) {
 		})
 	//九宫文本
 	for i := 1; i <= 9; i++ {
-		g := pan.HourPan.Gongs[i]
+		g := pan.TimePan.Gongs[i]
 		var hosting = "    "
-		if pan.HourPan.RollHosting > 0 && i == pan.HourPan.DutyStarPos {
+		if pan.TimePan.RollHosting > 0 && i == pan.TimePan.DutyStarPos {
 			hosting = " 禽 "
 		}
 		fmt.Printf("\n      %s\n\n%s    %s%s%s\n\n%s    %s    %s\n\n      %s%s",
