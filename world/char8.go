@@ -40,15 +40,16 @@ func (g *EightCharPan) Update() error {
 }
 
 func (g *EightCharPan) Draw(screen *ebiten.Image) {
+	ft12, _ := GetFontFace(12)
 	ft14, _ := GetFontFace(14)
 	ft28, _ := GetFontFace(28)
 	cx, cy := g.X, g.Y
-	sx, sy := cx-212, cy-148
+	sx, sy := cx-248, cy-172
 	p := g.Player
 	bz := p.BirthTime.GetEightChar()
 	soul := bz.GetDayGan()
 
-	vector.StrokeRect(screen, sx, sy-64, 390, 320, 1, colorWhite, true)
+	vector.StrokeRect(screen, sx, sy-64, 390, 360, 1, colorWhite, true)
 	sx += 16
 	text.Draw(screen, "十神", ft14, int(sx), int(sy-32), colorWhite)
 	text.Draw(screen, "天干", ft14, int(sx), int(sy-8), colorWhite)
@@ -60,12 +61,11 @@ func (g *EightCharPan) Draw(screen *ebiten.Image) {
 	text.Draw(screen, "地势", ft14, int(sx), int(sy+112), colorWhite)
 	text.Draw(screen, "自坐", ft14, int(sx), int(sy+128), colorWhite)
 	text.Draw(screen, "空亡", ft14, int(sx), int(sy+144), colorWhite)
-	//text.Draw(screen, "神煞", ft14, int(sx), int(sy+160), colorWhite)
 	text.Draw(screen, "小运", ft14, int(sx), int(sy+160), colorWhite)
 	text.Draw(screen, "大运", ft14, int(sx), int(sy+160+16), colorWhite)
+	text.Draw(screen, "神煞", ft14, int(sx), int(sy+160+32), colorWhite)
 	//text.Draw(screen, "流年", ft14, int(sx), int(sy+160), colorWhite)
 	//text.Draw(screen, "流月", ft14, int(sx), int(sy+160), colorWhite)
-
 	sx += 48
 	text.Draw(screen, bz.GetYearShiShenGan(), ft14, int(sx), int(sy-32), colorWhite)
 	text.Draw(screen, p.Year.Gan, ft28, int(sx), int(sy), ColorGanZhi(p.Year.Gan))
@@ -80,9 +80,9 @@ func (g *EightCharPan) Draw(screen *ebiten.Image) {
 	text.Draw(screen, qimen.ChangSheng12[soul][p.Year.Zhi], ft14, int(sx), int(sy+112), ColorGanZhi(soul))
 	text.Draw(screen, qimen.ChangSheng12[p.Year.Gan][p.Year.Zhi], ft14, int(sx), int(sy+128), ColorGanZhi(p.Year.Gan))
 	text.Draw(screen, bz.GetYearXunKong(), ft14, int(sx), int(sy+144), colorGray)
-
 	text.Draw(screen, strings.Join(p.Fates0, " "), ft14, int(sx), int(sy+160), colorWhite)
 	text.Draw(screen, strings.Join(p.Fates, " "), ft14, int(sx), int(sy+160+16), colorWhite)
+	text.Draw(screen, strings.Join(p.ShenShaY, "\n"), ft12, int(sx), int(sy+160+32), colorWhite)
 	sx += 48
 	text.Draw(screen, bz.GetMonthShiShenGan(), ft14, int(sx), int(sy-32), colorWhite)
 	text.Draw(screen, p.Month.Gan, ft28, int(sx), int(sy), ColorGanZhi(p.Month.Gan))
@@ -97,6 +97,7 @@ func (g *EightCharPan) Draw(screen *ebiten.Image) {
 	text.Draw(screen, qimen.ChangSheng12[soul][p.Month.Zhi], ft14, int(sx), int(sy+112), ColorGanZhi(soul))
 	text.Draw(screen, qimen.ChangSheng12[p.Month.Gan][p.Month.Zhi], ft14, int(sx), int(sy+128), ColorGanZhi(p.Month.Gan))
 	text.Draw(screen, bz.GetMonthXunKong(), ft14, int(sx), int(sy+144), colorGray)
+	text.Draw(screen, strings.Join(p.ShenShaM, "\n"), ft12, int(sx), int(sy+160+32), colorWhite)
 	sx += 48
 	text.Draw(screen, "元"+GenderName[p.Gender], ft14, int(sx), int(sy-32), colorWhite)
 	text.Draw(screen, p.Day.Gan, ft28, int(sx), int(sy), ColorGanZhi(p.Day.Gan))
@@ -111,6 +112,7 @@ func (g *EightCharPan) Draw(screen *ebiten.Image) {
 	text.Draw(screen, qimen.ChangSheng12[soul][p.Day.Zhi], ft14, int(sx), int(sy+112), ColorGanZhi(soul))
 	text.Draw(screen, qimen.ChangSheng12[p.Day.Gan][p.Day.Zhi], ft14, int(sx), int(sy+128), ColorGanZhi(p.Day.Gan))
 	text.Draw(screen, bz.GetDayXunKong(), ft14, int(sx), int(sy+144), colorGray)
+	text.Draw(screen, strings.Join(p.ShenShaD, "\n"), ft12, int(sx), int(sy+160+32), colorWhite)
 	sx += 48
 	text.Draw(screen, bz.GetTimeShiShenGan(), ft14, int(sx), int(sy-32), colorWhite)
 	text.Draw(screen, p.Time.Gan, ft28, int(sx), int(sy), ColorGanZhi(p.Time.Gan))
@@ -125,6 +127,7 @@ func (g *EightCharPan) Draw(screen *ebiten.Image) {
 	text.Draw(screen, qimen.ChangSheng12[soul][p.Time.Zhi], ft14, int(sx), int(sy+112), ColorGanZhi(soul))
 	text.Draw(screen, qimen.ChangSheng12[p.Time.Gan][p.Time.Zhi], ft14, int(sx), int(sy+128), ColorGanZhi(p.Time.Gan))
 	text.Draw(screen, bz.GetTimeXunKong(), ft14, int(sx), int(sy+144), colorGray)
+	text.Draw(screen, strings.Join(p.ShenShaT, "\n"), ft12, int(sx), int(sy+160+32), colorWhite)
 
 	sx = 1000
 	sy = 200
@@ -188,6 +191,8 @@ func (p *Player) Reset(lunar *calendar.Lunar, gender int) {
 		Head: bz.GetTimeGan(), Body: GetHideGan(timeZhi, 0),
 		Legs: GetHideGan(timeZhi, 1), Feet: GetHideGan(timeZhi, 2)}
 
+	p.CalcShenSha()
+
 	yun := bz.GetYun(p.Gender)
 	p.DaYun = yun.GetDaYun()
 	p.Fates0 = nil
@@ -206,9 +211,23 @@ func (p *Player) Reset(lunar *calendar.Lunar, gender int) {
 	}
 }
 
-func (p *Player) CalcShenSha() {
+func Contains(all []string, zhi ...string) bool {
+	for _, z := range zhi {
+		for _, z2 := range all {
+			if z == z2 {
+				return true
+			}
+		}
+	}
+	return false
+}
 
+// CalcShenSha 神煞算法
+func (p *Player) CalcShenSha() {
+	bz := p.BirthTime.GetEightChar()
+	p.ShenShaY, p.ShenShaM, p.ShenShaD, p.ShenShaT = qimen.CalcShenSha(bz)
 }
 
 func (p *Player) UpdateHP() {
+
 }
