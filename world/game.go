@@ -21,23 +21,17 @@ func (g *game) Update() error {
 	ui.Update()
 	g.stars.Update()
 	g.qiMen.Update()
-	if uiQiMen.IsShowBaZi() {
-		g.baZi.Update()
-	} else {
-		g.astrolabe.Update()
-	}
+	g.baZi.Update()
+	g.astrolabe.Update()
 	return nil
 }
 
-func (g *game) Draw(screen *ebiten.Image) {
-	g.stars.Draw(screen)
-	if uiQiMen.IsShowBaZi() {
-		g.baZi.Draw(screen)
-	} else {
-		g.astrolabe.Draw(screen)
-	}
-	g.qiMen.Draw(screen)
-	ui.Draw(screen)
+func (g *game) Draw(dst *ebiten.Image) {
+	g.stars.Draw(dst)
+	g.baZi.Draw(dst)
+	g.astrolabe.Draw(dst)
+	g.qiMen.Draw(dst)
+	ui.Draw(dst)
 }
 
 func (g *game) Layout(outsideWidth, outsideHeight int) (int, int) {
@@ -50,7 +44,7 @@ func NewGame() *game {
 	g := &game{
 		stars:     NewStarEffect(260, 460),
 		qiMen:     NewQiMenShow(260, 460),
-		astrolabe: NewAstrolabe(770, 450),
+		astrolabe: NewAstrolabe(770+500, 450),
 		baZi:      NewEightCharPan(770, 450),
 		qmGame:    u.pan,
 	}

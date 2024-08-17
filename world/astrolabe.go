@@ -2,7 +2,6 @@ package world
 
 import (
 	"fmt"
-	"github.com/6tail/lunar-go/LunarUtil"
 	"github.com/6tail/lunar-go/calendar"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
@@ -64,8 +63,8 @@ type Astrolabe struct {
 	DataQuery bool
 	OEData    map[int]*ObserveEphemeris
 
-	ConstellationLoc [12]gongLocation
-	AstrolabeLoc     [12]gongLocation
+	ConstellationLoc [12]gongLocation //星座位
+	AstrolabeLoc     [12]gongLocation //宫位
 }
 type gongLocation struct {
 	lx1, ly1, lx2, ly2 float32 //分割线
@@ -188,7 +187,7 @@ func (a *Astrolabe) Update() {
 		v1 := (&util.Vec2[float32]{X: moon.DrawX - cx, Y: moon.DrawY - cy}).ScaledToLength(outCircleR - outCircleW*2)
 		moon.SphereX = cx + v1.X
 		moon.SphereY = cy + v1.Y
-		moon.NameCN = fmt.Sprintf("%s月", LunarUtil.YUE_XIANG[lDay])
+		moon.NameCN = fmt.Sprintf("(%s)月", ThisGame.qmGame.Lunar.GetYueXiang())
 	}
 
 	m := Bodies[a.observer].Mass
@@ -269,78 +268,78 @@ func (a *Astrolabe) calGongLocation() {
 	}
 }
 
-func (a *Astrolabe) Draw(screen *ebiten.Image) {
+func (a *Astrolabe) Draw(dst *ebiten.Image) {
 	ft := ui.GetDefaultUIFont()
 	cx, cy := a.X, a.Y
 	sX, sY := a.solarX, a.solarY
 	//外圈
-	vector.StrokeCircle(screen, cx, cy, outCircleR, outCircleW, colorSkyGateCircle, true)                   //星座
-	vector.StrokeCircle(screen, cx, cy, outCircleR-outCircleW/2, outCircleW/2, colorGroundGateCircle, true) //宫位
-	vector.StrokeCircle(screen, cx, cy, outCircleR-outCircleW, outCircleW/2, colorPowerCircle, true)        //天球celestial sphere
+	vector.StrokeCircle(dst, cx, cy, outCircleR, outCircleW, colorSkyGateCircle, true)                   //星座
+	vector.StrokeCircle(dst, cx, cy, outCircleR-outCircleW/2, outCircleW/2, colorGroundGateCircle, true) //宫位
+	vector.StrokeCircle(dst, cx, cy, outCircleR-outCircleW, outCircleW/2, colorPowerCircle, true)        //天球celestial sphere
 	//十字线
 	horizons := float32(0) //TODO 地平线调整
-	vector.StrokeLine(screen, cx-outCircleR, cy-horizons, cx+outCircleR, cy-horizons, 1, colorCross, true)
-	vector.StrokeLine(screen, cx, cy-outCircleR, cx, cy+outCircleR, 1, colorCross, true)
+	vector.StrokeLine(dst, cx-outCircleR, cy-horizons, cx+outCircleR, cy-horizons, 1, colorCross, true)
+	vector.StrokeLine(dst, cx, cy-outCircleR, cx, cy+outCircleR, 1, colorCross, true)
 	//春分点 RA0
 	tzY, tzX := util.CalRadiansPos(float64(cy), float64(cx), outCircleR/2, a.tzRA0)
-	vector.StrokeLine(screen, cx, cy, float32(tzX), float32(tzY), 1, colorOrbits, true)
-	text.Draw(screen, "RA0", ft, int(tzX), int(tzY), colorLeader) //春分点
+	vector.StrokeLine(dst, cx, cy, float32(tzX), float32(tzY), 1, colorOrbits, true)
+	text.Draw(dst, "春分", ft, int(tzX), int(tzY), colorLeader) //春分点
 
 	//画12宫
 	for i := 0; i < 12; i++ {
 		l := a.ConstellationLoc[i]
-		vector.StrokeLine(screen, l.lx1, l.ly1, l.lx2, l.ly2, 1, colorGongSplit, true)        //星宫
-		text.Draw(screen, fmt.Sprintf("%s", ConstellationS[i]), ft, l.x-6, l.y+6, colorJiang) //星座
+		vector.StrokeLine(dst, l.lx1, l.ly1, l.lx2, l.ly2, 1, colorGongSplit, true)        //星宫
+		text.Draw(dst, fmt.Sprintf("%s", ConstellationS[i]), ft, l.x-6, l.y+6, colorJiang) //星座
 		l = a.AstrolabeLoc[i]
-		vector.StrokeLine(screen, l.lx1, l.ly1, l.lx2, l.ly2, 1, colorGongSplit, true) //宫
-		text.Draw(screen, fmt.Sprintf("%d", i+1), ft, l.x-4, l.y+4, colorJiang)        //宫位
+		vector.StrokeLine(dst, l.lx1, l.ly1, l.lx2, l.ly2, 1, colorGongSplit, true) //宫
+		text.Draw(dst, fmt.Sprintf("%d", i+1), ft, l.x-4, l.y+4, colorJiang)        //宫位
 	}
 
 	for _, id := range Draws {
 		obj := Bodies[id]
-		vector.StrokeCircle(screen, sX, sY, obj.DrawR(), 1, colorOrbits, true) //planet Orbit
+		vector.StrokeCircle(dst, sX, sY, obj.DrawR(), 1, colorOrbits, true) //planet Orbit
 		if a.observer == obj.Id {
 			//地球观察者
 		} else {
 			if obj.SphereX == 0 && obj.SphereY == 0 {
 				continue //查询中
 			}
-			vector.StrokeLine(screen, cx, cy, obj.SphereX, obj.SphereY, 1, colorOrbits, true) // sphere line
-			//vector.DrawFilledCircle(screen, obj.SphereX, obj.SphereY, 2, obj.color, true)     // sphere
-			text.Draw(screen, obj.NameCN, ft, int(obj.SphereX), int(obj.SphereY), obj.color)
+			vector.StrokeLine(dst, cx, cy, obj.SphereX, obj.SphereY, 1, colorOrbits, true) // sphere line
+			//vector.DrawFilledCircle(dst, obj.SphereX, obj.SphereY, 2, obj.color, true)     // sphere
+			text.Draw(dst, obj.NameCN, ft, int(obj.SphereX), int(obj.SphereY), obj.color)
 		}
-		vector.DrawFilledCircle(screen, obj.DrawX, obj.DrawY, 2, obj.color, true) //planet
+		vector.DrawFilledCircle(dst, obj.DrawX, obj.DrawY, 2, obj.color, true) //planet
 
 		for _, sid := range obj.Satellite {
 			ob := Bodies[sid]
 			if ob.Id == 301 {
-				vector.StrokeCircle(screen, obj.DrawX, obj.DrawY, ob.DrawR(), 1, colorOrbits, true) //satellite Orbit
-				vector.StrokeLine(screen, cx, cy, ob.SphereX, ob.SphereY, 1, colorOrbits, true)     // sphere line
-				vector.DrawFilledCircle(screen, ob.DrawX, ob.DrawY, 1, ob.color, true)              //moon
-				text.Draw(screen, ob.NameCN, ft, int(ob.SphereX), int(ob.SphereY), ob.color)
+				vector.StrokeCircle(dst, obj.DrawX, obj.DrawY, ob.DrawR(), 1, colorOrbits, true) //satellite Orbit
+				vector.StrokeLine(dst, cx, cy, ob.SphereX, ob.SphereY, 1, colorOrbits, true)     // sphere line
+				vector.DrawFilledCircle(dst, ob.DrawX, ob.DrawY, 1, ob.color, true)              //moon
+				text.Draw(dst, ob.NameCN, ft, int(ob.SphereX), int(ob.SphereY), ob.color)
 			} else {
 				mx, my := util.CalRadiansPos(float64(obj.DrawX), float64(obj.DrawY), float64(ob.DrawR()), float64(rand.Intn(360)))
-				vector.DrawFilledCircle(screen, float32(mx), float32(my), 1, obj.color, true) //satellite
+				vector.DrawFilledCircle(dst, float32(mx), float32(my), 1, obj.color, true) //satellite
 			}
 		}
 	}
-	var desX, desY float32 = 1024, 200
+	var desX, desY float32 = 1154, 270
 	for _, id := range Draws {
 		obj := Bodies[id]
 		if obj.Gravity > 0 {
 			desY += 20
-			text.Draw(screen, fmt.Sprintf("%s:G:%.2fN", obj.NameCN, obj.Gravity), ft, int(desX), int(desY), color.White)
+			text.Draw(dst, fmt.Sprintf("%s:G:%.2fN", obj.NameCN, obj.Gravity), ft, int(desX), int(desY), color.White)
 		}
 		for _, sid := range obj.Satellite {
 			ob := Bodies[sid]
 			if ob.Gravity > 0 {
 				desY += 20
-				text.Draw(screen, fmt.Sprintf("%s:G:%.2f", ob.NameCN, ob.Gravity), ft, int(desX), int(desY), color.White)
+				text.Draw(dst, fmt.Sprintf("%s:G:%.2f", ob.NameCN, ob.Gravity), ft, int(desX), int(desY), color.White)
 			}
 		}
 	}
 	if a.DataQuery {
-		text.Draw(screen, "正在观星..", ft, int(cx-32), int(cy-10), color.White)
+		text.Draw(dst, "正在观星..", ft, int(cx-32), int(cy-10), color.White)
 	}
 }
 

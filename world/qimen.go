@@ -30,31 +30,31 @@ func NewQiMenShow(centerX, centerY float32) *QMShow {
 func (q *QMShow) Update() {
 }
 
-func (q *QMShow) Draw(screen *ebiten.Image) {
-	q.drawHead(screen)
-	q.draw9Gong(screen)
-	q.draw12Gong(screen)
+func (q *QMShow) Draw(dst *ebiten.Image) {
+	q.drawHead(dst)
+	q.draw9Gong(dst)
+	q.draw12Gong(dst)
 }
-func (q *QMShow) drawHead(screen *ebiten.Image) {
+func (q *QMShow) drawHead(dst *ebiten.Image) {
 	pan := ThisGame.qmGame
 	lunar := pan.Lunar
 	pp := pan.ShowPan
 	ft := ui.GetDefaultUIFont()
-	text.Draw(screen, fmt.Sprintf("  %s %s %s %s",
+	text.Draw(dst, fmt.Sprintf("  %s %s %s %s",
 		lunar.GetYearInChinese(), lunar.GetMonthInChinese()+"月", lunar.GetDayInChinese(), lunar.GetEightChar().GetTimeZhi()+"时"),
 		ft, 32, 48, colorWhite)
-	text.Draw(screen, fmt.Sprintf("干支  %s %s %s %s",
+	text.Draw(dst, fmt.Sprintf("干支  %s %s %s %s",
 		lunar.GetYearInGanZhiExact(), lunar.GetMonthInGanZhiExact(), lunar.GetDayInGanZhiExact(), lunar.GetTimeInGanZhi()),
 		ft, 32, 64, colorLeader)
-	text.Draw(screen, fmt.Sprintf("旬首  %s %s %s %s",
+	text.Draw(dst, fmt.Sprintf("旬首  %s %s %s %s",
 		lunar.GetYearXunExact(), lunar.GetMonthXunExact(), lunar.GetDayXunExact(), lunar.GetTimeXun()),
 		ft, 32, 64+16, colorWhite)
-	text.Draw(screen, fmt.Sprintf("空亡  %s %s %s %s",
+	text.Draw(dst, fmt.Sprintf("空亡  %s %s %s %s",
 		lunar.GetYearXunKongExact(), lunar.GetMonthXunKongExact(), lunar.GetDayXunKongExact(), lunar.GetTimeXunKong()),
 		ft, 32, 64+32, colorGray)
-	text.Draw(screen, pp.JuText, ft, 32, 96+16, colorWhite)
+	text.Draw(dst, pp.JuText, ft, 32, 96+16, colorWhite)
 }
-func (q *QMShow) draw9Gong(screen *ebiten.Image) {
+func (q *QMShow) draw9Gong(dst *ebiten.Image) {
 	ft := ui.GetDefaultUIFont()
 	pp := ThisGame.qmGame.ShowPan
 	//画九宫
@@ -63,10 +63,10 @@ func (q *QMShow) draw9Gong(screen *ebiten.Image) {
 		offX, offZ := gongOffset[i][0]*_GongWidth-_GongWidth/2, gongOffset[i][1]*_GongWidth-_GongWidth/2
 		px, py := q.X-_GongWidth+float32(offX), q.Y-_GongWidth+float32(offZ)
 
-		//vector.StrokeCircle(screen, px+_GongWidth/2, py+_GongWidth/2,
+		//vector.StrokeCircle(dst, px+_GongWidth/2, py+_GongWidth/2,
 		//	float32(_GongWidth/2), 1, color.RGBA{0xff, 0x80, 0xff, 0xff}, true)
-		//vector.DrawFilledRect(screen, px, py, _GongWidth-1, _GongWidth-1, color9Gong[i], true)
-		vector.StrokeRect(screen, px, py, _GongWidth-1, _GongWidth-1, 1, color9Gong[i], true)
+		//vector.DrawFilledRect(dst, px, py, _GongWidth-1, _GongWidth-1, color9Gong[i], true)
+		vector.StrokeRect(dst, px, py, _GongWidth-1, _GongWidth-1, 1, color9Gong[i], true)
 
 		g := pp.Gongs[i]
 		var hosting = "  "
@@ -94,10 +94,10 @@ func (q *QMShow) draw9Gong(screen *ebiten.Image) {
 			empty, g.God, horse,
 			g.PathGan+g.HideGan, star, hosting, g.GuestGan,
 			g.PathZhi, door, g.HostGan)
-		text.Draw(screen, txt, ft, int(px), int(py), color.White)
+		text.Draw(dst, txt, ft, int(px), int(py), color.White)
 	}
 }
-func (q *QMShow) draw12Gong(screen *ebiten.Image) {
+func (q *QMShow) draw12Gong(dst *ebiten.Image) {
 	ft := ui.GetDefaultUIFont()
 	pan := ThisGame.qmGame
 	//画12宫
@@ -112,17 +112,17 @@ func (q *QMShow) draw12Gong(screen *ebiten.Image) {
 	rad := angle * math.Pi / 180
 	x0 := float64(q.X) + float64(zhiPanWidth/8)*math.Cos(rad)
 	y0 := float64(q.Y) + float64(zhiPanWidth/8)*math.Sin(rad)
-	vector.StrokeCircle(screen, float32(x0), float32(y0), r0, zhiPanWidth/2, colorPowerCircle, true)
+	vector.StrokeCircle(dst, float32(x0), float32(y0), r0, zhiPanWidth/2, colorPowerCircle, true)
 	//建星地户盘
-	vector.StrokeCircle(screen, q.X, q.Y, r1, zhiPanWidth/2, colorGroundGateCircle, true)
+	vector.StrokeCircle(dst, q.X, q.Y, r1, zhiPanWidth/2, colorGroundGateCircle, true)
 	//月将天门盘
-	vector.StrokeCircle(screen, q.X, q.Y, r2, zhiPanWidth/2, colorSkyGateCircle, true)
+	vector.StrokeCircle(dst, q.X, q.Y, r2, zhiPanWidth/2, colorSkyGateCircle, true)
 
 	for i := 1; i <= 12; i++ {
 		angleDegrees := float64(i+2) * 30 //+ float64(g.count)
 		lx1, ly1 := util.CalRadiansPos(float64(q.X), float64(q.Y), float64(r1-zhiPanWidth/4), angleDegrees-15)
 		lx2, ly2 := util.CalRadiansPos(float64(q.X), float64(q.Y), float64(r2+zhiPanWidth/4), angleDegrees-15)
-		vector.StrokeLine(screen, float32(lx1), float32(ly1), float32(lx2), float32(ly2), 1, colorGongSplit, true)
+		vector.StrokeLine(dst, float32(lx1), float32(ly1), float32(lx2), float32(ly2), 1, colorGongSplit, true)
 
 		gong12 := pan.Big6[i-1]
 		jiangColor := colorJiang
@@ -132,9 +132,9 @@ func (q *QMShow) draw12Gong(screen *ebiten.Image) {
 			jiangColor = colorGate
 		}
 		x1, y1 := util.CalRadiansPos(float64(q.X), float64(q.Y), float64(r2), angleDegrees)
-		text.Draw(screen, gong12.Jiang, ft, int(x1-14), int(y1+4), jiangColor)
+		text.Draw(dst, gong12.Jiang, ft, int(x1-14), int(y1+4), jiangColor)
 		x12, y12 := util.CalRadiansPos(float64(q.X), float64(q.Y), float64(r2), angleDegrees+10)
-		text.Draw(screen, gong12.JiangZhi, ft, int(x12-14), int(y12+4), jiangColor)
+		text.Draw(dst, gong12.JiangZhi, ft, int(x12-14), int(y12+4), jiangColor)
 
 		jianColor := colorJian
 		if gong12.IsJian {
@@ -143,17 +143,17 @@ func (q *QMShow) draw12Gong(screen *ebiten.Image) {
 			jianColor = colorGate
 		}
 		x2, y2 := util.CalRadiansPos(float64(q.X), float64(q.Y), float64(r1), angleDegrees)
-		text.Draw(screen, gong12.Jian, ft, int(x2-8), int(y2+4), jianColor)
+		text.Draw(dst, gong12.Jian, ft, int(x2-8), int(y2+4), jianColor)
 		x22, y22 := util.CalRadiansPos(float64(q.X), float64(q.Y), float64(r1), angleDegrees+10)
-		text.Draw(screen, gong12.JianZhi, ft, int(x22-8), int(y22+4), jianColor)
+		text.Draw(dst, gong12.JianZhi, ft, int(x22-8), int(y22+4), jianColor)
 
 		if ThisGame.qmGame.ShowPan.Horse == LunarUtil.ZHI[i] {
 			x3, y3 := util.CalRadiansPos(float64(q.X), float64(q.Y), float64(r1), angleDegrees-10)
-			text.Draw(screen, "驿马", ft, int(x3-8), int(y3+4), colorLeader)
+			text.Draw(dst, "驿马", ft, int(x3-8), int(y3+4), colorLeader)
 		}
 		if gong12.IsSkyHorse {
 			x4, y4 := util.CalRadiansPos(float64(q.X), float64(q.Y), float64(r2), angleDegrees-10)
-			text.Draw(screen, "天马", ft, int(x4-14), int(y4+4), colorLeader)
+			text.Draw(dst, "天马", ft, int(x4-14), int(y4+4), colorLeader)
 		}
 	}
 }

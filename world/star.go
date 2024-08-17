@@ -64,8 +64,9 @@ func NewStarEffect(centerX, centerY float32) *StarEffect {
 		starCount: starsLineCount,
 	}
 	for i := 0; i < se.starCount; i++ {
-		se.starLines = append(se.starLines, StarLine{})
-		se.starLines[i].Init(se.starScale)
+		star := StarLine{}
+		star.Init(se.starScale)
+		se.starLines = append(se.starLines, star)
 	}
 	return se
 }
@@ -76,8 +77,8 @@ func (se *StarEffect) Update() {
 	}
 }
 
-func (se *StarEffect) Draw(screen *ebiten.Image) {
+func (se *StarEffect) Draw(dst *ebiten.Image) {
 	for i := 0; i < se.starCount; i++ {
-		se.starLines[i].Draw(screen)
+		se.starLines[i].Draw(dst)
 	}
 }

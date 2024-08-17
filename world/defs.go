@@ -3,11 +3,12 @@ package world
 import (
 	"github.com/6tail/lunar-go/LunarUtil"
 	"image/color"
+	"qimen/qimen"
 )
 
 const (
 	TPSRate      = 30
-	screenWidth  = 1024
+	screenWidth  = 1549
 	screenHeight = 768
 )
 
@@ -66,39 +67,8 @@ const (
 
 var GenderName = []string{"女", "男"}
 
-// ZHI_HIDE_GAN 藏干
-var ZHI_HIDE_GAN = map[string][]string{
-	"子": {"癸"},
-	"丑": {"己", "辛", "癸"},
-	"寅": {"甲", "丙", "戊"},
-	"卯": {"乙"},
-	"辰": {"戊", "癸", "乙"},
-	"巳": {"丙", "庚", "戊"},
-	"午": {"丁", "己"},
-	"未": {"己", "乙", "丁"},
-	"申": {"庚", "壬", "戊"},
-	"酉": {"辛"},
-	"戌": {"戊", "丁", "辛"},
-	"亥": {"壬", "甲"},
-}
-
-var SHI_SHEN_SHORT = map[string]string{
-	"比肩": "比", "劫财": "劫",
-	"食神": "食", "伤官": "伤",
-	"偏财": "才", "正财": "财",
-	"七杀": "杀", "正官": "官",
-	"偏印": "枭", "正印": "印",
-}
-
-// HideGanVal 藏干值比例
-var HideGanVal = map[int][]int{
-	1: {10},
-	2: {7, 3},
-	3: {6, 3, 1},
-}
-
 func GetHideGan(gan string, idx int) string {
-	a := ZHI_HIDE_GAN[gan]
+	a := qimen.ZHI_HIDE_GAN[gan]
 	if idx < len(a) {
 		return a[idx]
 	}
@@ -121,5 +91,5 @@ func ColorNaYin(gz string) color.RGBA {
 
 func ShiShenShort(dayGan, gan string) string {
 	sx := LunarUtil.SHI_SHEN[dayGan+gan]
-	return SHI_SHEN_SHORT[sx]
+	return qimen.SHI_SHEN_SHORT[sx]
 }
