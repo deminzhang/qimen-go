@@ -150,15 +150,24 @@ var Draws = []int{
 	10, 199, 299, 399, 499, 599, 699, // 799, 899, 999,
 }
 
-func NewAstrolabe(centerX, centerY float32) *Astrolabe {
+func NewAstrolabe(cx, cy float32) *Astrolabe {
 	tz, offset := time.Now().Local().Zone()
-	return &Astrolabe{
-		X: centerX, Y: centerY,
+	a := &Astrolabe{
+		X: cx, Y: cy,
 		observer: 399,
 		timezone: tz,
 		tzOffset: offset,
 		OEData:   make(map[int]*ObserveEphemeris),
 	}
+	for i := 1; i <= 12; i++ {
+		//固定宫位
+		degrees := float64(i)*30 - 90
+		ly1, lx1 := util.CalRadiansPos(float64(cy), float64(cx), float64(outCircleR-outCircleW/4), degrees)
+		ly2, lx2 := util.CalRadiansPos(float64(cy), float64(cx), float64(outCircleR-outCircleW*3/4), degrees)
+		y, x := util.CalRadiansPos(float64(cy), float64(cx), float64(outCircleR-outCircleW/2), degrees-15)
+		a.AstrolabeLoc[i-1] = gongLocation{float32(lx1), float32(ly1), float32(lx2), float32(ly2), int(x), int(y)}
+	}
+	return a
 }
 
 func (a *Astrolabe) Update() {
@@ -259,12 +268,6 @@ func (a *Astrolabe) calGongLocation() {
 		ly2, lx2 := util.CalRadiansPos(float64(cy), float64(cx), float64(outCircleR+outCircleW/2), degrees)
 		y, x := util.CalRadiansPos(float64(cy), float64(cx), float64(outCircleR+outCircleW/4), degrees+15)
 		a.ConstellationLoc[i-1] = gongLocation{float32(lx1), float32(ly1), float32(lx2), float32(ly2), int(x), int(y)}
-
-		degrees = float64(i)*30 - 90
-		ly1, lx1 = util.CalRadiansPos(float64(cy), float64(cx), float64(outCircleR-outCircleW/4), degrees)
-		ly2, lx2 = util.CalRadiansPos(float64(cy), float64(cx), float64(outCircleR-outCircleW*3/4), degrees)
-		y, x = util.CalRadiansPos(float64(cy), float64(cx), float64(outCircleR-outCircleW/2), degrees-15)
-		a.AstrolabeLoc[i-1] = gongLocation{float32(lx1), float32(ly1), float32(lx2), float32(ly2), int(x), int(y)}
 	}
 }
 

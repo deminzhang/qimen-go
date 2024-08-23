@@ -56,7 +56,8 @@ func (q *QMShow) drawHead(dst *ebiten.Image) {
 }
 func (q *QMShow) draw9Gong(dst *ebiten.Image) {
 	ft := ui.GetDefaultUIFont()
-	pp := ThisGame.qmGame.ShowPan
+	qm := ThisGame.qmGame
+	pp := qm.ShowPan
 	//画九宫
 	kongWang := LunarUtil.GetXunKong(pp.Xun)
 	for i := 1; i <= 9; i++ {
@@ -77,7 +78,7 @@ func (q *QMShow) draw9Gong(dst *ebiten.Image) {
 		if strings.Contains(kongWang, LunarUtil.ZHI[i]) {
 			empty = "〇" //"空亡"
 		}
-		if qimen.ZhiGong9[pp.Horse] == i {
+		if qimen.ZhiGong9[qm.TimeHorse] == i {
 			horse = "马"
 		}
 		door := g.Door + qimen.Door0
@@ -123,7 +124,9 @@ func (q *QMShow) draw12Gong(dst *ebiten.Image) {
 		lx1, ly1 := util.CalRadiansPos(float64(q.X), float64(q.Y), float64(r1-zhiPanWidth/4), angleDegrees-15)
 		lx2, ly2 := util.CalRadiansPos(float64(q.X), float64(q.Y), float64(r2+zhiPanWidth/4), angleDegrees-15)
 		vector.StrokeLine(dst, float32(lx1), float32(ly1), float32(lx2), float32(ly2), 1, colorGongSplit, true)
-
+		if pan.Big6 == nil {
+			continue
+		}
 		gong12 := pan.Big6[i-1]
 		jiangColor := colorJiang
 		if gong12.IsJiang {
@@ -147,7 +150,7 @@ func (q *QMShow) draw12Gong(dst *ebiten.Image) {
 		x22, y22 := util.CalRadiansPos(float64(q.X), float64(q.Y), float64(r1), angleDegrees+10)
 		text.Draw(dst, gong12.JianZhi, ft, int(x22-8), int(y22+4), jianColor)
 
-		if ThisGame.qmGame.ShowPan.Horse == LunarUtil.ZHI[i] {
+		if ThisGame.qmGame.TimeHorse == LunarUtil.ZHI[i] {
 			x3, y3 := util.CalRadiansPos(float64(q.X), float64(q.Y), float64(r1), angleDegrees-10)
 			text.Draw(dst, "驿马", ft, int(x3-8), int(y3+4), colorLeader)
 		}

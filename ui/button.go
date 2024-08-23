@@ -45,6 +45,16 @@ func NewButtonTransparent(rect image.Rectangle, text string) *Button {
 	}
 }
 
+// TODO 按text长度自动调整大小无背景UI
+func NewTextButton(rect image.Rectangle, text string) *Button {
+	return &Button{
+		BaseUI:    BaseUI{Visible: true, X: 0, Y: 0},
+		Rect:      rect,
+		Text:      text,
+		TextColor: color.White,
+	}
+}
+
 func (b *Button) Update() {
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()

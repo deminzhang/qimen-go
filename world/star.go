@@ -16,6 +16,11 @@ type StarLine struct {
 	fromX, fromY, tox, toy, brightness, scale float32
 }
 
+func NewStarLine() StarLine {
+	star := StarLine{}
+	return star
+}
+
 func (s *StarLine) Init(scale float32) {
 	ww, wh := ebiten.WindowSize()
 	s.tox = rand.Float32() * float32(ww) * scale
@@ -41,13 +46,13 @@ func (s *StarLine) Update(x, y float32) {
 	}
 }
 
-func (s *StarLine) Draw(screen *ebiten.Image) {
+func (s *StarLine) Draw(dst *ebiten.Image) {
 	c := color.RGBA{
 		R: uint8(0xbb * s.brightness / 0xff),
 		G: uint8(0xdd * s.brightness / 0xff),
 		B: uint8(0xff * s.brightness / 0xff),
 		A: 0xff}
-	vector.StrokeLine(screen, s.fromX/s.scale, s.fromY/s.scale, s.tox/s.scale, s.toy/s.scale, 1, c, true)
+	vector.StrokeLine(dst, s.fromX/s.scale, s.fromY/s.scale, s.tox/s.scale, s.toy/s.scale, 1, c, true)
 }
 
 type StarEffect struct {
@@ -64,7 +69,7 @@ func NewStarEffect(centerX, centerY float32) *StarEffect {
 		starCount: starsLineCount,
 	}
 	for i := 0; i < se.starCount; i++ {
-		star := StarLine{}
+		star := NewStarLine()
 		star.Init(se.starScale)
 		se.starLines = append(se.starLines, star)
 	}

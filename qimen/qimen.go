@@ -1,7 +1,6 @@
 package qimen
 
 import (
-	"fmt"
 	"github.com/6tail/lunar-go/LunarUtil"
 	"github.com/6tail/lunar-go/calendar"
 )
@@ -31,8 +30,8 @@ type QMPan struct {
 	Ju     int //格局-1~-9,1~9, 年家为-1,-4,-7
 	JuText string
 
-	GanZhi string //干支 年家为年干支,,,时家为时干支
-	Xun    string //干支旬首
+	Gan, Zhi string //干支 年家为年干支,月,日,时家为月,日,时干支
+	Xun      string //干支旬首
 
 	Duty        int    //值序
 	DutyStar    string //值符
@@ -40,8 +39,6 @@ type QMPan struct {
 	DutyDoor    string //值使
 	DutyDoorPos int    //值使落宫
 	RollHosting int    //转盘寄宫
-
-	Horse string //驿马支位
 
 	Gongs [10]QMPalace //九宫
 }
@@ -62,13 +59,12 @@ type QMGame struct {
 	Solar *calendar.Solar
 	Lunar *calendar.Lunar
 
-	YueJian        string //月建
-	YueJianZhiIdx  int    //月建地支号
-	YueJiang       string //月将
-	YueJiangZhiIdx int    //月将地支号
+	YueJian  string //月建
+	YueJiang string //月将
 
-	JieQi string //节气文本
-	Big6  [12]Gong12
+	JieQi     string //节气文本
+	TimeHorse string //时家马
+	Big6      []Gong12
 
 	YearPan  *QMPan //年家奇门盘
 	MonthPan *QMPan //月家奇门盘
@@ -83,17 +79,16 @@ func NewQMGame(solar *calendar.Solar, params QMParams) *QMGame {
 		params.YMDH, params.Type, params.HostingType, params.FlyType, params.JuType, params.HideGanType
 	lunar := calendar.NewLunarFromSolar(solar)
 	c8 := lunar.GetEightChar()
-	//dayGanZhi := c8.GetDay()
-	hourGanZhi := c8.GetTime()
 	jieQi := lunar.GetPrevJieQi()
 	jieQiName := lunar.GetPrevJieQi().GetName()
 
 	p := QMGame{
-		Solar:    solar,
-		Lunar:    lunar,
-		YueJian:  Jie2YueJian(lunar.GetPrevJie().GetName()),
-		YueJiang: Qi2YueJiang(lunar.GetPrevQi().GetName()),
-		JieQi:    jieQiName,
+		Solar:     solar,
+		Lunar:     lunar,
+		YueJian:   Jie2YueJian(lunar.GetPrevJie().GetName()),
+		YueJiang:  Qi2YueJiang(lunar.GetPrevQi().GetName()),
+		JieQi:     jieQiName,
+		TimeHorse: Horse[c8.GetTimeZhi()],
 	}
 	switch ymdh {
 	case QMGameHour: //排时家奇门
@@ -123,9 +118,11 @@ func NewQMGame(solar *calendar.Solar, params QMParams) *QMGame {
 			ju = params.SelfJu
 		}
 		p.TimePan = &QMPan{
-			Yuan3:  yuan,
-			Ju:     ju,
-			GanZhi: hourGanZhi,
+			Yuan3: yuan,
+			Ju:    ju,
+			Gan:   c8.GetTimeGan(),
+			Zhi:   c8.GetTimeZhi(),
+			Xun:   c8.GetTimeXun(),
 
 			Type:                qmType,
 			RotatingHostingType: qmHostingType,
@@ -135,26 +132,14 @@ func NewQMGame(solar *calendar.Solar, params QMParams) *QMGame {
 		}
 		//排九宫
 		p.calcGong(p.TimePan)
-
-		//排大六壬支 月将落时支 顺布余支
-		for i := 1; i <= 12; i++ {
-			if p.YueJian == LunarUtil.ZHI[i] {
-				p.YueJianZhiIdx = i
-				break
-			}
-		}
-		for i := 1; i <= 12; i++ {
-			if p.YueJiang == LunarUtil.ZHI[i] {
-				p.YueJiangZhiIdx = i
-				break
-			}
-		}
 	case QMGameDay:
 		yuan, ju := GetDayYuanJu(jieQiName)
 		p.DayPan = &QMPan{
-			Yuan3:  yuan,
-			Ju:     ju,
-			GanZhi: c8.GetDay(),
+			Yuan3: yuan,
+			Ju:    ju,
+			Gan:   c8.GetDayGan(),
+			Zhi:   c8.GetDayZhi(),
+			Xun:   c8.GetDayXun(),
 
 			Type:                qmType,
 			RotatingHostingType: qmHostingType,
@@ -166,9 +151,11 @@ func NewQMGame(solar *calendar.Solar, params QMParams) *QMGame {
 	case QMGameDay2:
 		yuan, ju := GetDayYuanJu(jieQiName)
 		p.DayPan = &QMPan{
-			Yuan3:  yuan,
-			Ju:     ju,
-			GanZhi: c8.GetDay(),
+			Yuan3: yuan,
+			Ju:    ju,
+			Gan:   c8.GetDayGan(),
+			Zhi:   c8.GetDayZhi(),
+			Xun:   c8.GetDayXun(),
 
 			Type:                qmType,
 			RotatingHostingType: qmHostingType,
@@ -180,9 +167,11 @@ func NewQMGame(solar *calendar.Solar, params QMParams) *QMGame {
 	case QMGameMonth:
 		yuan, ju := GetMonthYuanJu(p.Lunar.GetYearInGanZhiExact())
 		p.MonthPan = &QMPan{
-			Yuan3:  yuan,
-			Ju:     ju,
-			GanZhi: c8.GetMonth(),
+			Yuan3: yuan,
+			Ju:    ju,
+			Gan:   c8.GetMonthGan(),
+			Zhi:   c8.GetMonthZhi(),
+			Xun:   c8.GetMonthXun(),
 
 			Type:                qmType,
 			RotatingHostingType: qmHostingType,
@@ -194,9 +183,11 @@ func NewQMGame(solar *calendar.Solar, params QMParams) *QMGame {
 	case QMGameYear: //排年家奇门
 		yuan, ju := GetYearYuanJu(p.Lunar.GetYear())
 		p.YearPan = &QMPan{
-			Yuan3:  yuan,
-			Ju:     ju,
-			GanZhi: c8.GetYear(),
+			Yuan3: yuan,
+			Ju:    ju,
+			Gan:   c8.GetYearGan(),
+			Zhi:   c8.GetYearZhi(),
+			Xun:   c8.GetYearXun(),
 
 			Type:                qmType,
 			RotatingHostingType: qmHostingType,
@@ -229,11 +220,7 @@ func GetTermTime(year, n int) int64 {
 
 func (p *QMGame) calcGong(pp *QMPan) {
 	g9 := &pp.Gongs
-	xun := LunarUtil.GetXun(pp.GanZhi)
-	gan := pp.GanZhi[:len(pp.GanZhi)/2]
-	zhi := pp.GanZhi[len(pp.GanZhi)/2:]
-	pp.Xun = xun
-	pp.Horse = Horse[zhi]
+
 	for i := 1; i <= 9; i++ {
 		g9[i].Idx = i
 	}
@@ -264,7 +251,7 @@ func (p *QMGame) calcGong(pp *QMPan) {
 	//值符落宫
 	//值符加于时干上，值使加之在时支。
 	var dutyStarPos, dutyDoorPos, dutyGan36Idx int
-	dutyGan := gan
+	dutyGan := pp.Gan
 	if dutyGan == "甲" {
 		dutyGan = HideJia[pp.Xun] //遁甲
 	}
@@ -299,7 +286,7 @@ func (p *QMGame) calcGong(pp *QMPan) {
 			g, z := gz[:len(gz)/2], gz[len(gz)/2:]
 			g9[gid].PathGan = g
 			g9[gid].PathZhi = z
-			if z == zhi {
+			if z == pp.Zhi {
 				dutyDoorPos = gid
 				pp.DutyDoorPos = gid
 			}
@@ -315,7 +302,7 @@ func (p *QMGame) calcGong(pp *QMPan) {
 			g, z := gz[:len(gz)/2], gz[len(gz)/2:]
 			g9[gid].PathGan = g
 			g9[gid].PathZhi = z
-			if z == zhi {
+			if z == pp.Zhi {
 				dutyDoorPos = gid
 				pp.DutyDoorPos = gid
 			}
@@ -489,28 +476,6 @@ func (p *QMGame) calcGongDay2(pp *QMPan) {
 	//TODO
 }
 
-// CalBig6 大六壬 月将落时支 顺布余支 天三门兮地四户
 func (p *QMGame) CalBig6() {
-	yueJiangIdx := p.YueJiangZhiIdx
-	yueJianIdx := p.YueJianZhiIdx
-	shiZhiIdx := p.Lunar.GetTimeZhiIndex() + 1
-	for i := shiZhiIdx; i < shiZhiIdx+12; i++ {
-		js := LunarUtil.ZHI[Idx12[yueJiangIdx]]
-		g := fmt.Sprintf("%s", YueJiangName[js])
-		z := LunarUtil.ZHI[Idx12[i]]
-		bs := BuildStar(1 + i - shiZhiIdx)
-
-		g12 := &p.Big6[Idx12[i]-1]
-		g12.Idx = Idx12[i]
-		g12.JiangZhi = js
-		g12.Jiang = g
-		g12.IsJiang = i == shiZhiIdx
-		g12.JianZhi = LunarUtil.ZHI[Idx12[yueJianIdx+i-shiZhiIdx]]
-		g12.Jian = bs
-		g12.IsJian = bs == "建"
-		g12.IsHorse = z == p.TimePan.Horse
-		g12.IsSkyHorse = g == "太冲"
-
-		yueJiangIdx++
-	}
+	p.Big6 = CalBig6(p.YueJian, p.YueJiang, p.Lunar.GetTimeZhiIndex()+1, p.TimeHorse)
 }

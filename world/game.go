@@ -1,18 +1,22 @@
 package world
 
 import (
+	"github.com/6tail/lunar-go/calendar"
 	"github.com/hajimehoshi/ebiten/v2"
 	"qimen/qimen"
 	"qimen/ui"
+	"time"
 )
 
 type game struct {
-	count     int
-	stars     *StarEffect
-	astrolabe *Astrolabe
-	qiMen     *QMShow
-	baZi      *EightCharPan
-	qmGame    *qimen.QMGame
+	count      int
+	uiQM       *UIQiMen
+	stars      *StarEffect
+	astrolabe  *Astrolabe
+	qiMen      *QMShow
+	baZi       *EightCharPan
+	qmGame     *qimen.QMGame
+	autoMinute bool
 }
 
 func (g *game) Update() error {
@@ -23,6 +27,11 @@ func (g *game) Update() error {
 	g.qiMen.Update()
 	g.baZi.Update()
 	g.astrolabe.Update()
+	if g.autoMinute {
+		if g.count == 0 {
+			g.qmGame = g.uiQM.NextApply()
+		}
+	}
 	return nil
 }
 
@@ -41,12 +50,15 @@ func (g *game) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 func NewGame() *game {
 	u := UIShowQiMen()
+	solar := calendar.NewSolarFromDate(time.Now())
+	pan := u.Apply(solar)
 	g := &game{
+		uiQM:      u,
 		stars:     NewStarEffect(260, 460),
 		qiMen:     NewQiMenShow(260, 460),
 		astrolabe: NewAstrolabe(770+500, 450),
-		baZi:      NewEightCharPan(770, 450),
-		qmGame:    u.pan,
+		baZi:      NewEightCharPan(770, 440),
+		qmGame:    pan,
 	}
 	return g
 }
