@@ -38,10 +38,10 @@ type UIQiMen struct {
 
 	opHideGan0, opHideGan1 *ui.OptionBox
 
-	btnCalc             *ui.Button
-	btnNow              *ui.Button
-	btnPreJu, btnNextJu *ui.Button
-	btnBirth            *ui.Button
+	btnCalc             *ui.TextButton
+	btnNow              *ui.TextButton
+	btnPreJu, btnNextJu *ui.TextButton
+	btnBirth            *ui.TextButton
 
 	opHourPan, opDayPan, opMonthPan, opYearPan *ui.OptionBox
 	opDay2Pan                                  *ui.OptionBox
@@ -89,18 +89,18 @@ func NewUIQiMen() *UIQiMen {
 	p.opTypeRoll = ui.NewOptionBox(px0+72*5, py0+8, qimen.QMType[0])
 	p.opTypeFly = ui.NewOptionBox(px0+72*6, py0+8, qimen.QMType[1])
 	p.opTypeAmaze = ui.NewOptionBox(px0+72*7, py0+8, qimen.QMType[2])
-	p.btnCalc = ui.NewButton(image.Rect(px0+72*8, py0, px0+72*8+48, py0+16), "排局")
-	p.btnNow = ui.NewButton(image.Rect(px0+72*9, py0, px0+72*9+48, py0+16), "此时")
+	p.btnCalc = ui.NewTextButton(px0+72*8, py0, "排局", colorWhite, true)
+	p.btnNow = ui.NewTextButton(px0+72*9, py0, "此时", colorWhite, true)
 
 	py0 += 32
 	p.cbHostingType = ui.NewCheckBox(px0+72*5, py0+8, qimen.QMHostingType[qimen.QMHostingType28])
 	p.cbFlyType = ui.NewCheckBox(px0+72*6, py0+8, qimen.QMFlyType[qimen.QMFlyTypeAllOrder])
-	p.btnPreJu = ui.NewButton(image.Rect(px0+72*8, py0, px0+72*8+48, py0+16), "上一局")
+	p.btnPreJu = ui.NewTextButton(px0+72*8, py0, "上一局", colorWhite, true)
 
 	py0 += 32
-	p.btnNextJu = ui.NewButton(image.Rect(px0+72*8, py0, px0+72*8+48, py0+16), "下一局")
+	p.btnNextJu = ui.NewTextButton(px0+72*8, py0, "下一局", colorWhite, true)
 	p.cbAuto = ui.NewCheckBox(px0+72*9, py0, "自动")
-	p.btnBirth = ui.NewButton(image.Rect(px0+72*9, 164, px0+72*9+48, 164+16), "生辰")
+	//p.btnBirth = ui.NewTextButton(px0+72*9, 164, "选生辰", colorWhite, true)
 
 	p.inputSelfJu = ui.NewInputBox(image.Rect(px0+72*4, py0, px0+72*4+64, py0+h))
 	p.opStartSelf = ui.NewOptionBox(px0+72*4, py0+8, qimen.QMJuType[qimen.QMJuTypeSelf])
@@ -139,7 +139,7 @@ func NewUIQiMen() *UIQiMen {
 	p.AddChildren(p.opStartSplit, p.opStartMaoShan, p.opStartZhiRun, p.opStartSelf, p.inputSelfJu)
 	p.AddChildren(p.cbAuto)
 	p.AddChildren(p.opHideGan0, p.opHideGan1)
-	p.AddChild(p.btnBirth)
+	//p.AddChild(p.btnBirth)
 
 	ui.MakeOptionBoxGroup(p.opTypeRoll, p.opTypeFly, p.opTypeAmaze)
 	p.opTypeRoll.Select()
@@ -239,6 +239,12 @@ func NewUIQiMen() *UIQiMen {
 	})
 
 	p.btnCalc.SetOnClick(func(b *ui.Button) {
+		defer func() {
+			s := recover()
+			if s != nil {
+				UIShowMsgBox(fmt.Sprintf("%s", s), "确定", "取消", nil, nil)
+			}
+		}()
 		year, _ := strconv.Atoi(p.inputSYear.Text())
 		month, _ := strconv.Atoi(p.inputSMonth.Text())
 		day, _ := strconv.Atoi(p.inputSDay.Text())
@@ -248,8 +254,7 @@ func NewUIQiMen() *UIQiMen {
 		if p.qmParams.JuType == qimen.QMJuTypeSelf {
 			ju, err := strconv.Atoi(p.inputSelfJu.Text())
 			if err != nil || !((ju >= 1 && ju <= 9) || (ju >= -9 && ju <= -1)) {
-				UIShowMsgBox("局数不对,限([-9,-1],[1,9])", "确定", "取消", nil, nil)
-				return
+				panic("局数不对,限(阴[-9,-1],阳[1,9])")
 			}
 			p.qmParams.SelfJu = ju
 		} else {
@@ -259,24 +264,28 @@ func NewUIQiMen() *UIQiMen {
 		p.Apply(solar)
 	})
 	p.btnNow.SetOnClick(func(b *ui.Button) {
+		defer func() {
+			s := recover()
+			if s != nil {
+				UIShowMsgBox(fmt.Sprintf("%s", s), "确定", "取消", nil, nil)
+			}
+		}()
 		solar := calendar.NewSolarFromDate(time.Now())
 
 		if p.qmParams.JuType == qimen.QMJuTypeSelf {
 			ju, err := strconv.Atoi(p.inputSelfJu.Text())
 			if err != nil || !((ju >= 1 && ju <= 9) || (ju >= -9 && ju <= -1)) {
-				UIShowMsgBox("局数不对,限([-9,-1],[1,9])", "确定", "取消", nil, nil)
-				return
+				panic("局数不对,限(阴[-9,-1],阳[1,9])")
 			}
 			p.qmParams.SelfJu = ju
 		} else {
 			p.qmParams.SelfJu = 0
 		}
-
 		p.Apply(solar)
 	})
-	p.btnBirth.SetOnClick(func(b *ui.Button) {
-		UIShowSelect()
-	})
+	//p.btnBirth.SetOnClick(func(b *ui.Button) {
+	//	UIShowSelect()
+	//})
 	p.btnPreJu.SetOnClick(func(b *ui.Button) {
 		var solar *calendar.Solar
 		switch p.qmParams.YMDH {
@@ -443,9 +452,9 @@ func (p *UIQiMen) ShowYearGame(pan *qimen.QMGame) {
 	d8 := qimen.Diagrams9(y9)
 	y3y9 := fmt.Sprintf("三元九运:%s%s%s%s%s", qimen.Yuan3Name[pp.Yuan3],
 		LunarUtil.NUMBER[y9], qimen.Gong9Color[y9], d8, qimen.DiagramsWuxing[d8])
-	juText := fmt.Sprintf("年家 黄帝纪元:%d %s"+
+	juText := fmt.Sprintf("年家 黄帝纪元:%4s %s"+
 		"\n%s %s %s遁%s 值符%s落%d宫 值使%s落%d宫",
-		qimen.GetHuangDiYear(pan.Lunar.GetYear()), y3y9,
+		qimen.GetYearInChinese(qimen.GetHuangDiYear(pan.Lunar.GetYear())), y3y9,
 		qimen.Yuan3Name[pp.Yuan3], juName, pp.Xun, qimen.HideJia[pp.Xun],
 		qimen.Star0+pp.DutyStar, pp.DutyStarPos, pp.DutyDoor+qimen.Door0, pp.DutyDoorPos,
 	)

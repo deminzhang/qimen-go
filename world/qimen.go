@@ -40,8 +40,16 @@ func (q *QMShow) drawHead(dst *ebiten.Image) {
 	lunar := pan.Lunar
 	pp := pan.ShowPan
 	ft := ui.GetDefaultUIFont()
+	var cYear string
+	if lunar.GetYear() == 1 {
+		cYear = "元年"
+	} else if lunar.GetYear() <= 0 {
+		cYear = fmt.Sprintf("公元前%d年", -lunar.GetYear()+1)
+	} else {
+		cYear = lunar.GetYearInChinese()
+	}
 	text.Draw(dst, fmt.Sprintf("  %s %s %s %s",
-		lunar.GetYearInChinese(), lunar.GetMonthInChinese()+"月", lunar.GetDayInChinese(), lunar.GetEightChar().GetTimeZhi()+"时"),
+		cYear, lunar.GetMonthInChinese()+"月", lunar.GetDayInChinese(), lunar.GetEightChar().GetTimeZhi()+"时"),
 		ft, 32, 48, colorWhite)
 	text.Draw(dst, fmt.Sprintf("干支  %s %s %s %s",
 		lunar.GetYearInGanZhiExact(), lunar.GetMonthInGanZhiExact(), lunar.GetDayInGanZhiExact(), lunar.GetTimeInGanZhi()),

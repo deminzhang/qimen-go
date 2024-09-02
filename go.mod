@@ -1,6 +1,6 @@
 module qimen
 
-go 1.21
+go 1.23
 
 require (
 	github.com/6tail/lunar-go v1.3.11

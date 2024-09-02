@@ -57,7 +57,7 @@ func NewGame() *game {
 		stars:     NewStarEffect(260, 460),
 		qiMen:     NewQiMenShow(260, 460),
 		astrolabe: NewAstrolabe(770+500, 450),
-		baZi:      NewEightCharPan(770, 440),
+		baZi:      NewEightCharPan(522, 204),
 		qmGame:    pan,
 	}
 	return g

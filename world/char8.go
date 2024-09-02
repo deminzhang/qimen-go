@@ -7,6 +7,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"qimen/qimen"
+	"qimen/ui"
 	"strings"
 )
 
@@ -34,21 +35,52 @@ var HideGanVal = map[int][]int{
 type EightCharPan struct {
 	X, Y float32
 	//YMDH   string
-	FYear      CharBody //流年通用
-	FMonth     CharBody //流月通用
-	FDay       CharBody //流日通用
-	FTime      CharBody //流时通用
-	Player     Player   //玩家
+	inited     bool
+	FYear      *CharBody //流年通用
+	FMonth     *CharBody //流月通用
+	FDay       *CharBody //流日通用
+	FTime      *CharBody //流时通用
+	Player     *Player   //玩家
 	brightness float32
+
+	btnMove  *ui.TextButton
+	btnBirth *ui.TextButton
+	uis      map[ui.IUIPanel]struct{}
 }
 
-func NewEightCharPan(centerX, centerY float32) *EightCharPan {
-	return &EightCharPan{
-		X: centerX, Y: centerY,
+func NewEightCharPan(x, y float32) *EightCharPan {
+	p := &EightCharPan{
+		X: x, Y: y,
+		uis: make(map[ui.IUIPanel]struct{}),
+		//btnMove:  ui.NewTextButton(int(x+4), int(y), "+ ", colorWhite, true),
 	}
+	p.btnBirth = ui.NewTextButton(int(x+158), int(y), "择辰", colorWhite, true)
+	p.btnBirth.SetOnClick(func(b *ui.Button) {
+		UIShowSelect()
+	})
+	p.uis[p.btnBirth] = struct{}{}
+	return p
+}
+
+func (g *EightCharPan) Init() {
+	cal := ThisGame.qmGame.Lunar
+	g.FYear = NewCharBody(cal.GetYearGan(), cal.GetYearZhi(), HpGY, HpZY)
+	g.FMonth = NewCharBody(cal.GetMonthGan(), cal.GetMonthZhi(), HpGM, HpZM)
+	g.FDay = NewCharBody(cal.GetDayGan(), cal.GetDayZhi(), HpGD, HpZD)
+	g.FTime = NewCharBody(cal.GetTimeGan(), cal.GetTimeZhi(), HpGT, HpZT)
+	g.Player = &Player{}
+	g.Player.Reset(cal, GenderMale)
 }
 
 func (g *EightCharPan) Update() error {
+	if !g.inited {
+		g.Init()
+		g.inited = true
+	}
+	for panel := range g.uis {
+		panel.Update()
+	}
+
 	cal := ThisGame.qmGame.Lunar
 	if g.FYear.Gan != cal.GetYearGan() || g.FYear.Zhi != cal.GetYearZhi() {
 		g.FYear = NewCharBody(cal.GetYearGan(), cal.GetYearZhi(), HpGY, HpZY)
@@ -62,10 +94,53 @@ func (g *EightCharPan) Update() error {
 	if g.FTime.Gan != cal.GetTimeGan() || g.FTime.Zhi != cal.GetTimeZhi() {
 		g.FTime = NewCharBody(cal.GetTimeGan(), cal.GetTimeZhi(), HpGT, HpZT)
 	}
-	if g.Player.Lunar == nil {
-		g.Player.Reset(cal, GenderMale)
+	p := g.Player
+	var change bool
+	if p.Yun == nil {
+		change = true
+	} else {
+		LYear := cal.GetYear()
+		if p.YunIdx == 0 {
+			if p.DaYunA[0].GetXiaoYun()[p.YunIdx0].GetYear() != LYear {
+				change = true
+			}
+		} else {
+			daYun := p.DaYunA[p.YunIdx]
+			if daYun.GetStartYear() <= LYear && LYear <= daYun.GetEndYear() {
+				change = true
+			}
+		}
 	}
-	g.Player.UpdateHp()
+	if change { //大运变化
+		for i, daYun := range p.DaYunA {
+			if daYun.GetStartYear() <= cal.GetYear() && cal.GetYear() <= daYun.GetEndYear() {
+				if i == 0 {
+					for j, xiaoYun := range daYun.GetXiaoYun() {
+						if xiaoYun.GetYear() == cal.GetYear() {
+							gz := xiaoYun.GetGanZhi()
+							gan := string([]rune(gz)[0])
+							zhi := string([]rune(gz)[1])
+							p.Yun = NewCharBody(gan, zhi, HpGM, HpZM)
+							p.YunIdx0 = j
+							p.YunIdx = i
+							break
+						}
+					}
+				} else {
+					gz := daYun.GetGanZhi()
+					gan := string([]rune(gz)[0])
+					zhi := string([]rune(gz)[1])
+					p.Yun = NewCharBody(gan, zhi, HpGM, HpZM)
+					p.YunIdx0 = 0
+					p.YunIdx = i
+				}
+				break
+			}
+		}
+	}
+
+	p.UpdateHp()
+
 	g.brightness += 1
 	if 0xff < g.brightness {
 		g.brightness = 0xff
@@ -74,6 +149,10 @@ func (g *EightCharPan) Update() error {
 }
 
 func (g *EightCharPan) Draw(dst *ebiten.Image) {
+	for panel := range g.uis {
+		panel.Draw(dst)
+	}
+
 	ft12, _ := GetFontFace(12)
 	ft14, _ := GetFontFace(14)
 	ft28, _ := GetFontFace(28)
@@ -83,9 +162,10 @@ func (g *EightCharPan) Draw(dst *ebiten.Image) {
 	soul := bz.GetDayGan()
 	//八字总览
 	{
-		sx, sy := cx-248, cy-172
-		vector.StrokeRect(dst, sx, sy-64, 312, 370, 1, colorWhite, true)
+		sx, sy := cx, cy
+		vector.StrokeRect(dst, sx, sy, 394, 370, 1, colorWhite, true)
 		sx += 16
+		sy += 64
 		text.Draw(dst, "十神", ft14, int(sx), int(sy-32), colorWhite)
 		text.Draw(dst, "天干", ft14, int(sx), int(sy-8), colorWhite)
 		text.Draw(dst, "地支", ft14, int(sx), int(sy+32-8), colorWhite)
@@ -99,103 +179,63 @@ func (g *EightCharPan) Draw(dst *ebiten.Image) {
 		text.Draw(dst, "小运", ft14, int(sx), int(sy+160), colorWhite)
 		text.Draw(dst, "大运", ft14, int(sx), int(sy+160+16), colorWhite)
 		text.Draw(dst, "神煞", ft14, int(sx), int(sy+160+32), colorWhite)
-		//text.Draw(dst, "流年", ft14, int(sx), int(sy+160), colorWhite)
-		//text.Draw(dst, "流月", ft14, int(sx), int(sy+160), colorWhite)
 		sx += 48
+		text.Draw(dst, "年柱", ft14, int(sx), int(sy-48), colorWhite)
 		text.Draw(dst, bz.GetYearShiShenGan(), ft14, int(sx), int(sy-32), colorWhite)
-		text.Draw(dst, p.Year.Gan, ft28, int(sx), int(sy), ColorGanZhi(p.Year.Gan))
-		text.Draw(dst, p.Year.Zhi, ft28, int(sx), int(sy+32), ColorGanZhi(p.Year.Zhi))
-		text.Draw(dst, p.Year.Body, ft14, int(sx), int(sy+48), ColorGanZhi(p.Year.Body))
-		text.Draw(dst, ShiShenShort(soul, p.Year.Body), ft14, int(sx+16), int(sy+48), colorWhite)
-		text.Draw(dst, p.Year.Legs, ft14, int(sx), int(sy+64), ColorGanZhi(p.Year.Legs))
-		text.Draw(dst, ShiShenShort(soul, p.Year.Legs), ft14, int(sx+16), int(sy+64), colorWhite)
-		text.Draw(dst, p.Year.Feet, ft14, int(sx), int(sy+80), ColorGanZhi(p.Year.Feet))
-		text.Draw(dst, ShiShenShort(soul, p.Year.Feet), ft14, int(sx+16), int(sy+80), colorWhite)
-		text.Draw(dst, LunarUtil.NAYIN[bz.GetYear()], ft14, int(sx), int(sy+96), ColorNaYin(bz.GetYear()))
-		text.Draw(dst, qimen.ChangSheng12[soul][p.Year.Zhi], ft14, int(sx), int(sy+112), ColorGanZhi(soul))
-		text.Draw(dst, qimen.ChangSheng12[p.Year.Gan][p.Year.Zhi], ft14, int(sx), int(sy+128), ColorGanZhi(p.Year.Gan))
-		text.Draw(dst, bz.GetYearXunKong(), ft14, int(sx), int(sy+144), colorGray)
+		DrawFlow(dst, sx, sy, soul, p.Year)
 		text.Draw(dst, strings.Join(p.Fates0, " "), ft14, int(sx), int(sy+160), colorWhite)
 		text.Draw(dst, strings.Join(p.Fates, " "), ft14, int(sx), int(sy+160+16), colorWhite)
 		text.Draw(dst, strings.Join(p.ShenShaY, "\n"), ft12, int(sx), int(sy+160+32), colorWhite)
 		sx += 48
+		text.Draw(dst, "月柱", ft14, int(sx), int(sy-48), colorWhite)
 		text.Draw(dst, bz.GetMonthShiShenGan(), ft14, int(sx), int(sy-32), colorWhite)
-		text.Draw(dst, p.Month.Gan, ft28, int(sx), int(sy), ColorGanZhi(p.Month.Gan))
-		text.Draw(dst, p.Month.Zhi, ft28, int(sx), int(sy+32), ColorGanZhi(p.Month.Zhi))
-		text.Draw(dst, p.Month.Body, ft14, int(sx), int(sy+48), ColorGanZhi(p.Month.Body))
-		text.Draw(dst, ShiShenShort(soul, p.Month.Body), ft14, int(sx+16), int(sy+48), colorWhite)
-		text.Draw(dst, p.Month.Legs, ft14, int(sx), int(sy+64), ColorGanZhi(p.Month.Legs))
-		text.Draw(dst, ShiShenShort(soul, p.Month.Legs), ft14, int(sx+16), int(sy+64), colorWhite)
-		text.Draw(dst, p.Month.Feet, ft14, int(sx), int(sy+80), ColorGanZhi(p.Month.Feet))
-		text.Draw(dst, ShiShenShort(soul, p.Month.Feet), ft14, int(sx+16), int(sy+80), colorWhite)
-		text.Draw(dst, LunarUtil.NAYIN[bz.GetMonth()], ft14, int(sx), int(sy+96), ColorNaYin(bz.GetMonth()))
-		text.Draw(dst, qimen.ChangSheng12[soul][p.Month.Zhi], ft14, int(sx), int(sy+112), ColorGanZhi(soul))
-		text.Draw(dst, qimen.ChangSheng12[p.Month.Gan][p.Month.Zhi], ft14, int(sx), int(sy+128), ColorGanZhi(p.Month.Gan))
-		text.Draw(dst, bz.GetMonthXunKong(), ft14, int(sx), int(sy+144), colorGray)
+		DrawFlow(dst, sx, sy, soul, p.Month)
 		text.Draw(dst, strings.Join(p.ShenShaM, "\n"), ft12, int(sx), int(sy+160+32), colorWhite)
 		sx += 48
 		text.Draw(dst, "元"+GenderName[p.Gender], ft14, int(sx), int(sy-32), colorWhite)
-		text.Draw(dst, p.Day.Gan, ft28, int(sx), int(sy), ColorGanZhi(p.Day.Gan))
-		text.Draw(dst, p.Day.Zhi, ft28, int(sx), int(sy+32), ColorGanZhi(p.Day.Zhi))
-		text.Draw(dst, p.Day.Body, ft14, int(sx), int(sy+48), ColorGanZhi(p.Day.Body))
-		text.Draw(dst, ShiShenShort(soul, p.Day.Body), ft14, int(sx+16), int(sy+48), colorWhite)
-		text.Draw(dst, p.Day.Legs, ft14, int(sx), int(sy+64), ColorGanZhi(p.Day.Legs))
-		text.Draw(dst, ShiShenShort(soul, p.Day.Legs), ft14, int(sx+16), int(sy+64), colorWhite)
-		text.Draw(dst, p.Day.Feet, ft14, int(sx), int(sy+80), ColorGanZhi(p.Day.Feet))
-		text.Draw(dst, ShiShenShort(soul, p.Day.Feet), ft14, int(sx+16), int(sy+80), colorWhite)
-		text.Draw(dst, LunarUtil.NAYIN[bz.GetDay()], ft14, int(sx), int(sy+96), ColorNaYin(bz.GetDay()))
-		text.Draw(dst, qimen.ChangSheng12[soul][p.Day.Zhi], ft14, int(sx), int(sy+112), ColorGanZhi(soul))
-		text.Draw(dst, qimen.ChangSheng12[p.Day.Gan][p.Day.Zhi], ft14, int(sx), int(sy+128), ColorGanZhi(p.Day.Gan))
-		text.Draw(dst, bz.GetDayXunKong(), ft14, int(sx), int(sy+144), colorGray)
+		DrawFlow(dst, sx, sy, soul, p.Day)
 		text.Draw(dst, strings.Join(p.ShenShaD, "\n"), ft12, int(sx), int(sy+160+32), colorWhite)
 		sx += 48
+		text.Draw(dst, "时柱", ft14, int(sx), int(sy-48), colorWhite)
 		text.Draw(dst, bz.GetTimeShiShenGan(), ft14, int(sx), int(sy-32), colorWhite)
-		text.Draw(dst, p.Time.Gan, ft28, int(sx), int(sy), ColorGanZhi(p.Time.Gan))
-		text.Draw(dst, p.Time.Zhi, ft28, int(sx), int(sy+32), ColorGanZhi(p.Time.Zhi))
-		text.Draw(dst, p.Time.Body, ft14, int(sx), int(sy+48), ColorGanZhi(p.Time.Body))
-		text.Draw(dst, ShiShenShort(soul, p.Time.Body), ft14, int(sx+16), int(sy+48), colorWhite)
-		text.Draw(dst, p.Time.Legs, ft14, int(sx), int(sy+64), ColorGanZhi(p.Time.Legs))
-		text.Draw(dst, ShiShenShort(soul, p.Time.Legs), ft14, int(sx+16), int(sy+64), colorWhite)
-		text.Draw(dst, p.Time.Feet, ft14, int(sx), int(sy+80), ColorGanZhi(p.Time.Feet))
-		text.Draw(dst, ShiShenShort(soul, p.Time.Feet), ft14, int(sx+16), int(sy+80), colorWhite)
-		text.Draw(dst, LunarUtil.NAYIN[bz.GetTime()], ft14, int(sx), int(sy+96), ColorNaYin(bz.GetTime()))
-		text.Draw(dst, qimen.ChangSheng12[soul][p.Time.Zhi], ft14, int(sx), int(sy+112), ColorGanZhi(soul))
-		text.Draw(dst, qimen.ChangSheng12[p.Time.Gan][p.Time.Zhi], ft14, int(sx), int(sy+128), ColorGanZhi(p.Time.Gan))
-		text.Draw(dst, bz.GetTimeXunKong(), ft14, int(sx), int(sy+144), colorGray)
+		DrawFlow(dst, sx, sy, soul, p.Time)
 		text.Draw(dst, strings.Join(p.ShenShaT, "\n"), ft12, int(sx), int(sy+160+32), colorWhite)
 		sx += 48
-		vector.StrokeLine(dst, sx-8, sy-28, sx-8, sy+148, 1, colorWhite, true)
+		vector.StrokeLine(dst, sx-3, sy-28, sx-3, sy+148, 1, colorWhite, true)
+		if p.YunIdx == 0 {
+			text.Draw(dst, "小运", ft14, int(sx), int(sy-48), colorWhite)
+		} else {
+			text.Draw(dst, "大运", ft14, int(sx), int(sy-48), colorWhite)
+		}
+		if p.Yun != nil {
+			text.Draw(dst, LunarUtil.SHI_SHEN[soul+p.Yun.Gan], ft14, int(sx), int(sy-32), colorWhite)
+			DrawFlow(dst, sx, sy, soul, p.Yun)
+		}
+		sx += 48
 		text.Draw(dst, "流年", ft14, int(sx), int(sy-48), colorWhite)
-		text.Draw(dst, LunarUtil.SHI_SHEN[bz.GetDayGan()+g.FYear.Gan], ft14, int(sx), int(sy-32), colorWhite)
-		text.Draw(dst, g.FYear.Gan, ft28, int(sx), int(sy), ColorGanZhi(g.FYear.Gan))
-		text.Draw(dst, g.FYear.Zhi, ft28, int(sx), int(sy+32), ColorGanZhi(g.FYear.Zhi))
-		text.Draw(dst, g.FYear.Body, ft14, int(sx), int(sy+48), ColorGanZhi(g.FYear.Body))
-		text.Draw(dst, ShiShenShort(soul, g.FYear.Body), ft14, int(sx+16), int(sy+48), colorWhite)
-		text.Draw(dst, g.FYear.Legs, ft14, int(sx), int(sy+64), ColorGanZhi(g.FYear.Legs))
-		text.Draw(dst, ShiShenShort(soul, g.FYear.Legs), ft14, int(sx+16), int(sy+64), colorWhite)
-		text.Draw(dst, g.FYear.Feet, ft14, int(sx), int(sy+80), ColorGanZhi(g.FYear.Feet))
-		text.Draw(dst, ShiShenShort(soul, g.FYear.Feet), ft14, int(sx+16), int(sy+80), colorWhite)
-		text.Draw(dst, LunarUtil.NAYIN[g.FYear.Gan+g.FYear.Zhi], ft14, int(sx), int(sy+96), ColorNaYin(g.FYear.Gan+g.FYear.Zhi))
-		text.Draw(dst, qimen.ChangSheng12[soul][g.FYear.Zhi], ft14, int(sx), int(sy+112), ColorGanZhi(soul))
-		text.Draw(dst, qimen.ChangSheng12[g.FYear.Gan][g.FYear.Zhi], ft14, int(sx), int(sy+128), ColorGanZhi(g.FYear.Gan))
-		text.Draw(dst, LunarUtil.GetXunKong(g.FYear.Gan+g.FYear.Zhi), ft14, int(sx), int(sy+144), colorGray)
+		text.Draw(dst, LunarUtil.SHI_SHEN[soul+g.FYear.Gan], ft14, int(sx), int(sy-32), colorWhite)
+		DrawFlow(dst, sx, sy, soul, g.FYear)
+		sx += 48
+		text.Draw(dst, "流月", ft14, int(sx), int(sy-48), colorWhite)
+		text.Draw(dst, LunarUtil.SHI_SHEN[soul+g.FMonth.Gan], ft14, int(sx), int(sy-32), colorWhite)
+		DrawFlow(dst, sx, sy, soul, g.FMonth)
 
 	}
 	//竖象 年头颈/月胸腹/日腹股/时腿足 年额/月目/日鼻/时口 干左支右?
 	{
-		sx, sy := cx+120, cy-260
+		sx, sy := cx+408, cy
 		mx := int(sx + 28)
 		w := float32(74)
-		vector.StrokeRect(dst, sx, sy, w, 64, 1, colorWhite, true)          //头
-		vector.StrokeRect(dst, sx, sy+64, w, 32, 1, colorWhite, true)       //颈
-		vector.StrokeRect(dst, sx, sy+96, w, 64, 1, colorWhite, true)       //胸
-		vector.StrokeRect(dst, sx-36, sy+96, 32, 190, 1, colorWhite, true)  //胳膊手1
-		vector.StrokeRect(dst, sx+w+4, sy+96, 32, 190, 1, colorWhite, true) //胳膊手2
-		vector.StrokeRect(dst, sx, sy+96+64, w, 32, 1, colorWhite, true)    //腹
-		vector.StrokeRect(dst, sx, sy+96*2, w, 64, 1, colorWhite, true)     //小腹
-		vector.StrokeRect(dst, sx, sy+96*2+64, w, 32, 1, colorWhite, true)  //股
-		vector.StrokeRect(dst, sx, sy+96*3, w, 64, 1, colorWhite, true)     //腿
-		vector.StrokeRect(dst, sx, sy+96*3+64, w, 32, 1, colorWhite, true)  //足
+		vector.StrokeRect(dst, sx, sy, w, 64, 1, colorWhite, true)    //头
+		vector.StrokeRect(dst, sx, sy+64, w, 32, 1, colorWhite, true) //颈
+		vector.StrokeRect(dst, sx, sy+96, w, 64, 1, colorWhite, true) //胸
+		//vector.StrokeRect(dst, sx-36, sy+96, 32, 190, 1, colorWhite, true)  //胳膊手1
+		//vector.StrokeRect(dst, sx+w+4, sy+96, 32, 190, 1, colorWhite, true) //胳膊手2
+		vector.StrokeRect(dst, sx, sy+96+64, w, 32, 1, colorWhite, true)   //腹
+		vector.StrokeRect(dst, sx, sy+96*2, w, 64, 1, colorWhite, true)    //小腹
+		vector.StrokeRect(dst, sx, sy+96*2+64, w, 32, 1, colorWhite, true) //股
+		vector.StrokeRect(dst, sx, sy+96*3, w, 64, 1, colorWhite, true)    //腿
+		vector.StrokeRect(dst, sx, sy+96*3+64, w, 32, 1, colorWhite, true) //足
 		drawMiniGanZhi := func(sy int) {
 			text.Draw(dst, p.Year.Gan, ft14, mx, int(sy-16), ColorGanZhi(p.Year.Gan))
 			text.Draw(dst, p.Year.Zhi, ft14, mx+16, int(sy-16), ColorGanZhi(p.Year.Zhi))
@@ -249,11 +289,11 @@ func (g *EightCharPan) Draw(dst *ebiten.Image) {
 	}
 	//横象 年祖月父母日夫妻时子孙 干动支静 干为军支为营 干为官支为民
 	{
-		sx, sy := cx-240, cy+180
-		g.DrawCharHP(dst, sx, sy, &p.Year)
-		g.DrawCharHP(dst, sx+96, sy, &p.Month)
-		g.DrawCharHP(dst, sx+96*2, sy, &p.Day)
-		g.DrawCharHP(dst, sx+96*3, sy, &p.Time)
+		sx, sy := cx+8, cy+420
+		g.DrawCharHP(dst, sx, sy, p.Year)
+		g.DrawCharHP(dst, sx+96, sy, p.Month)
+		g.DrawCharHP(dst, sx+96*2, sy, p.Day)
+		g.DrawCharHP(dst, sx+96*3, sy, p.Time)
 
 	}
 
@@ -268,14 +308,17 @@ func (g *EightCharPan) DrawCharHP(dst *ebiten.Image, sx, sy float32, body *CharB
 	sy += 48
 	text.Draw(dst, body.Zhi, ft28, int(sx), int(sy), ColorGanZhi(body.Zhi))
 	text.Draw(dst, body.Body, ft14, int(sx), int(sy+16), ColorGanZhi(body.Body))
-	DrawProBar(dst, sx+28, sy+16-8, 64, 8, ColorGanZhi(body.Zhi), body.HPBody, body.HPMBody)
+	DrawProBar(dst, sx+28, sy+16-8, 64, 8, ColorGanZhi(body.Zhi), body.HPBody, body.HPMBody) //横HP
+	//DrawProBarV(dst, sx+28, sy-16, 8, 64, ColorGanZhi(body.Zhi), body.HPBody, body.HPMBody) //纵HP
 	if body.Legs != "" {
 		text.Draw(dst, body.Legs, ft14, int(sx), int(sy+32), ColorGanZhi(body.Legs))
 		DrawProBar(dst, sx+28, sy+32-8, 64, 8, ColorGanZhi(body.Legs), body.HPLegs, body.HPMLegs)
+		//DrawProBarV(dst, sx+28+24, sy-16, 8, 64, ColorGanZhi(body.Legs), body.HPLegs, body.HPMLegs)
 	}
 	if body.Feet != "" {
 		text.Draw(dst, body.Feet, ft14, int(sx), int(sy+48), ColorGanZhi(body.Feet))
 		DrawProBar(dst, sx+28, sy+48-8, 64, 8, ColorGanZhi(body.Feet), body.HPFeet, body.HPMFeet)
+		//DrawProBarV(dst, sx+28+48, sy-16, 8, 64, ColorGanZhi(body.Feet), body.HPFeet, body.HPMFeet)
 	}
 }
 
@@ -296,8 +339,8 @@ type CharBody struct {
 	HPMFeet int //余气值Max
 }
 
-func NewCharBody(gan, zhi string, ganM, zhiM int) CharBody {
-	return CharBody{Gan: gan, Zhi: zhi,
+func NewCharBody(gan, zhi string, ganM, zhiM int) *CharBody {
+	return &CharBody{Gan: gan, Zhi: zhi,
 		Body: GetHideGan(zhi, 0),
 		Legs: GetHideGan(zhi, 1), Feet: GetHideGan(zhi, 2),
 		HPMHead: ganM, HPMBody: zhiM, HPMLegs: zhiM, HPMFeet: zhiM,
@@ -322,15 +365,16 @@ func (c *CharBody) InitHP(maxHp int) {
 type Player struct {
 	Gender int //性别
 	Lunar  *calendar.Lunar
-	Year   CharBody  //年柱
-	Month  CharBody  //月柱
-	Day    CharBody  //日柱
-	Time   CharBody  //时柱
+	Year   *CharBody //年柱
+	Month  *CharBody //月柱
+	Day    *CharBody //日柱
+	Time   *CharBody //时柱
 	Yun    *CharBody //当前大运
 
-	DaYun  []*calendar.DaYun //大运
-	Fates0 []string          //小运名
-	Fates  []string          //大运名
+	DaYunA          []*calendar.DaYun //大运
+	YunIdx0, YunIdx int
+	Fates0          []string //小运名
+	Fates           []string //大运名
 
 	ShenShaY []string //神煞
 	ShenShaM []string //神煞
@@ -350,10 +394,10 @@ func (p *Player) Reset(lunar *calendar.Lunar, gender int) {
 	p.ShenShaY, p.ShenShaM, p.ShenShaD, p.ShenShaT = qimen.CalcShenSha(bz)
 
 	yun := bz.GetYun(p.Gender)
-	p.DaYun = yun.GetDaYunBy(7)
+	p.DaYunA = yun.GetDaYunBy(7)
 	p.Fates0 = nil
 	p.Fates = nil
-	for i, daYun := range p.DaYun {
+	for i, daYun := range p.DaYunA {
 		//fmt.Printf("大运[%d] = %d年 %d岁 %s\n", daYun.GetIndex(), daYun.GetStartYear(), daYun.GetStartAge(), daYun.GetGanZhi())
 		if i == 0 {
 			for _, xiaoYun := range daYun.GetXiaoYun() {

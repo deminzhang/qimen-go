@@ -295,7 +295,13 @@ func CalcShenSha(bz *calendar.EightChar) ([]string, []string, []string, []string
 	}
 	//咸池/桃花: 年/日支为主,见三合中神之沐浴(申子辰见酉 寅午戌见卯 巳酉丑见午 亥卯未见子)
 	for i, zhi := range zhiA {
-		if util.Contains([]string{zhiY + zhi, zhiD + zhi},
+		if util.Contains([]string{zhiD + zhi},
+			"申酉", "子酉", "辰酉", "寅卯", "午卯", "戌卯", "巳午", "酉午", "丑午", "亥子", "卯子", "未子") {
+			ss[i] = append(ss[i], "咸池")
+		}
+	}
+	for i, zhi := range zhiA {
+		if util.Contains([]string{zhiY + zhi},
 			"申酉", "子酉", "辰酉", "寅卯", "午卯", "戌卯", "巳午", "酉午", "丑午", "亥子", "卯子", "未子") {
 			ss[i] = append(ss[i], "桃花")
 		}

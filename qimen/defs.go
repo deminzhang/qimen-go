@@ -1,6 +1,7 @@
 package qimen
 
 import (
+	"fmt"
 	"github.com/6tail/lunar-go/LunarUtil"
 	"strings"
 )
@@ -366,7 +367,7 @@ var _QiMenJuYear = []int{0, -1, -4, -7}
 // GetHuangDiYear 黄帝纪元
 func GetHuangDiYear(year int) int {
 	if year < 0 {
-		return 2698 - year
+		//return 2698 - year
 	}
 	return year + 2697
 }
@@ -380,6 +381,15 @@ func GetYearYuanJu(year int) (int, int) {
 	y := GetHuangDiYear(year)
 	yuan := (y-60-1)%180/60 + 1
 	return yuan, _QiMenJuYear[yuan]
+}
+func GetYearInChinese(year int) string {
+	y := fmt.Sprintf("%d", year)
+	s := ""
+	j := len(y)
+	for i := 0; i < j; i++ {
+		s += LunarUtil.NUMBER[[]rune(y[i : i+1])[0]-'0']
+	}
+	return s
 }
 
 const (
