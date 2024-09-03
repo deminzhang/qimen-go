@@ -32,9 +32,8 @@ var HideGanVal = map[int][]int{
 	3: {60, 30, 10},
 }
 
-type EightCharPan struct {
-	X, Y float32
-	//YMDH   string
+type Char8Pan struct {
+	X, Y       float32
 	inited     bool
 	FYear      *CharBody //流年通用
 	FMonth     *CharBody //流月通用
@@ -48,13 +47,13 @@ type EightCharPan struct {
 	uis      map[ui.IUIPanel]struct{}
 }
 
-func NewEightCharPan(x, y float32) *EightCharPan {
-	p := &EightCharPan{
+func NewChar8Pan(x, y float32) *Char8Pan {
+	p := &Char8Pan{
 		X: x, Y: y,
 		uis: make(map[ui.IUIPanel]struct{}),
 		//btnMove:  ui.NewTextButton(int(x+4), int(y), "+ ", colorWhite, true),
 	}
-	p.btnBirth = ui.NewTextButton(int(x+158), int(y), "择辰", colorWhite, true)
+	p.btnBirth = ui.NewTextButton(int(x+146), int(y+3), "命造", colorWhite, true)
 	p.btnBirth.SetOnClick(func(b *ui.Button) {
 		UIShowSelect()
 	})
@@ -62,7 +61,7 @@ func NewEightCharPan(x, y float32) *EightCharPan {
 	return p
 }
 
-func (g *EightCharPan) Init() {
+func (g *Char8Pan) Init() {
 	cal := ThisGame.qmGame.Lunar
 	g.FYear = NewCharBody(cal.GetYearGan(), cal.GetYearZhi(), HpGY, HpZY)
 	g.FMonth = NewCharBody(cal.GetMonthGan(), cal.GetMonthZhi(), HpGM, HpZM)
@@ -70,76 +69,96 @@ func (g *EightCharPan) Init() {
 	g.FTime = NewCharBody(cal.GetTimeGan(), cal.GetTimeZhi(), HpGT, HpZT)
 	g.Player = &Player{}
 	g.Player.Reset(cal, GenderMale)
+	g.inited = true
 }
 
-func (g *EightCharPan) Update() error {
+func (g *Char8Pan) SetPos(x, y float32) {
+	g.X, g.Y = x, y
+}
+
+func (g *Char8Pan) Update() error {
 	if !g.inited {
 		g.Init()
-		g.inited = true
 	}
 	for panel := range g.uis {
 		panel.Update()
 	}
 
 	cal := ThisGame.qmGame.Lunar
+	p := g.Player
 	if g.FYear.Gan != cal.GetYearGan() || g.FYear.Zhi != cal.GetYearZhi() {
 		g.FYear = NewCharBody(cal.GetYearGan(), cal.GetYearZhi(), HpGY, HpZY)
+		p.UpdateCount = 10
 	}
 	if g.FMonth.Gan != cal.GetMonthGan() || g.FMonth.Zhi != cal.GetMonthZhi() {
 		g.FMonth = NewCharBody(cal.GetMonthGan(), cal.GetMonthZhi(), HpGM, HpZM)
+		p.UpdateCount = 10
 	}
 	if g.FDay.Gan != cal.GetDayGan() || g.FDay.Zhi != cal.GetDayZhi() {
 		g.FDay = NewCharBody(cal.GetDayGan(), cal.GetDayZhi(), HpGD, HpZD)
+		p.UpdateCount = 10
 	}
 	if g.FTime.Gan != cal.GetTimeGan() || g.FTime.Zhi != cal.GetTimeZhi() {
 		g.FTime = NewCharBody(cal.GetTimeGan(), cal.GetTimeZhi(), HpGT, HpZT)
+		p.UpdateCount = 10
 	}
-	p := g.Player
-	var change bool
-	if p.Yun == nil {
-		change = true
+	var changeYun bool
+	if p.FYun == nil {
+		changeYun = true
 	} else {
 		LYear := cal.GetYear()
 		if p.YunIdx == 0 {
-			if p.DaYunA[0].GetXiaoYun()[p.YunIdx0].GetYear() != LYear {
-				change = true
+			if p.yuns[0].GetXiaoYun()[p.YunIdx0].GetYear() != LYear {
+				changeYun = true
 			}
 		} else {
-			daYun := p.DaYunA[p.YunIdx]
+			daYun := p.yuns[p.YunIdx]
 			if daYun.GetStartYear() <= LYear && LYear <= daYun.GetEndYear() {
-				change = true
+				changeYun = true
 			}
 		}
 	}
-	if change { //大运变化
-		for i, daYun := range p.DaYunA {
-			if daYun.GetStartYear() <= cal.GetYear() && cal.GetYear() <= daYun.GetEndYear() {
-				if i == 0 {
-					for j, xiaoYun := range daYun.GetXiaoYun() {
-						if xiaoYun.GetYear() == cal.GetYear() {
-							gz := xiaoYun.GetGanZhi()
-							gan := string([]rune(gz)[0])
-							zhi := string([]rune(gz)[1])
-							p.Yun = NewCharBody(gan, zhi, HpGM, HpZM)
-							p.YunIdx0 = j
-							p.YunIdx = i
-							break
+	if changeYun { //大运变化
+		if cal.GetYear() < p.yuns[0].GetStartYear() {
+			p.FYun = nil //未出生,穿越过去
+		} else {
+			for i, daYun := range p.yuns {
+				if daYun.GetStartYear() <= cal.GetYear() && cal.GetYear() <= daYun.GetEndYear() {
+					if i == 0 {
+						for j, xiaoYun := range daYun.GetXiaoYun() {
+							if xiaoYun.GetYear() == cal.GetYear() {
+								gz := xiaoYun.GetGanZhi()
+								gan := string([]rune(gz)[0])
+								zhi := string([]rune(gz)[1])
+								p.FYun = NewCharBody(gan, zhi, HpGM, HpZM)
+								p.YunIdx0 = j
+								p.YunIdx = i
+								break
+							}
 						}
+					} else {
+						gz := daYun.GetGanZhi()
+						gan := string([]rune(gz)[0])
+						zhi := string([]rune(gz)[1])
+						p.FYun = NewCharBody(gan, zhi, HpGM, HpZM)
+						p.YunIdx0 = 0
+						p.YunIdx = i
 					}
-				} else {
-					gz := daYun.GetGanZhi()
-					gan := string([]rune(gz)[0])
-					zhi := string([]rune(gz)[1])
-					p.Yun = NewCharBody(gan, zhi, HpGM, HpZM)
-					p.YunIdx0 = 0
-					p.YunIdx = i
+					p.UpdateCount = 10
+					break
+				} else { //超寿,修仙了,加运
+					if i == len(p.yuns)-1 {
+						for j := i; j < i+10; j++ {
+							p.yuns = append(p.yuns, calendar.NewDaYun(p.yun, j))
+						}
+						break
+					}
 				}
-				break
 			}
 		}
 	}
 
-	p.UpdateHp()
+	g.UpdateHp(p)
 
 	g.brightness += 1
 	if 0xff < g.brightness {
@@ -148,7 +167,35 @@ func (g *EightCharPan) Update() error {
 	return nil
 }
 
-func (g *EightCharPan) Draw(dst *ebiten.Image) {
+func (g *Char8Pan) UpdateHp(p *Player) {
+	if p.UpdateCount == 0 {
+		return
+	}
+	p.UpdateCount--
+	//先天后地 从年到时
+	//年干-月干 日干-时干 月干-日干
+	//年干-年支 月干-月支 日干-日支 时干-时支
+	//年支-月支 日支-时支 月支-日支
+	//年干--日干 月干--时干
+	//年支--日支 月支--时支
+	//年干---时干
+	//年支---时支
+	CharBodyInteractive(p.Year, p.Month, 6, 1)
+	CharBodyInteractive(p.Day, p.Time, 6, 1)
+	CharBodyInteractive(p.Month, p.Day, 6, 1)
+	CharBodyInteractive(p.Year, p.Day, 4, 1)
+	CharBodyInteractive(p.Month, p.Time, 4, 1)
+	CharBodyInteractive(p.Year, p.Time, 2, 1)
+
+	CharBodyInteractive(p.FYun, p.Year, 4, 0)
+	CharBodyInteractive(p.FYun, p.Month, 4, 0)
+	CharBodyInteractive(g.FYear, p.Year, 4, 0)
+	CharBodyInteractive(g.FMonth, p.Month, 4, 0)
+	CharBodyInteractive(g.FDay, p.Day, 4, 0)
+	CharBodyInteractive(g.FTime, p.Time, 4, 0)
+}
+
+func (g *Char8Pan) Draw(dst *ebiten.Image) {
 	for panel := range g.uis {
 		panel.Draw(dst)
 	}
@@ -163,8 +210,8 @@ func (g *EightCharPan) Draw(dst *ebiten.Image) {
 	//八字总览
 	{
 		sx, sy := cx, cy
-		vector.StrokeRect(dst, sx, sy, 394, 370, 1, colorWhite, true)
-		sx += 16
+		vector.StrokeRect(dst, sx, sy, 480, 370, 1, colorWhite, true)
+		sx += 4
 		sy += 64
 		text.Draw(dst, "十神", ft14, int(sx), int(sy-32), colorWhite)
 		text.Draw(dst, "天干", ft14, int(sx), int(sy-8), colorWhite)
@@ -207,11 +254,12 @@ func (g *EightCharPan) Draw(dst *ebiten.Image) {
 		} else {
 			text.Draw(dst, "大运", ft14, int(sx), int(sy-48), colorWhite)
 		}
-		if p.Yun != nil {
-			text.Draw(dst, LunarUtil.SHI_SHEN[soul+p.Yun.Gan], ft14, int(sx), int(sy-32), colorWhite)
-			DrawFlow(dst, sx, sy, soul, p.Yun)
+		if p.FYun != nil {
+			text.Draw(dst, LunarUtil.SHI_SHEN[soul+p.FYun.Gan], ft14, int(sx), int(sy-32), colorWhite)
+			DrawFlow(dst, sx, sy, soul, p.FYun)
 		}
 		sx += 48
+		vector.StrokeLine(dst, sx-3, sy-28, sx-3, sy+148, 1, colorWhite, true)
 		text.Draw(dst, "流年", ft14, int(sx), int(sy-48), colorWhite)
 		text.Draw(dst, LunarUtil.SHI_SHEN[soul+g.FYear.Gan], ft14, int(sx), int(sy-32), colorWhite)
 		DrawFlow(dst, sx, sy, soul, g.FYear)
@@ -219,11 +267,19 @@ func (g *EightCharPan) Draw(dst *ebiten.Image) {
 		text.Draw(dst, "流月", ft14, int(sx), int(sy-48), colorWhite)
 		text.Draw(dst, LunarUtil.SHI_SHEN[soul+g.FMonth.Gan], ft14, int(sx), int(sy-32), colorWhite)
 		DrawFlow(dst, sx, sy, soul, g.FMonth)
+		sx += 48
+		text.Draw(dst, "流日", ft14, int(sx), int(sy-48), colorWhite)
+		text.Draw(dst, LunarUtil.SHI_SHEN[soul+g.FDay.Gan], ft14, int(sx), int(sy-32), colorWhite)
+		DrawFlow(dst, sx, sy, soul, g.FDay)
+		sx += 48
+		text.Draw(dst, "流时", ft14, int(sx), int(sy-48), colorWhite)
+		text.Draw(dst, LunarUtil.SHI_SHEN[soul+g.FTime.Gan], ft14, int(sx), int(sy-32), colorWhite)
+		DrawFlow(dst, sx, sy, soul, g.FTime)
 
 	}
 	//竖象 年头颈/月胸腹/日腹股/时腿足 年额/月目/日鼻/时口 干左支右?
 	{
-		sx, sy := cx+408, cy
+		sx, sy := cx+408, cy+420
 		mx := int(sx + 28)
 		w := float32(74)
 		vector.StrokeRect(dst, sx, sy, w, 64, 1, colorWhite, true)    //头
@@ -299,7 +355,7 @@ func (g *EightCharPan) Draw(dst *ebiten.Image) {
 
 }
 
-func (g *EightCharPan) DrawCharHP(dst *ebiten.Image, sx, sy float32, body *CharBody) {
+func (g *Char8Pan) DrawCharHP(dst *ebiten.Image, sx, sy float32, body *CharBody) {
 	ft14, _ := GetFontFace(14)
 	ft28, _ := GetFontFace(28)
 	vector.StrokeRect(dst, sx, sy+2, 96, 96, 1, colorWhite, true)
@@ -369,17 +425,25 @@ type Player struct {
 	Month  *CharBody //月柱
 	Day    *CharBody //日柱
 	Time   *CharBody //时柱
-	Yun    *CharBody //当前大运
+	FYun   *CharBody //大运
 
-	DaYunA          []*calendar.DaYun //大运
-	YunIdx0, YunIdx int
-	Fates0          []string //小运名
-	Fates           []string //大运名
+	yun             *calendar.Yun     //运
+	yuns            []*calendar.DaYun //大运集
+	YunIdx0, YunIdx int               //当前大运小运索引
+	Fates0          []string          //小运名
+	Fates           []string          //大运名
 
-	ShenShaY []string //神煞
-	ShenShaM []string //神煞
-	ShenShaD []string //神煞
-	ShenShaT []string //神煞
+	UpdateCount int
+
+	ShenShaY []string //神煞年
+	ShenShaM []string //神煞月
+	ShenShaD []string //神煞日
+	ShenShaT []string //神煞时
+	//ShenShaYY []string //神煞大运
+	//ShenShaFY []string //神煞流年
+	//ShenShaFM []string //神煞流月
+	//ShenShaFD []string //神煞流日
+	//ShenShaFT []string //神煞流时
 }
 
 func (p *Player) Reset(lunar *calendar.Lunar, gender int) {
@@ -394,10 +458,11 @@ func (p *Player) Reset(lunar *calendar.Lunar, gender int) {
 	p.ShenShaY, p.ShenShaM, p.ShenShaD, p.ShenShaT = qimen.CalcShenSha(bz)
 
 	yun := bz.GetYun(p.Gender)
-	p.DaYunA = yun.GetDaYunBy(7)
+	p.yun = yun
+	p.yuns = yun.GetDaYun()
 	p.Fates0 = nil
 	p.Fates = nil
-	for i, daYun := range p.DaYunA {
+	for i, daYun := range p.yuns {
 		//fmt.Printf("大运[%d] = %d年 %d岁 %s\n", daYun.GetIndex(), daYun.GetStartYear(), daYun.GetStartAge(), daYun.GetGanZhi())
 		if i == 0 {
 			for _, xiaoYun := range daYun.GetXiaoYun() {
@@ -409,8 +474,8 @@ func (p *Player) Reset(lunar *calendar.Lunar, gender int) {
 			p.Fates = append(p.Fates, daYun.GetGanZhi())
 		}
 	}
-	p.Yun = nil
-
+	p.FYun = nil
+	p.UpdateCount = 10
 	p.ResetHP()
 }
 
@@ -425,21 +490,92 @@ func (p *Player) ResetHP() {
 	p.Time.InitHP(HpZT)
 }
 
-func (p *Player) UpdateHp() {
-	//合取1
-	//制取1破1/取2
-	//印生2
-	//枭生2?
-	//食泄2
-	//伤泄2?
-	//先天后地 从年到时
-	//年干-月干 日干-时干 月干-日干
+func CharBodyInteractive(a, b *CharBody, force int, reduce int) {
+	gg := LunarUtil.SHI_SHEN[a.Gan+b.Gan]
+	switch gg {
+	case "比肩", "劫财": //助
+		if a.HPHead < a.HPMHead && a.HPHead+force < b.HPHead-force {
+			b.HPHead -= force * reduce
+			a.HPHead += force
+		}
+		if b.HPHead < b.HPMHead && b.HPHead+force < a.HPHead-force {
+			a.HPHead -= force * reduce
+			b.HPHead += force
+		}
+	case "食神", "伤官": //泄
+		if b.HPHead < b.HPMHead && b.HPHead+force < a.HPHead-force {
+			if b.HPHead+force < (a.HPHead-force)/2 { //快泄
+				a.HPHead -= force * reduce
+				b.HPHead += force
+			} else { //慢泄
+				a.HPHead -= force / 2 * reduce
+				b.HPHead += force / 2
+			}
+		}
+	case "正印", "偏印": //生
+		if a.HPHead < a.HPMHead && a.HPHead+force < b.HPHead-force {
+			if a.HPHead+force < (b.HPHead-force)/2 { //快生
+				b.HPHead -= force * reduce
+				a.HPHead += force
+			} else { //慢生
+				b.HPHead -= force / 2 * reduce
+				a.HPHead += force / 2
+			}
+		}
+	//阳受阴克为害，阴受阳克为侵，阳受阳克为制，阴受阴克为乱
+	case "正官": //娶
+		if qimen.HE_GAN[a.Gan] == b.Gan { //合
 
-	//年干-年支 月干-月支 日干-日支 时干-时支
-	//年支-月支 日支-时支 月支-日支
-	//年干--日干 月干--时干
-	//年支--日支 月支--时支
-	//年干---时干
-	//年支---时支
+		}
+		if b.HPHead < b.HPMHead && b.HPHead+force < a.HPHead-force {
+			a.HPHead -= force * reduce
+			b.HPHead += force
+		}
+	case "七杀": //夺
+		if b.HPHead < b.HPMHead && b.HPHead+force < a.HPHead-force {
+			a.HPHead -= force * reduce
+			b.HPHead += force / 2
+		}
+	case "正财": //嫁
+		if qimen.HE_GAN[a.Gan] == b.Gan { //合
 
+		}
+		if a.HPHead < a.HPMHead && a.HPHead+force < b.HPHead-force {
+			b.HPHead -= force * reduce
+			a.HPHead += force
+		}
+	case "偏财": //耗
+		if a.HPHead < a.HPMHead && a.HPHead+force < b.HPHead-force {
+			b.HPHead -= force * reduce
+			a.HPHead += force / 2
+		}
+	}
+	//支引干透
+	reduce = 0
+	ab := LunarUtil.SHI_SHEN[a.Gan+a.Body]
+	switch ab {
+	case "比肩", "劫财": //助
+		if a.HPHead < a.HPMBody && a.HPHead+force < a.HPBody {
+			a.HPHead += force
+		}
+	case "食神", "伤官": //泄
+		if a.HPHead < a.HPMBody && a.HPHead+force < a.HPBody {
+			a.HPHead += force
+		}
+	case "正印", "偏印": //生
+	}
+	if a.Legs != "" {
+		al := LunarUtil.SHI_SHEN[a.Gan+a.Legs]
+		switch al {
+		case "比肩", "劫财": //助
+
+		}
+	}
+	if a.Feet != "" {
+		af := LunarUtil.SHI_SHEN[a.Gan+a.Feet]
+		switch af {
+		case "比肩", "劫财": //助
+
+		}
+	}
 }

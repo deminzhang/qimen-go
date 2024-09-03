@@ -14,7 +14,6 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
-	"qimen/ui"
 	"qimen/util"
 	"regexp"
 	"strconv"
@@ -60,8 +59,8 @@ type Astrolabe struct {
 	tzOffset int
 	tzRA0    float64 //春分点角度
 
-	DataQuery bool
-	OEData    map[int]*ObserveEphemeris
+	DataQuerying bool
+	OEData       map[int]*ObserveEphemeris
 
 	ConstellationLoc [12]gongLocation //星座位
 	AstrolabeLoc     [12]gongLocation //宫位
@@ -81,6 +80,7 @@ type CelestialBody struct {
 	R           float32    //轨道半径 AU
 	orbitCenter int        //轨道中心
 	Gravity     float64    //引力 N
+	GMin, GMax  float64    //引力范围
 	color       color.RGBA //RedShift红移/BlueShift蓝移
 
 	AR               float32 //星盘半径
@@ -117,30 +117,30 @@ var Bodies = map[int]*CelestialBody{
 		Satellite: []int{301}},
 	3: {Id: 3, Name: "EarthBarycenter", NameCN: "地月系重心", AR: 50,
 		SubBody: []int{301, 399}},
-	401: {Id: 401, Name: "Phobos", AR: 5, Mass: 1.0659 * 1e16},
-	402: {Id: 402, Name: "Deimos", AR: 5, Mass: 1.4762 * 1e15},
+	401: {Id: 401, Name: "Phobos", AR: 5, Mass: 1.0659 * 1e16, orbitCenter: 499},
+	402: {Id: 402, Name: "Deimos", AR: 5, Mass: 1.4762 * 1e15, orbitCenter: 499},
 	499: {Id: 499, Name: "Mars", NameCN: "火", R: (1.38 + 1.66) / 2, AR: 70, Mass: 6.4171 * 1e23,
 		Satellite: []int{401, 402}},
 	4: {Id: 4, Name: "MarsBarycenter", NameCN: "火系重心", AR: 70,
 		SubBody: []int{401, 402, 499}},
-	501: {Id: 501, Name: "Io", AR: 5, Mass: 8.9319 * 1e22},
-	502: {Id: 502, Name: "Europa", AR: 5, Mass: 4.7998 * 1e22},
-	503: {Id: 503, Name: "Ganymede", AR: 6, Mass: 1.4819 * 1e23},
-	504: {Id: 504, Name: "Callisto", AR: 7, Mass: 1.0759 * 1e23},
+	501: {Id: 501, Name: "Io", AR: 5, Mass: 8.9319 * 1e22, orbitCenter: 599},
+	502: {Id: 502, Name: "Europa", AR: 5, Mass: 4.7998 * 1e22, orbitCenter: 599},
+	503: {Id: 503, Name: "Ganymede", AR: 6, Mass: 1.4819 * 1e23, orbitCenter: 599},
+	504: {Id: 504, Name: "Callisto", AR: 7, Mass: 1.0759 * 1e23, orbitCenter: 599},
 	599: {Id: 599, Name: "Jupiter", NameCN: "木", R: (4.95 + 5.46) / 2, AR: 90, Mass: 1.8982 * 1e27, //18981.8722 +- .8817
 		Satellite: []int{501, 502, 503, 504}},
-	601: {Id: 601, Name: "Mimas", AR: 5, Mass: 3.7493 * 1e19},
-	602: {Id: 602, Name: "Enceladus", AR: 5, Mass: 1.0802 * 1e20},
-	603: {Id: 603, Name: "Tethys", AR: 6, Mass: 6.1745 * 1e20},
-	604: {Id: 604, Name: "Dione", AR: 6, Mass: 1.0955 * 1e21},
-	605: {Id: 605, Name: "Rhea", AR: 6, Mass: 2.306 * 1e21},
-	606: {Id: 606, Name: "Titan", AR: 6, Mass: 1.3455 * 1e23},
-	607: {Id: 607, Name: "Iapetus", AR: 7, Mass: 1.8053 * 1e21},
+	601: {Id: 601, Name: "Mimas", AR: 5, Mass: 3.7493 * 1e19, orbitCenter: 699},
+	602: {Id: 602, Name: "Enceladus", AR: 5, Mass: 1.0802 * 1e20, orbitCenter: 699},
+	603: {Id: 603, Name: "Tethys", AR: 6, Mass: 6.1745 * 1e20, orbitCenter: 699},
+	604: {Id: 604, Name: "Dione", AR: 6, Mass: 1.0955 * 1e21, orbitCenter: 699},
+	605: {Id: 605, Name: "Rhea", AR: 6, Mass: 2.306 * 1e21, orbitCenter: 699},
+	606: {Id: 606, Name: "Titan", AR: 6, Mass: 1.3455 * 1e23, orbitCenter: 699},
+	607: {Id: 607, Name: "Iapetus", AR: 7, Mass: 1.8053 * 1e21, orbitCenter: 699},
 	699: {Id: 699, Name: "Saturn", NameCN: "土", R: (9.03 + 9.54) / 2, AR: 105, Mass: 5.6834 * 1e26,
 		Satellite: []int{601, 602, 603, 604, 605, 606, 607}},
 	799: {Id: 799, Name: "Uranus", NameCN: "天", R: (18.31 + 19.19) / 2, AR: 120, Mass: 8.6813 * 1e25},
 	899: {Id: 899, Name: "Neptune", NameCN: "海", R: (29.81 + 30.36) / 2, AR: 135, Mass: 1.02409 * 1e26},
-	901: {Id: 901, Name: "Charon", NameCN: "卡", AR: 5, Mass: 1 * 1e22},
+	901: {Id: 901, Name: "Charon", NameCN: "卡", AR: 5, Mass: 1 * 1e22, orbitCenter: 999},
 	999: {Id: 999, Name: "Pluto", NameCN: "冥", R: (29.66 + 49.31) / 2, AR: 150, Mass: 1.307 * 1e22, //1.307+-0.018
 		Satellite: []int{901}},
 	9: {Id: 9, Name: "PlutoBarycenter", NameCN: "冥王系重心", AR: 150,
@@ -150,10 +150,10 @@ var Draws = []int{
 	10, 199, 299, 399, 499, 599, 699, // 799, 899, 999,
 }
 
-func NewAstrolabe(cx, cy float32) *Astrolabe {
+func NewAstrolabe(x, y float32) *Astrolabe {
 	tz, offset := time.Now().Local().Zone()
 	a := &Astrolabe{
-		X: cx, Y: cy,
+		X: x, Y: y,
 		observer: 399,
 		timezone: tz,
 		tzOffset: offset,
@@ -162,14 +162,16 @@ func NewAstrolabe(cx, cy float32) *Astrolabe {
 	for i := 1; i <= 12; i++ {
 		//固定宫位
 		degrees := float64(i)*30 - 90
-		ly1, lx1 := util.CalRadiansPos(float64(cy), float64(cx), float64(outCircleR-outCircleW/4), degrees)
-		ly2, lx2 := util.CalRadiansPos(float64(cy), float64(cx), float64(outCircleR-outCircleW*3/4), degrees)
-		y, x := util.CalRadiansPos(float64(cy), float64(cx), float64(outCircleR-outCircleW/2), degrees-15)
+		ly1, lx1 := util.CalRadiansPos(float64(y), float64(x), float64(outCircleR-outCircleW/4), degrees)
+		ly2, lx2 := util.CalRadiansPos(float64(y), float64(x), float64(outCircleR-outCircleW*3/4), degrees)
+		y, x := util.CalRadiansPos(float64(y), float64(x), float64(outCircleR-outCircleW/2), degrees-15)
 		a.AstrolabeLoc[i-1] = gongLocation{float32(lx1), float32(ly1), float32(lx2), float32(ly2), int(x), int(y)}
 	}
 	return a
 }
-
+func (a *Astrolabe) SetPos(x, y float32) {
+	a.X, a.Y = x, y
+}
 func (a *Astrolabe) Update() {
 	sCal := ThisGame.qmGame.Solar
 	if a.solar == *sCal {
@@ -196,7 +198,6 @@ func (a *Astrolabe) Update() {
 		v1 := (&util.Vec2[float32]{X: moon.DrawX - cx, Y: moon.DrawY - cy}).ScaledToLength(outCircleR - outCircleW*2)
 		moon.SphereX = cx + v1.X
 		moon.SphereY = cy + v1.Y
-		moon.NameCN = fmt.Sprintf("(%s)月", ThisGame.qmGame.Lunar.GetYueXiang())
 	}
 
 	m := Bodies[a.observer].Mass
@@ -205,18 +206,24 @@ func (a *Astrolabe) Update() {
 		if id == a.observer {
 			body.DrawX, body.DrawY = a.X, a.Y
 			body.color = colorBlueShift
-			for _, id := range body.Satellite {
-				body := Bodies[id]
-				oe := a.GetEphemeris(id, sCal)
+			for _, sid := range body.Satellite {
+				bd := Bodies[sid]
+				oe := a.GetEphemeris(sid, sCal)
 				if oe == nil {
 					a.solar = calendar.Solar{}
 					continue
 				}
-				body.Gravity = G * body.Mass * m / math.Pow(oe.Delta()*AU, 2)
-				if oe.Deldot() > 0 {
-					body.color = colorBlueShift
+				bd.Gravity = G * bd.Mass * m / math.Pow(oe.Delta()*AU, 2)
+				if bd.GMin == 0 {
+					bd.GMin = bd.Gravity
 				} else {
-					body.color = colorRedShift
+					bd.GMin = min(bd.Gravity, bd.GMin)
+				}
+				bd.GMax = max(bd.Gravity, bd.GMax)
+				if oe.Deldot() > 0 {
+					bd.color = colorBlueShift
+				} else {
+					bd.color = colorRedShift
 				}
 			}
 			continue
@@ -250,6 +257,12 @@ func (a *Astrolabe) Update() {
 			body.SphereY = cy + v1.Y
 		}
 		body.Gravity = G * body.Mass * m / math.Pow(oe.Delta()*AU, 2)
+		if body.GMin == 0 {
+			body.GMin = body.Gravity
+		} else {
+			body.GMin = min(body.Gravity, body.GMin)
+		}
+		body.GMax = max(body.Gravity, body.GMax)
 		if oe.Deldot() > 0 {
 			body.color = colorBlueShift
 		} else {
@@ -272,7 +285,7 @@ func (a *Astrolabe) calGongLocation() {
 }
 
 func (a *Astrolabe) Draw(dst *ebiten.Image) {
-	ft := ui.GetDefaultUIFont()
+	ft, _ := GetFontFace(12)
 	cx, cy := a.X, a.Y
 	sX, sY := a.solarX, a.solarY
 	//外圈
@@ -286,7 +299,8 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 	//春分点 RA0
 	tzY, tzX := util.CalRadiansPos(float64(cy), float64(cx), outCircleR/2, a.tzRA0)
 	vector.StrokeLine(dst, cx, cy, float32(tzX), float32(tzY), 1, colorOrbits, true)
-	text.Draw(dst, "春分", ft, int(tzX), int(tzY), colorLeader) //春分点
+	text.Draw(dst, "春分", ft, int(tzX), int(tzY), colorLeader)                                                        //春分点
+	text.Draw(dst, fmt.Sprintf("%s月", ThisGame.qmGame.Lunar.GetYueXiang()), ft, int(cx-16), int(cy-25), colorLeader) //月相
 
 	//画12宫
 	for i := 0; i < 12; i++ {
@@ -297,7 +311,7 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 		vector.StrokeLine(dst, l.lx1, l.ly1, l.lx2, l.ly2, 1, colorGongSplit, true) //宫
 		text.Draw(dst, fmt.Sprintf("%d", i+1), ft, l.x-4, l.y+4, colorJiang)        //宫位
 	}
-
+	//画星体
 	for _, id := range Draws {
 		obj := Bodies[id]
 		vector.StrokeCircle(dst, sX, sY, obj.DrawR(), 1, colorOrbits, true) //planet Orbit
@@ -326,23 +340,28 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 			}
 		}
 	}
-	var desX, desY float32 = 1154, 270
+	a.DrawGravity(dst)
+	if a.DataQuerying {
+		text.Draw(dst, "正在观星..", ft, int(cx-32), int(cy-10), color.White)
+	}
+}
+func (a *Astrolabe) DrawGravity(dst *ebiten.Image) {
+	cx, cy := a.X, a.Y-440
 	for _, id := range Draws {
 		obj := Bodies[id]
 		if obj.Gravity > 0 {
-			desY += 20
-			text.Draw(dst, fmt.Sprintf("%s:G:%.2fN", obj.NameCN, obj.Gravity), ft, int(desX), int(desY), color.White)
+			//cx += 40
+			cy += 22
+			DrawRangeBar(dst, cx-200, cy, 100, obj.NameCN, obj.Gravity, obj.GMin, obj.GMax, obj.color)
 		}
 		for _, sid := range obj.Satellite {
 			ob := Bodies[sid]
 			if ob.Gravity > 0 {
-				desY += 20
-				text.Draw(dst, fmt.Sprintf("%s:G:%.2f", ob.NameCN, ob.Gravity), ft, int(desX), int(desY), color.White)
+				//cx += 40
+				cy += 22
+				DrawRangeBar(dst, cx-200, cy, 100, ob.NameCN, ob.Gravity, ob.GMin, ob.GMax, ob.color)
 			}
 		}
-	}
-	if a.DataQuery {
-		text.Draw(dst, "正在观星..", ft, int(cx-32), int(cy-10), color.White)
 	}
 }
 
@@ -434,11 +453,11 @@ func (a *Astrolabe) GetEphemeris(id int, dt *calendar.Solar) *ObserveData {
 		//get from db
 		//if dbData {
 		//}
-		if a.DataQuery {
+		if a.DataQuerying {
 			return nil
 		}
-		a.DataQuery = true
-		te := st.Add(time.Hour * 24)
+		a.DataQuerying = true
+		te := st.Add(time.Hour * 24 * 7)
 		ets := te.Format(DataTimeMin)
 		go func() {
 			d = a.GetNASAData(id, sts, ets)
@@ -446,10 +465,17 @@ func (a *Astrolabe) GetEphemeris(id int, dt *calendar.Solar) *ObserveData {
 				return
 			}
 			a.OEData[id].ApplyData(d.data)
-			a.DataQuery = false
+			a.DataQuerying = false
 		}()
 	}
 	return d.GetOE(sts)
+}
+
+func (a *Astrolabe) GetSolarPos() (float32, float32) {
+	return a.solarX, a.solarY
+}
+func (a *Astrolabe) GetMoonPos() (float32, float32) {
+	return Bodies[301].DrawX, Bodies[301].DrawY
 }
 
 type ObserveData struct {

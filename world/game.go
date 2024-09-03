@@ -14,20 +14,21 @@ type game struct {
 	stars      *StarEffect
 	astrolabe  *Astrolabe
 	qiMen      *QMShow
-	baZi       *EightCharPan
+	char8      *Char8Pan
 	qmGame     *qimen.QMGame
 	autoMinute bool
 }
 
 func (g *game) Update() error {
 	g.count++
-	g.count %= 360
+	g.count %= 60
 	ui.Update()
-	g.stars.Update()
 	g.qiMen.Update()
-	g.baZi.Update()
+	g.char8.Update()
 	g.astrolabe.Update()
-	if g.autoMinute {
+	g.stars.SetPos(g.astrolabe.GetSolarPos())
+	g.stars.Update()
+	if g.autoMinute && !g.astrolabe.DataQuerying {
 		if g.count == 0 {
 			g.qmGame = g.uiQM.NextApply()
 		}
@@ -36,8 +37,8 @@ func (g *game) Update() error {
 }
 
 func (g *game) Draw(dst *ebiten.Image) {
-	g.stars.Draw(dst)
-	g.baZi.Draw(dst)
+	//g.stars.Draw(dst)
+	g.char8.Draw(dst)
 	g.astrolabe.Draw(dst)
 	g.qiMen.Draw(dst)
 	ui.Draw(dst)
@@ -57,7 +58,7 @@ func NewGame() *game {
 		stars:     NewStarEffect(260, 460),
 		qiMen:     NewQiMenShow(260, 460),
 		astrolabe: NewAstrolabe(770+500, 450),
-		baZi:      NewEightCharPan(522, 204),
+		char8:     NewChar8Pan(522, 204),
 		qmGame:    pan,
 	}
 	return g

@@ -51,7 +51,7 @@ func NewUISelect() *UISelect {
 	p.inputSDay.DefaultText = "日"
 	p.inputSHour.DefaultText = "时"
 	p.inputSMin.DefaultText = "分"
-	oldBirthTime := ThisGame.baZi.Player.Lunar
+	oldBirthTime := ThisGame.char8.Player.Lunar
 	if oldBirthTime != nil {
 		solar := oldBirthTime.GetSolar()
 		p.inputSYear.SetText(solar.GetYear())
@@ -85,7 +85,7 @@ func NewUISelect() *UISelect {
 		if p.opMale.Selected() {
 			gender = GenderMale
 		}
-		ThisGame.baZi.Player.Reset(calendar.NewLunarFromSolar(solar), gender)
+		ThisGame.char8.Player.Reset(calendar.NewLunarFromSolar(solar), gender)
 		ui.CloseUI(p)
 	})
 	return p

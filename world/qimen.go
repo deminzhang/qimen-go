@@ -11,7 +11,6 @@ import (
 	"qimen/qimen"
 	"qimen/ui"
 	"qimen/util"
-	"strings"
 )
 
 const (
@@ -83,8 +82,10 @@ func (q *QMShow) draw9Gong(dst *ebiten.Image) {
 			hosting = "禽"
 		}
 		var empty, horse = "  ", "  "
-		if strings.Contains(kongWang, LunarUtil.ZHI[i]) {
-			empty = "〇" //"空亡"
+		for _, z := range []rune(kongWang) {
+			if qimen.ZhiGong9[string(z)] == i {
+				empty = "〇" //"空亡"
+			}
 		}
 		if qimen.ZhiGong9[qm.TimeHorse] == i {
 			horse = "马"

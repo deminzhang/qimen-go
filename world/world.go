@@ -22,7 +22,7 @@ func init() {
 	var bytes []byte
 	var err error
 	var ff *opentype.Font
-	if bytes, err = os.ReadFile(defaultUIFontPath); err == nil {
+	if bytes, err = os.ReadFile(asset.DefaultUIFontPath); err == nil {
 		ff, err = opentype.Parse(bytes)
 	}
 	if err != nil {

@@ -62,9 +62,9 @@ type StarEffect struct {
 	starLines []StarLine
 }
 
-func NewStarEffect(centerX, centerY float32) *StarEffect {
+func NewStarEffect(x, y float32) *StarEffect {
 	se := &StarEffect{
-		X: centerX, Y: centerY,
+		X: x, Y: y,
 		starScale: starsLineScale,
 		starCount: starsLineCount,
 	}
@@ -74,6 +74,9 @@ func NewStarEffect(centerX, centerY float32) *StarEffect {
 		se.starLines = append(se.starLines, star)
 	}
 	return se
+}
+func (se *StarEffect) SetPos(x, y float32) {
+	se.X, se.Y = x, y
 }
 
 func (se *StarEffect) Update() {
