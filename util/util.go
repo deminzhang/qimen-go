@@ -27,3 +27,10 @@ func Contains(all []string, zhi ...string) bool {
 	}
 	return false
 }
+
+func If[T any](b bool, t, f T) T {
+	if b {
+		return t
+	}
+	return f
+}

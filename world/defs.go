@@ -16,6 +16,7 @@ var (
 	colorWhite            = color.RGBA{0xff, 0xff, 0xff, 0xff}
 	colorBlack            = color.RGBA{0x00, 0x00, 0x00, 0xff}
 	colorRed              = color.RGBA{0xff, 0x00, 0x00, 0xff}
+	colorDarkRed          = color.RGBA{0x80, 0x00, 0x00, 0xff}
 	colorGreen            = color.RGBA{0x00, 0xff, 0x00, 0xff}
 	colorBlue             = color.RGBA{0x00, 0x00, 0xff, 0xff}
 	colorYellow           = color.RGBA{0xff, 0xff, 0x00, 0xff}
@@ -33,11 +34,15 @@ var (
 	colorCross            = color.RGBA{0x60, 0x60, 0x60, 0x20}
 	colorRedShift         = color.RGBA{0xff, 0xaa, 0x00, 0xff}
 	colorBlueShift        = color.RGBA{0x00, 0xff, 0x77, 0xff}
-	colorChong            = colorPurple
-	colorXing             = colorRed
-	colorHe               = colorGreen
-	colorHe6              = colorBlue
-	colorGong             = colorGreen
+	colorTomb             = colorDarkRed //奇门入墓
+	colorJiXing           = colorPurple  //奇门击刑
+	colorMengPo           = colorRed     //奇门门迫
+	colorXingMu           = colorBlue    //奇门刑墓
+	colorChong            = colorPurple  //星盘冲
+	colorXing             = colorRed     //星盘刑
+	colorHe               = colorGreen   //星盘合
+	colorHe6              = colorBlue    //星盘合
+	colorGong             = colorGreen   //星盘宫
 
 	color9Gong = []color.RGBA{
 		{0x00, 0x00, 0x00, 0x00},

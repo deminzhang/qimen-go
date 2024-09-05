@@ -9,7 +9,6 @@ import (
 	"image/color"
 	"math"
 	"qimen/qimen"
-	"qimen/ui"
 	"qimen/util"
 )
 
@@ -38,7 +37,7 @@ func (q *QMShow) drawHead(dst *ebiten.Image) {
 	pan := ThisGame.qmGame
 	lunar := pan.Lunar
 	pp := pan.ShowPan
-	ft := ui.GetDefaultUIFont()
+	ft, _ := GetFontFace(14)
 	var cYear string
 	if lunar.GetYear() == 1 {
 		cYear = "元年"
@@ -56,59 +55,78 @@ func (q *QMShow) drawHead(dst *ebiten.Image) {
 	text.Draw(dst, fmt.Sprintf("旬首  %s %s %s %s",
 		lunar.GetYearXunExact(), lunar.GetMonthXunExact(), lunar.GetDayXunExact(), lunar.GetTimeXun()),
 		ft, 32, 64+16, colorWhite)
-	text.Draw(dst, fmt.Sprintf("空亡  %s %s %s %s",
-		lunar.GetYearXunKongExact(), lunar.GetMonthXunKongExact(), lunar.GetDayXunKongExact(), lunar.GetTimeXunKong()),
-		ft, 32, 64+32, colorGray)
-	text.Draw(dst, pp.JuText, ft, 32, 96+16, colorWhite)
+	text.Draw(dst, "空亡", ft, 32, 96, colorWhite)
+	text.Draw(dst, lunar.GetYearXunKongExact(), ft, 74, 96, colorGray)
+	text.Draw(dst, lunar.GetMonthXunKongExact(), ft, 108, 96, colorGray)
+	text.Draw(dst, lunar.GetDayXunKongExact(), ft, 144, 96, colorGray)
+	text.Draw(dst, lunar.GetTimeXunKong(), ft, 178, 96, colorGray)
+
+	text.Draw(dst, pp.JieQi, ft, 32, 96+16, colorWhite)
+	text.Draw(dst, pp.JuText, ft, 32, 96+32, colorWhite)
+	text.Draw(dst, pp.YuJiang, ft, 32, 96+48, colorWhite)
 }
 func (q *QMShow) draw9Gong(dst *ebiten.Image) {
-	ft := ui.GetDefaultUIFont()
 	qm := ThisGame.qmGame
 	pp := qm.ShowPan
 	//画九宫
-	kongWang := LunarUtil.GetXunKong(pp.Xun)
 	for i := 1; i <= 9; i++ {
 		offX, offZ := gongOffset[i][0]*_GongWidth-_GongWidth/2, gongOffset[i][1]*_GongWidth-_GongWidth/2
 		px, py := q.X-_GongWidth+float32(offX), q.Y-_GongWidth+float32(offZ)
-
-		//vector.StrokeCircle(dst, px+_GongWidth/2, py+_GongWidth/2,
-		//	float32(_GongWidth/2), 1, color.RGBA{0xff, 0x80, 0xff, 0xff}, true)
-		//vector.DrawFilledRect(dst, px, py, _GongWidth-1, _GongWidth-1, color9Gong[i], true)
-		vector.StrokeRect(dst, px, py, _GongWidth-1, _GongWidth-1, 1, color9Gong[i], true)
-
 		g := pp.Gongs[i]
-		var hosting = "  "
-		if pp.RollHosting > 0 && i == pp.DutyStarPos {
-			hosting = "禽"
-		}
-		var empty, horse = "  ", "  "
-		for _, z := range []rune(kongWang) {
-			if qimen.ZhiGong9[string(z)] == i {
-				empty = "〇" //"空亡"
-			}
-		}
-		if qimen.ZhiGong9[qm.TimeHorse] == i {
-			horse = "马"
-		}
-		door := g.Door + qimen.Door0
-		if g.Door == "" {
-			door = "    "
-		}
-		star := qimen.Star0 + g.Star
-		if g.Star == "" {
-			star = ""
-		}
-		txt := fmt.Sprintf("\n  %s%s  %s\n\n"+ //神盘
-			" %s %s%s%s\n\n"+ //天盘
-			" %s %s  %s\n", //人盘
-			empty, g.God, horse,
-			g.PathGan+g.HideGan, star, hosting, g.GuestGan,
-			g.PathZhi, door, g.HostGan)
-		text.Draw(dst, txt, ft, int(px), int(py), color.White)
+		q.drawGong(dst, px, py, &g)
 	}
 }
+func (q *QMShow) drawGong(dst *ebiten.Image, x, y float32, g *qimen.QMPalace) {
+	vector.StrokeRect(dst, x, y, _GongWidth-1, _GongWidth-1, 1, color9Gong[g.Idx], true)
+	ft, _ := GetFontFace(14)
+	qm := ThisGame.qmGame
+	pp := qm.ShowPan
+	var hosting = "  "
+	if pp.RollHosting > 0 && g.Idx == pp.DutyStarPos {
+		hosting = "禽"
+	}
+	var empty, horse = "  ", "  "
+	for _, z := range []rune(pp.KongWang) {
+		if qimen.ZhiGong9[string(z)] == g.Idx {
+			empty = "〇" //"空亡"
+		}
+	}
+	if qimen.ZhiGong9[pp.Horse] == g.Idx {
+		horse = "马"
+	}
+	star := qimen.Star0 + g.Star
+	if g.Star == "" {
+		star = ""
+	}
+	door := g.Door + qimen.Door0
+	if g.Door == "" {
+		door = "    "
+	}
+	y += 20
+	text.Draw(dst, empty, ft, int(x+16), int(y), colorWhite)    //空亡
+	text.Draw(dst, g.God, ft, int(x+32), int(y), colorWhite)    //神盘
+	text.Draw(dst, horse, ft, int(x+8+64), int(y), colorLeader) //驿马
+	y += 30
+	text.Draw(dst, g.PathGan, ft, int(x+8), int(y), colorGray) //流干
+	text.Draw(dst, g.HideGan, ft, int(x+8), int(y), colorGray) //隐干
+	text.Draw(dst, star, ft, int(x+32), int(y),
+		util.If(g.Star == pp.DutyStar, colorLeader, colorWhite)) //星
+	text.Draw(dst, hosting, ft, int(x+8+32), int(y), colorGray) //寄禽
+	//text.Draw(dst, "", ft, int(x+8+32), int(y), colorGray)           //中寄
+	text.Draw(dst, g.GuestGan, ft, int(x+8+64), int(y), color.White) //天盘
+	y += 30
+	text.Draw(dst, g.PathZhi, ft, int(x+8), int(y), colorGray) //流支
+	text.Draw(dst, door, ft, int(x+32), int(y),
+		util.If(g.Door == pp.DutyDoor, colorLeader, colorWhite)) //门
+	text.Draw(dst, g.HostGan, ft, int(x+8+64), int(y), colorWhite) //地盘
+	//colorMaster           = colorGreen   //奇门符值
+	//colorTomb             = colorDarkRed //奇门入墓
+	//colorJiXing           = colorPurple  //奇门击刑
+	//colorMengPo           = colorRed     //奇门门迫
+	//colorXingMu           = colorBlue    //奇门刑墓
+}
 func (q *QMShow) draw12Gong(dst *ebiten.Image) {
-	ft := ui.GetDefaultUIFont()
+	ft, _ := GetFontFace(14)
 	pan := ThisGame.qmGame
 	//画12宫
 	//if uiQiMen.qmParams.YMDH != qimen.QMGameHour {

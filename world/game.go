@@ -55,8 +55,8 @@ func NewGame() *game {
 	pan := u.Apply(solar)
 	g := &game{
 		uiQM:      u,
-		stars:     NewStarEffect(260, 460),
-		qiMen:     NewQiMenShow(260, 460),
+		stars:     NewStarEffect(260, 450),
+		qiMen:     NewQiMenShow(260, 450),
 		astrolabe: NewAstrolabe(770+500, 450),
 		char8:     NewChar8Pan(522, 204),
 		qmGame:    pan,

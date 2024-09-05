@@ -1,6 +1,7 @@
 package qimen
 
 import (
+	"fmt"
 	"github.com/6tail/lunar-go/LunarUtil"
 	"github.com/6tail/lunar-go/calendar"
 )
@@ -26,12 +27,16 @@ type QMPan struct {
 	StartType           int //QMJuType 起局.起局法
 	HideGanType         int //QMHideGanType
 
-	Yuan3  int //三元1~3
-	Ju     int //格局-1~-9,1~9, 年家为-1,-4,-7
-	JuText string
+	Yuan3   int //三元1~3
+	Ju      int //格局-1~-9,1~9, 年家为-1,-4,-7
+	JieQi   string
+	JuText  string
+	YuJiang string
 
 	Gan, Zhi string //干支 年家为年干支,月,日,时家为月,日,时干支
 	Xun      string //干支旬首
+	KongWang string //空亡
+	Horse    string //马星
 
 	Duty        int    //值序
 	DutyStar    string //值符
@@ -118,11 +123,13 @@ func NewQMGame(solar *calendar.Solar, params QMParams) *QMGame {
 			ju = params.SelfJu
 		}
 		p.TimePan = &QMPan{
-			Yuan3: yuan,
-			Ju:    ju,
-			Gan:   c8.GetTimeGan(),
-			Zhi:   c8.GetTimeZhi(),
-			Xun:   c8.GetTimeXun(),
+			Yuan3:    yuan,
+			Ju:       ju,
+			Gan:      c8.GetTimeGan(),
+			Zhi:      c8.GetTimeZhi(),
+			Xun:      c8.GetTimeXun(),
+			KongWang: c8.GetTimeXunKong(),
+			Horse:    Horse[c8.GetTimeZhi()],
 
 			Type:                qmType,
 			RotatingHostingType: qmHostingType,
@@ -135,11 +142,13 @@ func NewQMGame(solar *calendar.Solar, params QMParams) *QMGame {
 	case QMGameDay:
 		yuan, ju := GetDayYuanJu(jieQiName)
 		p.DayPan = &QMPan{
-			Yuan3: yuan,
-			Ju:    ju,
-			Gan:   c8.GetDayGan(),
-			Zhi:   c8.GetDayZhi(),
-			Xun:   c8.GetDayXun(),
+			Yuan3:    yuan,
+			Ju:       ju,
+			Gan:      c8.GetDayGan(),
+			Zhi:      c8.GetDayZhi(),
+			Xun:      c8.GetDayXun(),
+			KongWang: c8.GetDayXunKong(),
+			Horse:    Horse[c8.GetDayZhi()],
 
 			Type:                qmType,
 			RotatingHostingType: qmHostingType,
@@ -151,11 +160,13 @@ func NewQMGame(solar *calendar.Solar, params QMParams) *QMGame {
 	case QMGameDay2:
 		yuan, ju := GetDayYuanJu(jieQiName)
 		p.DayPan = &QMPan{
-			Yuan3: yuan,
-			Ju:    ju,
-			Gan:   c8.GetDayGan(),
-			Zhi:   c8.GetDayZhi(),
-			Xun:   c8.GetDayXun(),
+			Yuan3:    yuan,
+			Ju:       ju,
+			Gan:      c8.GetDayGan(),
+			Zhi:      c8.GetDayZhi(),
+			Xun:      c8.GetDayXun(),
+			KongWang: c8.GetDayXunKong(),
+			Horse:    Horse[c8.GetDayZhi()],
 
 			Type:                qmType,
 			RotatingHostingType: qmHostingType,
@@ -167,11 +178,13 @@ func NewQMGame(solar *calendar.Solar, params QMParams) *QMGame {
 	case QMGameMonth:
 		yuan, ju := GetMonthYuanJu(p.Lunar.GetYearInGanZhiExact())
 		p.MonthPan = &QMPan{
-			Yuan3: yuan,
-			Ju:    ju,
-			Gan:   c8.GetMonthGan(),
-			Zhi:   c8.GetMonthZhi(),
-			Xun:   c8.GetMonthXun(),
+			Yuan3:    yuan,
+			Ju:       ju,
+			Gan:      c8.GetMonthGan(),
+			Zhi:      c8.GetMonthZhi(),
+			Xun:      c8.GetMonthXun(),
+			KongWang: c8.GetMonthXunKong(),
+			Horse:    Horse[c8.GetMonthZhi()],
 
 			Type:                qmType,
 			RotatingHostingType: qmHostingType,
@@ -183,11 +196,13 @@ func NewQMGame(solar *calendar.Solar, params QMParams) *QMGame {
 	case QMGameYear: //排年家奇门
 		yuan, ju := GetYearYuanJu(p.Lunar.GetYear())
 		p.YearPan = &QMPan{
-			Yuan3: yuan,
-			Ju:    ju,
-			Gan:   c8.GetYearGan(),
-			Zhi:   c8.GetYearZhi(),
-			Xun:   c8.GetYearXun(),
+			Yuan3:    yuan,
+			Ju:       ju,
+			Gan:      c8.GetYearGan(),
+			Zhi:      c8.GetYearZhi(),
+			Xun:      c8.GetYearXun(),
+			KongWang: c8.GetYearXunKong(),
+			Horse:    Horse[c8.GetYearZhi()],
 
 			Type:                qmType,
 			RotatingHostingType: qmHostingType,
@@ -478,4 +493,91 @@ func (p *QMGame) calcGongDay2(pp *QMPan) {
 
 func (p *QMGame) CalBig6() {
 	p.Big6 = CalBig6(p.YueJian, p.YueJiang, p.Lunar.GetTimeZhiIndex()+1, p.TimeHorse)
+}
+
+func (p *QMGame) ShowTimeGame() {
+	pp := p.TimePan
+	p.ShowPan = pp
+	var juName string
+	if pp.Ju < 0 {
+		juName = fmt.Sprintf("阴%d局", -pp.Ju)
+	} else {
+		juName = fmt.Sprintf("阳%d局", pp.Ju)
+	}
+	jieQi := p.Lunar.GetPrevJieQi()
+	jieQiNext := p.Lunar.GetNextJieQi()
+	jie := p.Lunar.GetPrevJie()
+	qi := p.Lunar.GetPrevQi()
+	pp.JieQi = fmt.Sprintf("%s%s %s%s",
+		jieQi.GetName(), jieQi.GetSolar().ToYmdHms(), jieQiNext.GetName(), jieQiNext.GetSolar().ToYmdHms())
+	pp.JuText = fmt.Sprintf(
+		"%s %s %s遁%s 值符%s落%d宫 值使%s落%d宫",
+		Yuan3Name[pp.Yuan3], juName, pp.Xun, HideJia[pp.Xun],
+		Star0+pp.DutyStar, pp.DutyStarPos, pp.DutyDoor+Door0, pp.DutyDoorPos,
+	)
+	pp.YuJiang = fmt.Sprintf("%s月建%s %s月将%s", jie.GetName(), p.YueJian, qi.GetName(), p.YueJiang)
+}
+
+func (p *QMGame) ShowDayGame() {
+	pp := p.DayPan
+	p.ShowPan = pp
+	var juName string
+	if pp.Ju < 0 {
+		juName = fmt.Sprintf("阴%d局", -pp.Ju)
+	} else {
+		juName = fmt.Sprintf("阳%d局", pp.Ju)
+	}
+	jieQi := p.Lunar.GetPrevJieQi()
+	jieQiNext := p.Lunar.GetNextJieQi()
+	jie := p.Lunar.GetPrevJie()
+	qi := p.Lunar.GetPrevQi()
+	pp.JieQi = fmt.Sprintf("%s%s %s%s",
+		jieQi.GetName(), jieQi.GetSolar().ToYmdHms(), jieQiNext.GetName(), jieQiNext.GetSolar().ToYmdHms())
+	pp.JuText = fmt.Sprintf("%s %s %s遁%s 值符%s落%d宫 值使%s落%d宫",
+		Yuan3Name[pp.Yuan3], juName, pp.Xun, HideJia[pp.Xun],
+		Star0+pp.DutyStar, pp.DutyStarPos, pp.DutyDoor+Door0, pp.DutyDoorPos,
+	)
+	pp.YuJiang = fmt.Sprintf("%s月建%s %s月将%s", jie.GetName(), p.YueJian, qi.GetName(), p.YueJiang)
+}
+
+func (p *QMGame) ShowDayGame2() {
+	//TODO 	太乙日家
+}
+
+func (p *QMGame) ShowMonthGame() {
+	pp := p.MonthPan
+	p.ShowPan = pp
+	var juName string
+	if pp.Ju < 0 {
+		juName = fmt.Sprintf("阴%d局", -pp.Ju)
+	} else {
+		juName = fmt.Sprintf("阳%d局", pp.Ju)
+	}
+	pp.JieQi = "月家"
+	pp.JuText = fmt.Sprintf("%s %s %s遁%s 值符%s落%d宫 值使%s落%d宫",
+		Yuan3Name[pp.Yuan3], juName, pp.Xun, HideJia[pp.Xun],
+		Star0+pp.DutyStar, pp.DutyStarPos, pp.DutyDoor+Door0, pp.DutyDoorPos,
+	)
+	pp.YuJiang = ""
+}
+
+func (p *QMGame) ShowYearGame() {
+	pp := p.YearPan
+	p.ShowPan = pp
+	var juName string
+	if pp.Ju < 0 {
+		juName = fmt.Sprintf("阴%d局", -pp.Ju)
+	} else {
+		juName = fmt.Sprintf("阳%d局", pp.Ju)
+	}
+	y9 := GetYear9Yun(p.Lunar.GetYear())
+	d8 := Diagrams9(y9)
+	y3y9 := fmt.Sprintf("三元九运:%s%s%s%s%s", Yuan3Name[pp.Yuan3],
+		LunarUtil.NUMBER[y9], Gong9Color[y9], d8, DiagramsWuxing[d8])
+	pp.JieQi = fmt.Sprintf("年家 黄帝纪元:%4s %s", GetYearInChinese(GetHuangDiYear(p.Lunar.GetYear())), y3y9)
+	pp.JuText = fmt.Sprintf("%s %s %s遁%s 值符%s落%d宫 值使%s落%d宫",
+		Yuan3Name[pp.Yuan3], juName, pp.Xun, HideJia[pp.Xun],
+		Star0+pp.DutyStar, pp.DutyStarPos, pp.DutyDoor+Door0, pp.DutyDoorPos,
+	)
+	pp.YuJiang = ""
 }

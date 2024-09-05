@@ -2,7 +2,6 @@ package world
 
 import (
 	"fmt"
-	"github.com/6tail/lunar-go/LunarUtil"
 	"github.com/6tail/lunar-go/calendar"
 	"image"
 	"qimen/qimen"
@@ -358,13 +357,13 @@ func (p *UIQiMen) Apply(solar *calendar.Solar) *qimen.QMGame {
 	//fmt
 	switch p.qmParams.YMDH {
 	case qimen.QMGameHour:
-		p.ShowHourGame(pan)
+		pan.ShowTimeGame()
 	case qimen.QMGameDay:
-		p.ShowDayGame(pan)
+		pan.ShowDayGame()
 	case qimen.QMGameMonth:
-		p.ShowMonthGame(pan)
+		pan.ShowMonthGame()
 	case qimen.QMGameYear:
-		p.ShowYearGame(pan)
+		pan.ShowYearGame()
 	}
 	pan.CalBig6()
 	return pan
@@ -372,93 +371,6 @@ func (p *UIQiMen) Apply(solar *calendar.Solar) *qimen.QMGame {
 func (p *UIQiMen) NextApply() *qimen.QMGame {
 	solar := p.solar.NextHour(2)
 	return p.Apply(solar)
-}
-
-func (p *UIQiMen) ShowHourGame(pan *qimen.QMGame) {
-	pp := pan.TimePan
-	pan.ShowPan = pp
-	var juName string
-	if pp.Ju < 0 {
-		juName = fmt.Sprintf("阴%d局", -pp.Ju)
-	} else {
-		juName = fmt.Sprintf("阳%d局", pp.Ju)
-	}
-	jieQi := pan.Lunar.GetPrevJieQi()
-	jieQiNext := pan.Lunar.GetNextJieQi()
-	jie := pan.Lunar.GetPrevJie()
-	qi := pan.Lunar.GetPrevQi()
-	juText := fmt.Sprintf("%s%s %s%s"+
-		"\n%s %s %s遁%s 值符%s落%d宫 值使%s落%d宫"+
-		"\n%s月建%s %s月将%s",
-		jieQi.GetName(), jieQi.GetSolar().ToYmdHms(), jieQiNext.GetName(), jieQiNext.GetSolar().ToYmdHms(),
-		qimen.Yuan3Name[pp.Yuan3], juName, pp.Xun, qimen.HideJia[pp.Xun],
-		qimen.Star0+pp.DutyStar, pp.DutyStarPos, pp.DutyDoor+qimen.Door0, pp.DutyDoorPos,
-		jie.GetName(), pan.YueJian, qi.GetName(), pan.YueJiang,
-	)
-	pp.JuText = juText
-}
-
-func (p *UIQiMen) ShowDayGame(pan *qimen.QMGame) {
-	pp := pan.DayPan
-	pan.ShowPan = pp
-	var juName string
-	if pp.Ju < 0 {
-		juName = fmt.Sprintf("阴%d局", -pp.Ju)
-	} else {
-		juName = fmt.Sprintf("阳%d局", pp.Ju)
-	}
-	jieQi := pan.Lunar.GetPrevJieQi()
-	jieQiNext := pan.Lunar.GetNextJieQi()
-	juText := fmt.Sprintf("%s%s %s%s"+
-		"\n%s %s %s遁%s 值符%s落%d宫 值使%s落%d宫",
-		jieQi.GetName(), jieQi.GetSolar().ToYmdHms(), jieQiNext.GetName(), jieQiNext.GetSolar().ToYmdHms(),
-		qimen.Yuan3Name[pp.Yuan3], juName, pp.Xun, qimen.HideJia[pp.Xun],
-		qimen.Star0+pp.DutyStar, pp.DutyStarPos, pp.DutyDoor+qimen.Door0, pp.DutyDoorPos,
-	)
-	pp.JuText = juText
-}
-
-func (p *UIQiMen) ShowDayGame2(pan *qimen.QMGame) {
-	//TODO 	太乙日家
-}
-
-func (p *UIQiMen) ShowMonthGame(pan *qimen.QMGame) {
-	pp := pan.MonthPan
-	pan.ShowPan = pp
-	var juName string
-	if pp.Ju < 0 {
-		juName = fmt.Sprintf("阴%d局", -pp.Ju)
-	} else {
-		juName = fmt.Sprintf("阳%d局", pp.Ju)
-	}
-	juText := fmt.Sprintf("月家"+
-		"\n%s %s %s遁%s 值符%s落%d宫 值使%s落%d宫",
-		qimen.Yuan3Name[pp.Yuan3], juName, pp.Xun, qimen.HideJia[pp.Xun],
-		qimen.Star0+pp.DutyStar, pp.DutyStarPos, pp.DutyDoor+qimen.Door0, pp.DutyDoorPos,
-	)
-	pp.JuText = juText
-}
-
-func (p *UIQiMen) ShowYearGame(pan *qimen.QMGame) {
-	pp := pan.YearPan
-	pan.ShowPan = pp
-	var juName string
-	if pp.Ju < 0 {
-		juName = fmt.Sprintf("阴%d局", -pp.Ju)
-	} else {
-		juName = fmt.Sprintf("阳%d局", pp.Ju)
-	}
-	y9 := qimen.GetYear9Yun(pan.Lunar.GetYear())
-	d8 := qimen.Diagrams9(y9)
-	y3y9 := fmt.Sprintf("三元九运:%s%s%s%s%s", qimen.Yuan3Name[pp.Yuan3],
-		LunarUtil.NUMBER[y9], qimen.Gong9Color[y9], d8, qimen.DiagramsWuxing[d8])
-	juText := fmt.Sprintf("年家 黄帝纪元:%4s %s"+
-		"\n%s %s %s遁%s 值符%s落%d宫 值使%s落%d宫",
-		qimen.GetYearInChinese(qimen.GetHuangDiYear(pan.Lunar.GetYear())), y3y9,
-		qimen.Yuan3Name[pp.Yuan3], juName, pp.Xun, qimen.HideJia[pp.Xun],
-		qimen.Star0+pp.DutyStar, pp.DutyStarPos, pp.DutyDoor+qimen.Door0, pp.DutyDoorPos,
-	)
-	pp.JuText = juText
 }
 
 func (p *UIQiMen) AutoTick() bool {

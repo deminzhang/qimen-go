@@ -450,7 +450,7 @@ func (a *Astrolabe) GetEphemeris(id int, dt *calendar.Solar) *ObserveData {
 	sts := st.Format(DataTimeMin)
 	oe := d.GetOE(sts)
 	if oe == nil {
-		//get from db
+		//get from db //TODO 先从本地sqlite找
 		//if dbData {
 		//}
 		if a.DataQuerying {
@@ -465,6 +465,7 @@ func (a *Astrolabe) GetEphemeris(id int, dt *calendar.Solar) *ObserveData {
 				return
 			}
 			a.OEData[id].ApplyData(d.data)
+			//TODO 数据存到sqlite
 			a.DataQuerying = false
 		}()
 	}
