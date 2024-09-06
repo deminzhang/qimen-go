@@ -40,7 +40,6 @@ type UIQiMen struct {
 	btnCalc             *ui.TextButton
 	btnNow              *ui.TextButton
 	btnPreJu, btnNextJu *ui.TextButton
-	btnBirth            *ui.TextButton
 
 	opHourPan, opDayPan, opMonthPan, opYearPan *ui.OptionBox
 	opDay2Pan                                  *ui.OptionBox
@@ -99,7 +98,6 @@ func NewUIQiMen() *UIQiMen {
 	py0 += 32
 	p.btnNextJu = ui.NewTextButton(px0+72*8, py0, "下一局", colorWhite, true)
 	p.cbAuto = ui.NewCheckBox(px0+72*9, py0, "自动")
-	//p.btnBirth = ui.NewTextButton(px0+72*9, 164, "选生辰", colorWhite, true)
 
 	p.inputSelfJu = ui.NewInputBox(image.Rect(px0+72*4, py0, px0+72*4+64, py0+h))
 	p.opStartSelf = ui.NewOptionBox(px0+72*4, py0+8, qimen.QMJuType[qimen.QMJuTypeSelf])
@@ -138,7 +136,6 @@ func NewUIQiMen() *UIQiMen {
 	p.AddChildren(p.opStartSplit, p.opStartMaoShan, p.opStartZhiRun, p.opStartSelf, p.inputSelfJu)
 	p.AddChildren(p.cbAuto)
 	p.AddChildren(p.opHideGan0, p.opHideGan1)
-	//p.AddChild(p.btnBirth)
 
 	ui.MakeOptionBoxGroup(p.opTypeRoll, p.opTypeFly, p.opTypeAmaze)
 	p.opTypeRoll.Select()
@@ -282,9 +279,6 @@ func NewUIQiMen() *UIQiMen {
 		}
 		p.Apply(solar)
 	})
-	//p.btnBirth.SetOnClick(func(b *ui.Button) {
-	//	UIShowSelect()
-	//})
 	p.btnPreJu.SetOnClick(func(b *ui.Button) {
 		var solar *calendar.Solar
 		switch p.qmParams.YMDH {

@@ -64,6 +64,8 @@ func (q *QMShow) drawHead(dst *ebiten.Image) {
 	text.Draw(dst, pp.JieQi, ft, 32, 96+16, colorWhite)
 	text.Draw(dst, pp.JuText, ft, 32, 96+32, colorWhite)
 	text.Draw(dst, pp.YuJiang, ft, 32, 96+48, colorWhite)
+
+	text.Draw(dst, fmt.Sprintf("日值宿 %s%s%s", lunar.GetXiu(), lunar.GetZheng(), lunar.GetAnimal()), ft, 32, 96+96, colorWhite)
 }
 func (q *QMShow) draw9Gong(dst *ebiten.Image) {
 	qm := ThisGame.qmGame
