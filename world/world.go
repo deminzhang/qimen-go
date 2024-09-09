@@ -3,58 +3,26 @@ package world
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"golang.org/x/image/font"
-	"golang.org/x/image/font/opentype"
 	"image"
 	"log"
-	"os"
 	"qimen/asset"
 	"qimen/ui"
 )
 
 var (
-	Font      *opentype.Font
-	FontFaces map[float64]font.Face
-	ThisGame  *game
+	ThisGame *game
 )
 
 func init() {
-	var f font.Face
-	var bytes []byte
-	var err error
-	var ff *opentype.Font
-	if bytes, err = os.ReadFile(asset.DefaultUIFontPath); err == nil {
-		ff, err = opentype.Parse(bytes)
-	}
+	face, err := asset.GetDefaultFontFace(14)
 	if err != nil {
-		log.Println("parse default font error:", err)
-		ff, err = asset.LoadFont("font/lana_pixel.ttf") //字不全,如癸显不出来
+		return
 	}
-	if err != nil {
-		log.Fatal(err)
-	}
-	Font = ff
-	f, err = GetFontFace(14)
-	ui.SetDefaultUIFont(f)
+	ui.SetDefaultUIFont(face)
 }
 
 func GetFontFace(size float64) (font.Face, error) {
-	if FontFaces == nil {
-		FontFaces = make(map[float64]font.Face)
-	}
-	if f, ok := FontFaces[size]; ok {
-		return f, nil
-	}
-	options := &opentype.FaceOptions{
-		Size:    size,
-		DPI:     72,
-		Hinting: font.HintingNone,
-	}
-	f, err := opentype.NewFace(Font, options)
-	if err != nil {
-		return nil, err
-	}
-	FontFaces[size] = f
-	return f, nil
+	return asset.GetDefaultFontFace(size)
 }
 
 func setWindow() {
