@@ -45,14 +45,12 @@ type Char8Pan struct {
 	brightness float32
 
 	ui.Container
-	uis map[ui.IUIPanel]struct{}
 }
 
 func NewChar8Pan(x, y float32) *Char8Pan {
 	p := &Char8Pan{
 		X: x, Y: y,
 		BodyShow: true,
-		uis:      make(map[ui.IUIPanel]struct{}),
 	}
 	//btnMove:=  ui.NewTextButton(int(x+4), int(y), "+ ", colorWhite, true)
 	btnBirth := ui.NewTextButton(int(x+146), int(y+3), "命造", colorWhite, true)

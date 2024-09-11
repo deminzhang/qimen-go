@@ -29,11 +29,10 @@ func (q *QMShow) Update() {
 }
 
 func (q *QMShow) Draw(dst *ebiten.Image) {
-	q.drawHead(dst)
 	q.draw9Gong(dst)
 	q.draw12Gong(dst)
 }
-func (q *QMShow) drawHead(dst *ebiten.Image) {
+func (q *QMShow) DrawHead(dst *ebiten.Image) {
 	pan := ThisGame.qmGame
 	lunar := pan.Lunar
 	pp := pan.ShowPan

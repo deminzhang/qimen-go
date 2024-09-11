@@ -6,7 +6,9 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
-	//_ "github.com/mattn/go-sqlite3"
+	_ "github.com/mattn/go-sqlite3"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 	"image/color"
 	"io"
 	"log"
@@ -552,4 +554,32 @@ func (c *ObserveEphemeris) ApplyData(datas map[string]*ObserveData) {
 	for s, data := range datas {
 		c.data[s] = data
 	}
+}
+
+type ObserveDataDB struct {
+	//gorm.Model
+	IdDate string `gorm:"primarykey"`
+	Year   int    `gorm:"index"`
+	Month  int    `gorm:"index"`
+	Day    int    `gorm:"index"`
+	Hour   int    `gorm:"index"`
+	Minute int    `gorm:"index"`
+	RA_DEC string
+	Delta  float64
+	Deldot float64
+	SOT    float64
+	STO    float64
+	Cnst   string
+}
+
+func init() {
+	db, err := gorm.Open(sqlite.Open("nasa_horizons.db"), &gorm.Config{})
+	if err != nil {
+		panic("failed to connect database")
+	}
+	db.AutoMigrate(&ObserveDataDB{})
+	db.Save(&ObserveDataDB{IdDate: "XX", Year: 2021, Month: 6, Day: 1, Hour: 0, Minute: 0, RA_DEC: "05 29 58.88 +23 15 24.3", Delta: 0.999999, Deldot: 0.000000, SOT: 0.000000, STO: 0.000000, Cnst: "Ari"})
+	var data []ObserveDataDB
+	db.Find(&data, "IdDate = ?", "XX")
+	fmt.Println(data)
 }
