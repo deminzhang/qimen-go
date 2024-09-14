@@ -7,8 +7,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	_ "github.com/mattn/go-sqlite3"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 	"image/color"
 	"io"
 	"log"
@@ -22,6 +20,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+	_ "xorm.io/core"
+	"xorm.io/xorm"
 )
 
 const (
@@ -32,8 +32,11 @@ const (
 	outCircleR = 240
 	outCircleW = 24
 
-	DataTimeMin = "2006-01-02 15:04"
-	DateTimeOE  = "2006-Jan-02 15:04"
+	DataTimeMin      = "2006-01-02 15:04"
+	DateTimeNASA     = "2006-Jan-02 15:04"
+	NASADataFile     = "nasa_data.db"
+	NASADataTimeLast = time.Hour * 24 //一次查询时间范围
+	NASADataStepSize = "1h"           //星体数据步长 1h 1d 1m
 )
 
 var Constellation = []string{"Ari", "Tau", "Gem", "Can", "Leo", "Vir", "Lib", "Sco", "Sgr", "Cap", "Aqr", "Psc"}
@@ -52,6 +55,7 @@ var AstrolabeGong = []string{"", "命宫", "财帛", "交流", "田宅", "娱乐
 // 四象 火土风水火土风水火土风水
 
 type Astrolabe struct {
+	sync.RWMutex
 	X, Y           float32
 	solarX, solarY float32
 	observer       int //观察者
@@ -62,7 +66,7 @@ type Astrolabe struct {
 	tzRA0    float64 //春分点角度
 
 	DataQuerying bool
-	OEData       map[int]*ObserveEphemeris
+	Ephemeris    map[string]*ObserveData
 
 	ConstellationLoc [12]gongLocation //星座位
 	AstrolabeLoc     [12]gongLocation //宫位
@@ -72,18 +76,23 @@ type gongLocation struct {
 	x, y               int     //文字坐标
 }
 
+type CelestialBodySum struct {
+	Id   int
+	GMin float64
+	GMax float64 //引力范围
+}
 type CelestialBody struct {
-	Id          int
-	Name        string
-	NameCN      string
-	SubBody     []int      //行星系子体
-	Satellite   []int      //卫星
-	Mass        float64    //质量 kg
-	R           float32    //轨道半径 AU
-	orbitCenter int        //轨道中心
-	Gravity     float64    //引力 N
-	GMin, GMax  float64    //引力范围
-	color       color.RGBA //RedShift红移/BlueShift蓝移
+	Id               int
+	Name             string
+	NameCN           string
+	SubBody          []int      //行星系子体
+	Satellite        []int      //卫星
+	Mass             float64    //质量 kg
+	R                float32    //轨道半径 AU
+	orbitCenter      int        //轨道中心
+	Gravity          float64    //引力 N
+	CelestialBodySum            //GMin, GMax  float64    //引力范围
+	color            color.RGBA //RedShift红移/BlueShift蓝移
 
 	AR               float32 //星盘半径
 	DrawX, DrawY     float32 //星盘坐标
@@ -156,10 +165,10 @@ func NewAstrolabe(x, y float32) *Astrolabe {
 	tz, offset := time.Now().Local().Zone()
 	a := &Astrolabe{
 		X: x, Y: y,
-		observer: 399,
-		timezone: tz,
-		tzOffset: offset,
-		OEData:   make(map[int]*ObserveEphemeris),
+		observer:  399,
+		timezone:  tz,
+		tzOffset:  offset,
+		Ephemeris: make(map[string]*ObserveData),
 	}
 	for i := 1; i <= 12; i++ {
 		//固定宫位
@@ -215,14 +224,14 @@ func (a *Astrolabe) Update() {
 					a.solar = calendar.Solar{}
 					continue
 				}
-				bd.Gravity = G * bd.Mass * m / math.Pow(oe.Delta()*AU, 2)
+				bd.Gravity = G * bd.Mass * m / math.Pow(oe.Delta*AU, 2)
 				if bd.GMin == 0 {
 					bd.GMin = bd.Gravity
 				} else {
 					bd.GMin = min(bd.Gravity, bd.GMin)
 				}
 				bd.GMax = max(bd.Gravity, bd.GMax)
-				if oe.Deldot() > 0 {
+				if oe.Deldot > 0 {
 					bd.color = colorBlueShift
 				} else {
 					bd.color = colorRedShift
@@ -243,9 +252,9 @@ func (a *Astrolabe) Update() {
 
 			a.tzRA0 = degreesS - oe.RARadius()
 		} else {
-			ost := 180 - oe.STO() - oe.SOT()
+			ost := 180 - oe.STO - oe.SOT
 			var degrees float64
-			switch oe.SOTR() {
+			switch oe.SOTR {
 			case "/T": //TRAILS 目标跟踪太阳
 				degrees = 90 - 270 - degreesSO - ost
 			case "/L": //LEADS 目标引领太阳
@@ -258,14 +267,14 @@ func (a *Astrolabe) Update() {
 			body.SphereX = cx + v1.X
 			body.SphereY = cy + v1.Y
 		}
-		body.Gravity = G * body.Mass * m / math.Pow(oe.Delta()*AU, 2)
+		body.Gravity = G * body.Mass * m / math.Pow(oe.Delta*AU, 2)
 		if body.GMin == 0 {
 			body.GMin = body.Gravity
 		} else {
 			body.GMin = min(body.Gravity, body.GMin)
 		}
 		body.GMax = max(body.Gravity, body.GMax)
-		if oe.Deldot() > 0 {
+		if oe.Deldot > 0 {
 			body.color = colorBlueShift
 		} else {
 			body.color = colorRedShift
@@ -367,11 +376,45 @@ func (a *Astrolabe) DrawGravity(dst *ebiten.Image) {
 	}
 }
 
-func (a *Astrolabe) GetNASAData(id int, sts, ets string) *ObserveEphemeris {
+func (a *Astrolabe) GetEphemeris(tid int, s *calendar.Solar) *ObserveData {
+	if s.GetYear() < 1600 || s.GetYear() >= 2500 {
+		return nil
+	}
+	t := time.Date(s.GetYear(), time.Month(s.GetMonth()), s.GetDay(), s.GetHour(),
+		s.GetMinute(), 0, 0, time.Local)
+	sts := t.In(time.UTC).Format(DataTimeMin)
+	id := fmt.Sprintf("%d_%s", tid, sts)
+	a.RWMutex.RLock()
+	defer a.RWMutex.RUnlock()
+	v := a.Ephemeris[id]
+	if v != nil {
+		return v
+	}
+	if a.DataQuerying {
+		return nil
+	}
+	var it ObserveData
+	has, err := db.Where("Id = ?", id).Get(&it)
+	if err != nil {
+		UIShowMsgBox(err.Error(), "确定", "确定", nil, nil)
+		return nil
+	}
+	if has {
+		return &it
+	} else {
+		a.DataQuerying = true
+		te := t.Add(NASADataTimeLast)
+		ets := te.Format(DataTimeMin)
+		go a.QueryNASAData(tid, sts, ets)
+	}
+	return nil
+}
+
+func (a *Astrolabe) GetNASAData(tid int, sts, ets string) map[string]*observeDataSrc {
 	urls := fmt.Sprintf("https://ssd.jpl.nasa.gov/api/horizons.api?"+
 		"format=text&COMMAND='%d'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='500@399'"+
 		"&START_TIME='%s'&STOP_TIME='%s'&STEP_SIZE='%s'&QUANTITIES='1,20,23,24,29'",
-		id, sts, ets, url.QueryEscape("1h"))
+		tid, sts, ets, url.QueryEscape(NASADataStepSize))
 	//QUANTITIES='1,3,20,23,24,29'
 	//Date__(UT)__HR:MN     R.A._____(ICRF)_____DEC  dRA*cosD d(DEC)/dt             delta      deldot     S-O-T /r     S-T-O  Cnst
 
@@ -420,7 +463,7 @@ func (a *Astrolabe) GetNASAData(id int, sts, ets string) *ObserveEphemeris {
 		return nil
 	}
 	lines0 := strings.Split(match[1], "\n")
-	var lines = make(map[string]*ObserveData, len(lines0))
+	var lines = make(map[string]*observeDataSrc, len(lines0))
 	for _, line := range lines0 {
 		var m = map[string]string{}
 		var preL int
@@ -430,50 +473,47 @@ func (a *Astrolabe) GetNASAData(id int, sts, ets string) *ObserveEphemeris {
 			preL += l
 		}
 		date := m["Date__(UT)__HR:MN"]
-		dt, _ := time.Parse(DateTimeOE, date)
+		dt, _ := time.Parse(DateTimeNASA, date)
 		ymdhm := fmt.Sprintf("%04d-%02d-%02d %02d:%02d", dt.Year(), dt.Month(), dt.Day(), dt.Hour(), dt.Minute())
-		lines[ymdhm] = &ObserveData{data: m}
+		lines[ymdhm] = &observeDataSrc{data: m}
 	}
 	defer resp.Body.Close()
-	return &ObserveEphemeris{
-		id:   id,
-		data: lines,
-	}
+	return lines
 }
-
-func (a *Astrolabe) GetEphemeris(id int, dt *calendar.Solar) *ObserveData {
-	d := a.OEData[id]
-	if d == nil {
-		d = &ObserveEphemeris{id: id, data: make(map[string]*ObserveData)}
-		a.OEData[id] = d
+func (a *Astrolabe) QueryNASAData(tid int, sts, ets string) {
+	d := a.GetNASAData(tid, sts, ets)
+	if d == nil || len(d) == 0 {
+		a.DataQuerying = false
+		return
 	}
-	tl := time.Date(dt.GetYear(), time.Month(dt.GetMonth()), dt.GetDay(), dt.GetHour(), dt.GetMinute(), 0, 0, time.Local)
-	st := tl.In(time.UTC)
-	sts := st.Format(DataTimeMin)
-	oe := d.GetOE(sts)
-	if oe == nil {
-		//get from db //TODO 先从本地sqlite找
-		//if dbData {
-		//}
-		if a.DataQuerying {
-			return nil
+	// 数据存到sqlite
+	a.RWMutex.Lock()
+	defer a.RWMutex.Unlock()
+	var its []*ObserveData
+	for st, c := range d {
+		iid := fmt.Sprintf("%d_%s", tid, st)
+		dt, _ := time.Parse(DataTimeMin, st)
+		it := &ObserveData{
+			Id: iid, Target: tid,
+			Year: dt.Year(), Month: int(dt.Month()), Day: dt.Day(),
+			Hour: dt.Hour(), Minute: dt.Minute(),
+			RA_DEC: c.data["R.A._____(ICRF)_____DEC"],
+			Delta:  c.Delta(),
+			Deldot: c.Deldot(),
+			SOT:    c.SOT(),
+			SOTR:   c.SOTR(),
+			STO:    c.STO(),
+			Cnst:   c.data["Cnst"],
 		}
-		a.DataQuerying = true
-		te := st.Add(time.Hour * 24 * 7)
-		ets := te.Format(DataTimeMin)
-		go func() {
-			d = a.GetNASAData(id, sts, ets)
-			if d == nil {
-				return
-			}
-			a.OEData[id].ApplyData(d.data)
-			//TODO 数据存到sqlite
-			a.DataQuerying = false
-		}()
+		a.Ephemeris[iid] = it
+		its = append(its, it)
 	}
-	return d.GetOE(sts)
+	_, err := db.Insert(its)
+	if err != nil {
+		UIShowMsgBox(err.Error(), "确定", "确定", nil, nil)
+	}
+	a.DataQuerying = false
 }
-
 func (a *Astrolabe) GetSolarPos() (float32, float32) {
 	return a.solarX, a.solarY
 }
@@ -482,12 +522,25 @@ func (a *Astrolabe) GetMoonPos() (float32, float32) {
 }
 
 type ObserveData struct {
-	data map[string]string
+	Id     string  `gorm:"primarykey" xorm:"pk"`
+	Target int     `gorm:"index" xorm:"index"`
+	Year   int     `gorm:"index" xorm:"index"`
+	Month  int     `gorm:"index" xorm:"index"`
+	Day    int     `gorm:"index" xorm:"index"`
+	Hour   int     `gorm:"index" xorm:"index"`
+	Minute int     `gorm:"index" xorm:"index"`
+	RA_DEC string  // 赤经赤纬
+	Delta  float64 // 距离 AU
+	Deldot float64 // delta-dot 距离变化 KM/S 为正表示远离观察者
+	SOT    float64 // S-O-T 观察者-目标-太阳角度
+	SOTR   string  // "/T": TRAILS 目标跟踪S  "/L": LEADS 目标引领S
+	STO    float64 // S-T-O 太阳-目标-观察者角度
+	Cnst   string  // 星座
 }
 
 // RA 赤经 05 29 58.88
 func (c *ObserveData) RA() string {
-	return c.data["R.A._____(ICRF)_____DEC"][0:11]
+	return c.RA_DEC[0:11]
 }
 
 // RARadius 赤经角度
@@ -502,84 +555,46 @@ func (c *ObserveData) RARadius() float64 {
 
 // DEC 赤纬 +23 15 24.3
 func (c *ObserveData) DEC() string {
-	return c.data["R.A._____(ICRF)_____DEC"][12:] //+23 15 24.3
+	return c.RA_DEC[12:] //+23 15 24.3
 }
 
-// Delta 距离 AU
-func (c *ObserveData) Delta() float64 {
+type observeDataSrc struct {
+	data map[string]string
+}
+
+func (c *observeDataSrc) Delta() float64 {
 	v, _ := strconv.ParseFloat(c.data["delta"], 64)
 	return v
 }
-
-// Deldot delta-dot 距离变化 KM/S 为正表示远离观察者
-func (c *ObserveData) Deldot() float64 {
+func (c *observeDataSrc) Deldot() float64 {
 	v, _ := strconv.ParseFloat(c.data["deldot"], 64)
 	return v
 }
-func (c *ObserveData) SOT() float64 {
+func (c *observeDataSrc) SOT() float64 {
 	v, _ := strconv.ParseFloat(c.data["S-O-T"], 64)
 	return v
 }
-
-// SOTR  "/T": TRAILS 目标跟踪S  "/L": LEADS 目标引领S
-func (c *ObserveData) SOTR() string {
+func (c *observeDataSrc) SOTR() string {
 	return c.data["/r"]
 }
-func (c *ObserveData) STO() float64 {
+func (c *observeDataSrc) STO() float64 {
 	v, _ := strconv.ParseFloat(c.data["S-T-O"], 64)
 	return v
 }
-func (c *ObserveData) Cnst() string {
-	return c.data["Cnst"] //,Constellation[c.data["Cnst"]]
-}
 
-type ObserveEphemeris struct {
-	sync.Mutex
-	id   int
-	data map[string]*ObserveData
-}
-
-func (c *ObserveEphemeris) Id() int {
-	return c.id
-}
-func (c *ObserveEphemeris) GetOE(dataTime string) *ObserveData {
-	c.Lock()
-	defer c.Unlock()
-	return c.data[dataTime]
-}
-
-func (c *ObserveEphemeris) ApplyData(datas map[string]*ObserveData) {
-	c.Lock()
-	defer c.Unlock()
-	for s, data := range datas {
-		c.data[s] = data
-	}
-}
-
-type ObserveDataDB struct {
-	//gorm.Model
-	IdDate string `gorm:"primarykey"`
-	Year   int    `gorm:"index"`
-	Month  int    `gorm:"index"`
-	Day    int    `gorm:"index"`
-	Hour   int    `gorm:"index"`
-	Minute int    `gorm:"index"`
-	RA_DEC string
-	Delta  float64
-	Deldot float64
-	SOT    float64
-	STO    float64
-	Cnst   string
-}
+var db *xorm.Engine
 
 func init() {
-	db, err := gorm.Open(sqlite.Open("nasa_horizons.db"), &gorm.Config{})
+	var err error
+	//db, err = xorm.NewEngine("sqlite3", "file::memory:?cache=shared")
+	db, err = xorm.NewEngine("sqlite3", NASADataFile)
 	if err != nil {
-		panic("failed to connect database")
+		panic(err)
 	}
-	db.AutoMigrate(&ObserveDataDB{})
-	db.Save(&ObserveDataDB{IdDate: "XX", Year: 2021, Month: 6, Day: 1, Hour: 0, Minute: 0, RA_DEC: "05 29 58.88 +23 15 24.3", Delta: 0.999999, Deldot: 0.000000, SOT: 0.000000, STO: 0.000000, Cnst: "Ari"})
-	var data []ObserveDataDB
-	db.Find(&data, "IdDate = ?", "XX")
-	fmt.Println(data)
+
+	// 同步模型到数据库
+	err = db.Sync2(new(ObserveData))
+	if err != nil {
+		panic(err)
+	}
 }

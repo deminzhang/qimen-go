@@ -3,7 +3,16 @@ package util
 import (
 	"math"
 	"slices"
+	"unsafe"
 )
+
+func UnsafeStr2Bytes(s string) []byte {
+	return unsafe.Slice(unsafe.StringData(s), len(s))
+}
+
+func UnsafeBytes2Str(b []byte) string {
+	return unsafe.String(unsafe.SliceData(b), len(b))
+}
 
 func CalRadiansPos(cx, cy, r, angleDegrees float64) (x, y float64) {
 	rad := angleDegrees * math.Pi / 180

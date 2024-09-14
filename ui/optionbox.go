@@ -43,12 +43,18 @@ func NewOptionBox(x, y int, text string) *OptionBox {
 	}
 }
 
-func MakeOptionBoxGroup(a ...*OptionBox) {
+func MakeOptionBoxGroup(a ...*OptionBox) map[*OptionBox]struct{} {
 	g := map[*OptionBox]struct{}{}
 	for _, o := range a {
 		g[o] = struct{}{}
 		o.optionGroup = g
 	}
+	return g
+}
+
+func (o *OptionBox) Add2OptionBoxGroup(g map[*OptionBox]struct{}) {
+	g[o] = struct{}{}
+	o.optionGroup = g
 }
 
 func (o *OptionBox) Width() int {

@@ -66,7 +66,7 @@ func (g *game) Update() error {
 	//g.stars.SetPos(g.astrolabe.GetSolarPos())
 	g.stars.Update()
 	if g.autoMinute && !g.astrolabe.DataQuerying {
-		if g.count == 0 {
+		if g.count%10 == 0 {
 			g.qmGame = g.uiQM.NextApply()
 		}
 	}
