@@ -27,16 +27,16 @@ type cameraX struct {
 
 func (c *cameraX) Update() {
 	if ebiten.IsKeyPressed(ebiten.KeyA) || ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
-		c.Position[0] -= 1
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyD) || ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
 		c.Position[0] += 1
 	}
+	if ebiten.IsKeyPressed(ebiten.KeyD) || ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
+		c.Position[0] -= 1
+	}
 	if ebiten.IsKeyPressed(ebiten.KeyW) || ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
-		c.Position[1] -= 1
+		c.Position[1] += 1
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyS) || ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
-		c.Position[1] += 1
+		c.Position[1] -= 1
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyQ) {
 		if c.ZoomFactor > -2400 {
@@ -64,8 +64,8 @@ func (g *game) Update() error {
 	g.char8.Update()
 	g.astrolabe.Update()
 	//g.stars.SetPos(g.astrolabe.GetSolarPos())
-	g.stars.Update()
-	if g.autoMinute && !g.astrolabe.DataQuerying {
+	//g.stars.Update()
+	if g.autoMinute && !g.astrolabe.DataQuerying() {
 		if g.count%10 == 0 {
 			g.qmGame = g.uiQM.NextApply()
 		}
@@ -76,9 +76,9 @@ func (g *game) Update() error {
 }
 
 func (g *game) Draw(screen *ebiten.Image) {
-	g.stars.Draw(g.world)
 	g.char8.Draw(g.world)
 	g.astrolabe.Draw(g.world)
+	//g.stars.Draw(g.world)
 	g.qiMen.DrawHead(screen)
 	g.qiMen.Draw(g.world)
 	g.camera.Render(g.world, screen)

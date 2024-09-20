@@ -89,10 +89,13 @@ func CalcShenSha(bz *calendar.EightChar) ([]string, []string, []string, []string
 	}
 	//天德贵人：月支查干支 (子巳 丑庚 寅丁 卯申 辰壬 巳辛 午亥 未甲 申癸 酉寅 戌丙 亥丁)
 	for i, gz := range gzAA {
-		if util.Contains([]string{"子巳", "丑庚", "寅丁", "卯申", "辰壬", "巳辛", "午亥", "未甲", "申癸", "酉寅", "戌丙", "亥丁"}, zhiM+gz[1], zhiM+gz[0]) {
+		if util.Contains([]string{"子巳", "丑庚", "寅丁", "卯申", "辰壬", "巳辛",
+			"午亥", "未甲", "申癸", "酉寅", "戌丙", "亥丁"}, zhiM+gz[1], zhiM+gz[0]) {
 			ss[i] = append(ss[i], "天德贵人")
 		}
 	}
+	//天德合：
+
 	//月德贵人：月支见天干 三合见阳干(寅午戌见丙,申子辰见壬,亥卯未见甲,巳酉丑见庚)
 	for i, gan := range ganA {
 		if (util.Contains([]string{"寅", "午", "戌"}, zhiM) && "丙" == gan) ||
@@ -100,6 +103,15 @@ func CalcShenSha(bz *calendar.EightChar) ([]string, []string, []string, []string
 			(util.Contains([]string{"亥", "卯", "未"}, zhiM) && "甲" == gan) ||
 			(util.Contains([]string{"巳", "酉", "丑"}, zhiM) && "庚" == gan) {
 			ss[i] = append(ss[i], "月德贵人")
+		}
+	}
+	//月德合: 月德见贵人的合 月德为丙见辛 月德为壬见丁 月德为甲见己 月德为庚见乙
+	for i, gan := range ganA {
+		if (util.Contains([]string{"寅", "午", "戌"}, zhiM) && "辛" == gan) ||
+			(util.Contains([]string{"申", "子", "辰"}, zhiM) && "丁" == gan) ||
+			(util.Contains([]string{"亥", "卯", "未"}, zhiM) && "己" == gan) ||
+			(util.Contains([]string{"巳", "酉", "丑"}, zhiM) && "乙" == gan) {
+			ss[i] = append(ss[i], "月德合")
 		}
 	}
 	//金匮贵人：年/日干见它支(甲辰 乙巳 丙未 丁申 戊未 己申 庚戌 辛亥 壬子 癸丑)
@@ -155,7 +167,7 @@ func CalcShenSha(bz *calendar.EightChar) ([]string, []string, []string, []string
 	if util.Contains([]string{"甲辰", "乙亥", "丙辰", "丁酉", "戊午", "庚戌", "庚寅", "辛亥", "壬寅", "癸未"}, zhuD) {
 		ss[2] = append(ss[2], "十灵")
 	}
-	//天医: 月支见它支 (寅见丑　卯见寅　辰见卯　巳见辰　午见巳　未见午　申见未　酉见申　戌见酉　亥见戌　子见亥　丑见子)
+	//天医: 月支见它支,支前一位 (寅见丑　卯见寅　辰见卯　巳见辰　午见巳　未见午　申见未　酉见申　戌见酉　亥见戌　子见亥　丑见子)
 	for i, zhi := range zhiA {
 		if util.Contains([]string{zhiM + zhi}, "寅丑", "卯寅", "辰卯", "巳辰", "午巳", "未午", "申未", "酉申", "戌酉", "亥戌", "子亥", "丑子") {
 			ss[i] = append(ss[i], "天医")
@@ -272,12 +284,24 @@ func CalcShenSha(bz *calendar.EightChar) ([]string, []string, []string, []string
 			ss[i] = append(ss[i], "亡神")
 		}
 	}
+	//隔角: 日支查他支 后隔位支(子寅 丑卯 寅辰 卯巳 辰午 巳未 午申 未酉 申戌 酉亥 戌子)
+	for i, zhi := range zhiA {
+		if util.Contains([]string{zhiD + zhi},
+			"子寅", "丑卯", "寅辰", "卯巳", "辰午", "巳未", "午申", "未酉", "申戌", "酉亥", "戌子") {
+			ss[i] = append(ss[i], "隔角")
+		}
+	}
 	//指背煞: 年支查他支 三合见长生(寅午戌见寅 巳酉丑见巳 申子辰见申 亥卯未见亥)
 	for i, zhi := range zhiA {
 		if util.Contains([]string{zhiY + zhi},
 			"寅寅", "午寅", "戌寅", "巳巳", "酉巳", "丑巳", "申申", "子申", "辰申", "亥亥", "卯亥", "未亥") {
 			ss[i] = append(ss[i], "指背煞")
 		}
+	}
+	//截路空亡: 日干查时支 (甲见申酉 乙见午未 丙见辰巳 丁见寅卯 戊见子丑 己见申酉 庚见午未 辛见辰巳 壬见寅卯 癸见子丑)
+	if util.Contains([]string{"甲申", "甲酉", "乙午", "乙未", "丙辰", "丙巳", "丁寅", "丁卯", "戊子", "戊丑",
+		"己申", "己酉", "庚午", "庚未", "辛辰", "辛巳", "壬寅", "壬卯", "癸子", "癸丑"}, ganD+zhiT) {
+		ss[2] = append(ss[2], "截路空亡")
 	}
 
 	//姻缘(天喜 红鸾 咸池/桃花 红艳 童子煞 孤鸾 孤辰 寡宿 阴差阳错)

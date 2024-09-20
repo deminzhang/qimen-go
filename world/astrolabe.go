@@ -14,6 +14,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
+	"qimen/qimen"
 	"qimen/util"
 	"regexp"
 	"strconv"
@@ -21,7 +22,6 @@ import (
 	"sync"
 	"time"
 	_ "xorm.io/core"
-	"xorm.io/xorm"
 )
 
 const (
@@ -29,14 +29,18 @@ const (
 	C  = 299792458       //光速(m/s)
 	AU = 149597870.7e3   //天文单位(m)
 
-	outCircleR = 240
-	outCircleW = 24
+	outCircleR  = 240
+	outCircleW  = 16
+	outCircleR0 = outCircleR + outCircleW/2
+	sphereR     = outCircleR - outCircleW*4
 
-	DataTimeMin      = "2006-01-02 15:04"
-	DateTimeNASA     = "2006-Jan-02 15:04"
-	NASADataFile     = "nasa_data.db"
-	NASADataTimeLast = time.Hour * 24 //一次查询时间范围
-	NASADataStepSize = "1h"           //星体数据步长 1h 1d 1m
+	DataTimeMin        = "2006-01-02 15:04"
+	DateTimeNASA       = "2006-Jan-02 15:04"
+	NASADataFile       = "nasa_data.db"
+	NASADataTimeLast   = time.Hour * 24 //一次查询时间范围
+	NASADataStepSize   = "1h"           //星体数据步长 1h 1d 1m
+	ObserveDataTable   = "observe_data"
+	CelestialBodyTable = "celestial_body"
 )
 
 var Constellation = []string{"Ari", "Tau", "Gem", "Can", "Leo", "Vir", "Lib", "Sco", "Sgr", "Cap", "Aqr", "Psc"}
@@ -46,7 +50,18 @@ var ConstellationCN = map[string]string{
 	"Leo": "狮子座", "Vir": "室女座", "Lib": "天秤座", "Sco": "天蝎座",
 	"Sgr": "射手座", "Cap": "摩羯座", "Aqr": "水瓶座", "Psc": "双鱼座",
 }
+
+// 七政四余宫名/星盘宫名
+var AstrolabeGong74 = []string{"", "命宫", "财帛", "兄弟", "田宅", "子女", "奴仆", "夫妻", "疾厄", "迁移", "官禄", "福德", "相貌"}
 var AstrolabeGong = []string{"", "命宫", "财帛", "交流", "田宅", "娱乐", "健康", "夫妻", "疾厄", "迁移", "事业", "福德", "玄秘"}
+var XiuAngle = map[string]float64{
+	"角": 12.857142857142857, "亢": 25.714285714285714, "氐": 38.57142857142857, "房": 51.42857142857143,
+	"心": 64.28571428571429, "尾": 77.14285714285714, "箕": 90, "斗": 102.85714285714286, "牛": 115.71428571428571,
+	"女": 128.57142857142858, "虚": 141.42857142857142, "危": 154.28571428571428, "室": 167.14285714285714,
+	"壁": 180, "奎": 192.85714285714286, "娄": 205.71428571428572, "胃": 218.57142857142858, "昴": 231.42857142857142,
+	"毕": 244.28571428571428, "觜": 257.14285714285717, "参": 270, "井": 282.8571428571429, "鬼": 295.7142857142857,
+	"柳": 308.5714285714286, "星": 321.42857142857144, "张": 334.28571428571433, "翼": 347.14285714285717, "轸": 360,
+}
 
 // 建星是太阳位置,星座是太阳上升,所以星座相当建星是指定地支时
 // 月将 寅丑子亥戌酉申未午巳辰卯
@@ -65,46 +80,42 @@ type Astrolabe struct {
 	tzOffset int
 	tzRA0    float64 //春分点角度
 
-	DataQuerying bool
+	dataQuerying int
 	Ephemeris    map[string]*ObserveData
 
 	ConstellationLoc [12]gongLocation //星座位
 	AstrolabeLoc     [12]gongLocation //宫位
+	XiuLoc           [28]gongLocation //星宿宫位
 }
 type gongLocation struct {
 	lx1, ly1, lx2, ly2 float32 //分割线
 	x, y               int     //文字坐标
 }
 
-type CelestialBodySum struct {
-	Id   int
-	GMin float64
-	GMax float64 //引力范围
-}
 type CelestialBody struct {
-	Id               int
-	Name             string
-	NameCN           string
-	SubBody          []int      //行星系子体
-	Satellite        []int      //卫星
-	Mass             float64    //质量 kg
-	R                float32    //轨道半径 AU
-	orbitCenter      int        //轨道中心
-	Gravity          float64    //引力 N
-	CelestialBodySum            //GMin, GMax  float64    //引力范围
-	color            color.RGBA //RedShift红移/BlueShift蓝移
+	Id          int `gorm:"primarykey" xorm:"pk"`
+	name        string
+	nameCN      string
+	subBody     []int   //行星系子体
+	satellite   []int   //卫星
+	mass        float64 //质量 kg
+	radius      float32 //平均轨道半径 AU
+	orbitCenter int     //轨道中心对象
+	gravity     float64 //引力 N
+	GMin, GMax  float64 //引力范围
 
-	AR               float32 //星盘半径
-	DrawX, DrawY     float32 //星盘坐标
-	SphereX, SphereY float32 //天球坐标
+	color            color.RGBA //RedShift红移/BlueShift蓝移
+	drawR            float32    //星盘半径
+	drawX, drawY     float32    //星盘坐标
+	sphereX, sphereY float32    //天球坐标
 }
 
 // DrawR 星盘半径
 func (c *CelestialBody) DrawR() float32 {
-	if c.R > 0 {
-		return c.R * 150
+	if c.radius > 0 {
+		return c.radius * 150
 	} else {
-		return c.AR
+		return c.drawR
 	}
 }
 
@@ -120,42 +131,42 @@ func (c *CelestialBody) DrawR() float32 {
 //}
 
 var Bodies = map[int]*CelestialBody{
-	10:  {Id: 10, Name: "Sun", NameCN: "日", AR: 0, Mass: 1988500 * 1e24},
-	199: {Id: 199, Name: "Mercury", NameCN: "水", R: (0.31 + 0.47) / 2, AR: 15, Mass: 3.302 * 1e23},
-	299: {Id: 299, Name: "Venus", NameCN: "金", R: 0.72, AR: 30, Mass: 4.8685 * 1e24},
-	301: {Id: 301, Name: "Satellite", NameCN: "月", AR: 10, Mass: 7.349 * 1e22, orbitCenter: 399},
-	399: {Id: 399, Name: "Earth", NameCN: "地", R: 1, AR: 50, Mass: 5.97219 * 1e24, //+-0.0006
-		Satellite: []int{301}},
-	3: {Id: 3, Name: "EarthBarycenter", NameCN: "地月系重心", AR: 50,
-		SubBody: []int{301, 399}},
-	401: {Id: 401, Name: "Phobos", AR: 5, Mass: 1.0659 * 1e16, orbitCenter: 499},
-	402: {Id: 402, Name: "Deimos", AR: 5, Mass: 1.4762 * 1e15, orbitCenter: 499},
-	499: {Id: 499, Name: "Mars", NameCN: "火", R: (1.38 + 1.66) / 2, AR: 70, Mass: 6.4171 * 1e23,
-		Satellite: []int{401, 402}},
-	4: {Id: 4, Name: "MarsBarycenter", NameCN: "火系重心", AR: 70,
-		SubBody: []int{401, 402, 499}},
-	501: {Id: 501, Name: "Io", AR: 5, Mass: 8.9319 * 1e22, orbitCenter: 599},
-	502: {Id: 502, Name: "Europa", AR: 5, Mass: 4.7998 * 1e22, orbitCenter: 599},
-	503: {Id: 503, Name: "Ganymede", AR: 6, Mass: 1.4819 * 1e23, orbitCenter: 599},
-	504: {Id: 504, Name: "Callisto", AR: 7, Mass: 1.0759 * 1e23, orbitCenter: 599},
-	599: {Id: 599, Name: "Jupiter", NameCN: "木", R: (4.95 + 5.46) / 2, AR: 90, Mass: 1.8982 * 1e27, //18981.8722 +- .8817
-		Satellite: []int{501, 502, 503, 504}},
-	601: {Id: 601, Name: "Mimas", AR: 5, Mass: 3.7493 * 1e19, orbitCenter: 699},
-	602: {Id: 602, Name: "Enceladus", AR: 5, Mass: 1.0802 * 1e20, orbitCenter: 699},
-	603: {Id: 603, Name: "Tethys", AR: 6, Mass: 6.1745 * 1e20, orbitCenter: 699},
-	604: {Id: 604, Name: "Dione", AR: 6, Mass: 1.0955 * 1e21, orbitCenter: 699},
-	605: {Id: 605, Name: "Rhea", AR: 6, Mass: 2.306 * 1e21, orbitCenter: 699},
-	606: {Id: 606, Name: "Titan", AR: 6, Mass: 1.3455 * 1e23, orbitCenter: 699},
-	607: {Id: 607, Name: "Iapetus", AR: 7, Mass: 1.8053 * 1e21, orbitCenter: 699},
-	699: {Id: 699, Name: "Saturn", NameCN: "土", R: (9.03 + 9.54) / 2, AR: 105, Mass: 5.6834 * 1e26,
-		Satellite: []int{601, 602, 603, 604, 605, 606, 607}},
-	799: {Id: 799, Name: "Uranus", NameCN: "天", R: (18.31 + 19.19) / 2, AR: 120, Mass: 8.6813 * 1e25},
-	899: {Id: 899, Name: "Neptune", NameCN: "海", R: (29.81 + 30.36) / 2, AR: 135, Mass: 1.02409 * 1e26},
-	901: {Id: 901, Name: "Charon", NameCN: "卡", AR: 5, Mass: 1 * 1e22, orbitCenter: 999},
-	999: {Id: 999, Name: "Pluto", NameCN: "冥", R: (29.66 + 49.31) / 2, AR: 150, Mass: 1.307 * 1e22, //1.307+-0.018
-		Satellite: []int{901}},
-	9: {Id: 9, Name: "PlutoBarycenter", NameCN: "冥王系重心", AR: 150,
-		SubBody: []int{901, 999}},
+	10:  {Id: 10, name: "Sun", nameCN: "日", drawR: 0, mass: 1988500 * 1e24},
+	199: {Id: 199, name: "Mercury", nameCN: "水", radius: (0.31 + 0.47) / 2, drawR: 15, mass: 3.302 * 1e23},
+	299: {Id: 299, name: "Venus", nameCN: "金", radius: 0.72, drawR: 30, mass: 4.8685 * 1e24},
+	301: {Id: 301, name: "Moon", nameCN: "月", drawR: 10, mass: 7.349 * 1e22, orbitCenter: 399},
+	399: {Id: 399, name: "Earth", nameCN: "地", radius: 1, drawR: 50, mass: 5.97219 * 1e24, //+-0.0006
+		satellite: []int{301}},
+	3: {Id: 3, name: "EarthBarycenter", nameCN: "地月系重心", drawR: 50,
+		subBody: []int{301, 399}},
+	401: {Id: 401, name: "Phobos", drawR: 5, mass: 1.0659 * 1e16, orbitCenter: 499},
+	402: {Id: 402, name: "Deimos", drawR: 5, mass: 1.4762 * 1e15, orbitCenter: 499},
+	499: {Id: 499, name: "Mars", nameCN: "火", radius: (1.38 + 1.66) / 2, drawR: 70, mass: 6.4171 * 1e23,
+		satellite: []int{401, 402}},
+	4: {Id: 4, name: "MarsBarycenter", nameCN: "火系重心", drawR: 70,
+		subBody: []int{401, 402, 499}},
+	501: {Id: 501, name: "Io", drawR: 5, mass: 8.9319 * 1e22, orbitCenter: 599},
+	502: {Id: 502, name: "Europa", drawR: 5, mass: 4.7998 * 1e22, orbitCenter: 599},
+	503: {Id: 503, name: "Ganymede", drawR: 6, mass: 1.4819 * 1e23, orbitCenter: 599},
+	504: {Id: 504, name: "Callisto", drawR: 7, mass: 1.0759 * 1e23, orbitCenter: 599},
+	599: {Id: 599, name: "Jupiter", nameCN: "木", radius: (4.95 + 5.46) / 2, drawR: 90, mass: 1.8982 * 1e27, //18981.8722 +- .8817
+		satellite: []int{501, 502, 503, 504}},
+	601: {Id: 601, name: "Mimas", drawR: 5, mass: 3.7493 * 1e19, orbitCenter: 699},
+	602: {Id: 602, name: "Enceladus", drawR: 5, mass: 1.0802 * 1e20, orbitCenter: 699},
+	603: {Id: 603, name: "Tethys", drawR: 6, mass: 6.1745 * 1e20, orbitCenter: 699},
+	604: {Id: 604, name: "Dione", drawR: 6, mass: 1.0955 * 1e21, orbitCenter: 699},
+	605: {Id: 605, name: "Rhea", drawR: 6, mass: 2.306 * 1e21, orbitCenter: 699},
+	606: {Id: 606, name: "Titan", drawR: 6, mass: 1.3455 * 1e23, orbitCenter: 699},
+	607: {Id: 607, name: "Iapetus", drawR: 7, mass: 1.8053 * 1e21, orbitCenter: 699},
+	699: {Id: 699, name: "Saturn", nameCN: "土", radius: (9.03 + 9.54) / 2, drawR: 105, mass: 5.6834 * 1e26,
+		satellite: []int{601, 602, 603, 604, 605, 606, 607}},
+	799: {Id: 799, name: "Uranus", nameCN: "天", radius: (18.31 + 19.19) / 2, drawR: 120, mass: 8.6813 * 1e25},
+	899: {Id: 899, name: "Neptune", nameCN: "海", radius: (29.81 + 30.36) / 2, drawR: 135, mass: 1.02409 * 1e26},
+	901: {Id: 901, name: "Charon", nameCN: "卡", drawR: 5, mass: 1 * 1e22, orbitCenter: 999},
+	999: {Id: 999, name: "Pluto", nameCN: "冥", radius: (29.66 + 49.31) / 2, drawR: 150, mass: 1.307 * 1e22, //1.307+-0.018
+		satellite: []int{901}},
+	9: {Id: 9, name: "PlutoBarycenter", nameCN: "冥王系重心", drawR: 150,
+		subBody: []int{901, 999}},
 }
 var Draws = []int{
 	10, 199, 299, 399, 499, 599, 699, // 799, 899, 999,
@@ -170,13 +181,24 @@ func NewAstrolabe(x, y float32) *Astrolabe {
 		tzOffset:  offset,
 		Ephemeris: make(map[string]*ObserveData),
 	}
-	for i := 1; i <= 12; i++ {
-		//固定宫位
+	for i := 1; i <= 12; i++ { //固定宫位
 		degrees := float64(i)*30 - 90
-		ly1, lx1 := util.CalRadiansPos(float64(y), float64(x), float64(outCircleR-outCircleW/4), degrees)
-		ly2, lx2 := util.CalRadiansPos(float64(y), float64(x), float64(outCircleR-outCircleW*3/4), degrees)
-		y, x := util.CalRadiansPos(float64(y), float64(x), float64(outCircleR-outCircleW/2), degrees-15)
+		r := float64(outCircleR0 - outCircleW*2)
+		ly1, lx1 := util.CalRadiansPos(float64(y), float64(x), r-outCircleW/2, degrees)
+		ly2, lx2 := util.CalRadiansPos(float64(y), float64(x), r+outCircleW/2, degrees)
+		y, x := util.CalRadiansPos(float64(y), float64(x), r, degrees-15)
 		a.AstrolabeLoc[i-1] = gongLocation{float32(lx1), float32(ly1), float32(lx2), float32(ly2), int(x), int(y)}
+	}
+	var bds []*CelestialBody
+	err := db.Table(CelestialBodyTable).Find(&bds)
+	if err == nil {
+		for _, bd := range bds {
+			body := Bodies[bd.Id]
+			if body == nil {
+				continue
+			}
+			body.GMin, body.GMax = bd.GMin, bd.GMax
+		}
 	}
 	return a
 }
@@ -205,32 +227,27 @@ func (a *Astrolabe) Update() {
 	{
 		moon := Bodies[301]
 		moonY, moonX := util.CalRadiansPos(float64(a.Y), float64(a.X), float64(moon.DrawR()), degreesM)
-		moon.DrawX, moon.DrawY = float32(moonX), float32(moonY)
-		v1 := (&util.Vec2[float32]{X: moon.DrawX - cx, Y: moon.DrawY - cy}).ScaledToLength(outCircleR - outCircleW*2)
-		moon.SphereX = cx + v1.X
-		moon.SphereY = cy + v1.Y
+		moon.drawX, moon.drawY = float32(moonX), float32(moonY)
+		v1 := (&util.Vec2[float32]{X: moon.drawX - cx, Y: moon.drawY - cy}).ScaledToLength(sphereR)
+		moon.sphereX = cx + v1.X
+		moon.sphereY = cy + v1.Y
 	}
 
-	m := Bodies[a.observer].Mass
+	m := Bodies[a.observer].mass
 	for _, id := range Draws {
 		body := Bodies[id]
 		if id == a.observer {
-			body.DrawX, body.DrawY = a.X, a.Y
+			body.drawX, body.drawY = a.X, a.Y
 			body.color = colorBlueShift
-			for _, sid := range body.Satellite {
+			for _, sid := range body.satellite {
 				bd := Bodies[sid]
 				oe := a.GetEphemeris(sid, sCal)
 				if oe == nil {
 					a.solar = calendar.Solar{}
 					continue
 				}
-				bd.Gravity = G * bd.Mass * m / math.Pow(oe.Delta*AU, 2)
-				if bd.GMin == 0 {
-					bd.GMin = bd.Gravity
-				} else {
-					bd.GMin = min(bd.Gravity, bd.GMin)
-				}
-				bd.GMax = max(bd.Gravity, bd.GMax)
+				bd.gravity = G * bd.mass * m / math.Pow(oe.Delta*AU, 2)
+				a.updateGravityRange(sid, bd.gravity)
 				if oe.Deldot > 0 {
 					bd.color = colorBlueShift
 				} else {
@@ -245,10 +262,10 @@ func (a *Astrolabe) Update() {
 			continue
 		}
 		if id == 10 {
-			body.DrawX, body.DrawY = a.solarX, a.solarY
-			v1 := (&util.Vec2[float32]{X: body.DrawX - cx, Y: body.DrawY - cy}).ScaledToLength(outCircleR - outCircleW*3)
-			body.SphereX = cx + v1.X
-			body.SphereY = cy + v1.Y
+			body.drawX, body.drawY = a.solarX, a.solarY
+			v1 := (&util.Vec2[float32]{X: body.drawX - cx, Y: body.drawY - cy}).ScaledToLength(sphereR)
+			body.sphereX = cx + v1.X
+			body.sphereY = cy + v1.Y
 
 			a.tzRA0 = degreesS - oe.RARadius()
 		} else {
@@ -261,19 +278,14 @@ func (a *Astrolabe) Update() {
 				degrees = 90 - 270 - degreesSO + ost
 			}
 			y, x := util.CalRadiansPos(solarY, solarX, float64(body.DrawR()), degrees)
-			body.DrawX = float32(x)
-			body.DrawY = float32(y)
-			v1 := (&util.Vec2[float32]{X: body.DrawX - cx, Y: body.DrawY - cy}).ScaledToLength(outCircleR - outCircleW*3)
-			body.SphereX = cx + v1.X
-			body.SphereY = cy + v1.Y
+			body.drawX = float32(x)
+			body.drawY = float32(y)
+			v1 := (&util.Vec2[float32]{X: body.drawX - cx, Y: body.drawY - cy}).ScaledToLength(sphereR)
+			body.sphereX = cx + v1.X
+			body.sphereY = cy + v1.Y
 		}
-		body.Gravity = G * body.Mass * m / math.Pow(oe.Delta*AU, 2)
-		if body.GMin == 0 {
-			body.GMin = body.Gravity
-		} else {
-			body.GMin = min(body.Gravity, body.GMin)
-		}
-		body.GMax = max(body.Gravity, body.GMax)
+		body.gravity = G * body.mass * m / math.Pow(oe.Delta*AU, 2)
+		a.updateGravityRange(id, body.gravity)
 		if oe.Deldot > 0 {
 			body.color = colorBlueShift
 		} else {
@@ -283,26 +295,60 @@ func (a *Astrolabe) Update() {
 	a.calGongLocation()
 	return
 }
-
+func (a *Astrolabe) updateGravityRange(tid int, gravity float64) {
+	body := Bodies[tid]
+	mi, mx := body.GMin, body.GMax
+	if body.GMin == 0 {
+		body.GMin = body.gravity
+	} else {
+		body.GMin = min(body.gravity, body.GMin)
+	}
+	body.GMax = max(body.GMin, body.GMax)
+	if mi != body.GMin || mx != body.GMax {
+		_, err := db.Insert(body)
+		if err != nil {
+			return
+		}
+	}
+}
 func (a *Astrolabe) calGongLocation() {
 	cx, cy := a.X, a.Y
 	for i := 1; i <= 12; i++ {
 		degrees := a.tzRA0 + float64(i-1)*30
-		ly1, lx1 := util.CalRadiansPos(float64(cy), float64(cx), float64(outCircleR-outCircleW/4), degrees)
-		ly2, lx2 := util.CalRadiansPos(float64(cy), float64(cx), float64(outCircleR+outCircleW/2), degrees)
-		y, x := util.CalRadiansPos(float64(cy), float64(cx), float64(outCircleR+outCircleW/4), degrees+15)
+		r := float64(outCircleR0)
+		ly1, lx1 := util.CalRadiansPos(float64(cy), float64(cx), r-outCircleW/2, degrees)
+		ly2, lx2 := util.CalRadiansPos(float64(cy), float64(cx), r+outCircleW/2, degrees)
+		y, x := util.CalRadiansPos(float64(cy), float64(cx), r, degrees+15)
 		a.ConstellationLoc[i-1] = gongLocation{float32(lx1), float32(ly1), float32(lx2), float32(ly2), int(x), int(y)}
 	}
+	//TODO 校正角度
+	for i := 1; i <= 28; i++ {
+		xiu := qimen.Xiu28[i-1]
+		degrees := a.tzRA0 + XiuAngle[xiu] + 200
+		r := float64(outCircleR0 - outCircleW)
+		ly1, lx1 := util.CalRadiansPos(float64(cy), float64(cx), r-outCircleW/2, degrees)
+		ly2, lx2 := util.CalRadiansPos(float64(cy), float64(cx), r+outCircleW/2, degrees)
+		y, x := util.CalRadiansPos(float64(cy), float64(cx), r, degrees+6.4285)
+		a.XiuLoc[i-1] = gongLocation{float32(lx1), float32(ly1), float32(lx2), float32(ly2), int(x), int(y)}
+	}
 }
-
+func (a *Astrolabe) DataQuerying() bool {
+	return a.dataQuerying != 0
+}
 func (a *Astrolabe) Draw(dst *ebiten.Image) {
 	ft, _ := GetFontFace(12)
 	cx, cy := a.X, a.Y
 	sX, sY := a.solarX, a.solarY
 	//外圈
-	vector.StrokeCircle(dst, cx, cy, outCircleR, outCircleW, colorSkyGateCircle, true)                   //星座
-	vector.StrokeCircle(dst, cx, cy, outCircleR-outCircleW/2, outCircleW/2, colorGroundGateCircle, true) //宫位
-	vector.StrokeCircle(dst, cx, cy, outCircleR-outCircleW, outCircleW/2, colorPowerCircle, true)        //天球celestial sphere
+	w := float32(outCircleW)
+	r := float32(outCircleR0)
+	vector.StrokeCircle(dst, cx, cy, r, w, colorSkyGateCircle, true) //星座
+	r -= w
+	vector.StrokeCircle(dst, cx, cy, r, w, colorGroundGateCircle, true) //星宿
+	r -= w
+	vector.StrokeCircle(dst, cx, cy, r, w, colorPowerCircle, true) //天球
+	r -= w
+	vector.StrokeCircle(dst, cx, cy, r, w, colorGroundGateCircle, true) //宫位
 	//十字线
 	horizons := float32(0) //TODO 地平线调整
 	vector.StrokeLine(dst, cx-outCircleR, cy-horizons, cx+outCircleR, cy-horizons, 1, colorCross, true)
@@ -322,6 +368,12 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 		vector.StrokeLine(dst, l.lx1, l.ly1, l.lx2, l.ly2, 1, colorGongSplit, true) //宫
 		text.Draw(dst, fmt.Sprintf("%d", i+1), ft, l.x-4, l.y+4, colorJiang)        //宫位
 	}
+	//画28星宿
+	for i := 0; i < 28; i++ {
+		l := a.XiuLoc[i]
+		vector.StrokeLine(dst, l.lx1, l.ly1, l.lx2, l.ly2, 1, colorGongSplit, true)     //星宿
+		text.Draw(dst, fmt.Sprintf("%s", qimen.Xiu28[i]), ft, l.x-4, l.y+4, colorJiang) //星宿
+	}
 	//画星体
 	for _, id := range Draws {
 		obj := Bodies[id]
@@ -329,30 +381,33 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 		if a.observer == obj.Id {
 			//地球观察者
 		} else {
-			if obj.SphereX == 0 && obj.SphereY == 0 {
+			if obj.sphereX == 0 && obj.sphereY == 0 {
 				continue //查询中
 			}
-			vector.StrokeLine(dst, cx, cy, obj.SphereX, obj.SphereY, 1, colorOrbits, true) // sphere line
-			//vector.DrawFilledCircle(dst, obj.SphereX, obj.SphereY, 2, obj.color, true)     // sphere
-			text.Draw(dst, obj.NameCN, ft, int(obj.SphereX), int(obj.SphereY), obj.color)
+			vector.StrokeLine(dst, cx, cy, obj.sphereX, obj.sphereY, 1, colorOrbits, true) // sphere line
+			//vector.DrawFilledCircle(dst, obj.sphereX, obj.sphereY, 2, obj.color, true)     // sphere
+			text.Draw(dst, obj.nameCN, ft, int(obj.sphereX), int(obj.sphereY), obj.color)
 		}
-		vector.DrawFilledCircle(dst, obj.DrawX, obj.DrawY, 2, obj.color, true) //planet
+		vector.DrawFilledCircle(dst, obj.drawX, obj.drawY, 2, obj.color, true) //planet
 
-		for _, sid := range obj.Satellite {
+		for _, sid := range obj.satellite {
 			ob := Bodies[sid]
 			if ob.Id == 301 {
-				vector.StrokeCircle(dst, obj.DrawX, obj.DrawY, ob.DrawR(), 1, colorOrbits, true) //satellite Orbit
-				vector.StrokeLine(dst, cx, cy, ob.SphereX, ob.SphereY, 1, colorOrbits, true)     // sphere line
-				vector.DrawFilledCircle(dst, ob.DrawX, ob.DrawY, 1, ob.color, true)              //moon
-				text.Draw(dst, ob.NameCN, ft, int(ob.SphereX), int(ob.SphereY), ob.color)
+				vector.StrokeCircle(dst, obj.drawX, obj.drawY, ob.DrawR(), 1, colorOrbits, true) //satellite Orbit
+				vector.StrokeLine(dst, cx, cy, ob.sphereX, ob.sphereY, 1, colorOrbits, true)     // sphere line
+				vector.DrawFilledCircle(dst, ob.drawX, ob.drawY, 1, ob.color, true)              //moon
+				text.Draw(dst, ob.nameCN, ft, int(ob.sphereX), int(ob.sphereY), ob.color)
 			} else {
-				mx, my := util.CalRadiansPos(float64(obj.DrawX), float64(obj.DrawY), float64(ob.DrawR()), float64(rand.Intn(360)))
+				mx, my := util.CalRadiansPos(float64(obj.drawX), float64(obj.drawY), float64(ob.DrawR()), float64(rand.Intn(360)))
 				vector.DrawFilledCircle(dst, float32(mx), float32(my), 1, obj.color, true) //satellite
 			}
 		}
 	}
 	a.DrawGravity(dst)
-	if a.DataQuerying {
+	switch a.dataQuerying {
+	case 1:
+		text.Draw(dst, "正在查询..", ft, int(cx-32), int(cy-10), color.White)
+	case 2:
 		text.Draw(dst, "正在观星..", ft, int(cx-32), int(cy-10), color.White)
 	}
 }
@@ -360,17 +415,17 @@ func (a *Astrolabe) DrawGravity(dst *ebiten.Image) {
 	cx, cy := a.X, a.Y-440
 	for _, id := range Draws {
 		obj := Bodies[id]
-		if obj.Gravity > 0 {
+		if obj.gravity > 0 {
 			//cx += 40
 			cy += 22
-			DrawRangeBar(dst, cx-200, cy, 100, obj.NameCN, obj.Gravity, obj.GMin, obj.GMax, obj.color)
+			DrawRangeBar(dst, cx-200, cy, 100, obj.nameCN, obj.gravity, obj.GMin, obj.GMax, obj.color)
 		}
-		for _, sid := range obj.Satellite {
+		for _, sid := range obj.satellite {
 			ob := Bodies[sid]
-			if ob.Gravity > 0 {
+			if ob.gravity > 0 {
 				//cx += 40
 				cy += 22
-				DrawRangeBar(dst, cx-200, cy, 100, ob.NameCN, ob.Gravity, ob.GMin, ob.GMax, ob.color)
+				DrawRangeBar(dst, cx-200, cy, 100, ob.nameCN, ob.gravity, ob.GMin, ob.GMax, ob.color)
 			}
 		}
 	}
@@ -390,19 +445,22 @@ func (a *Astrolabe) GetEphemeris(tid int, s *calendar.Solar) *ObserveData {
 	if v != nil {
 		return v
 	}
-	if a.DataQuerying {
+	if a.DataQuerying() {
 		return nil
 	}
+	a.dataQuerying = 1
 	var it ObserveData
-	has, err := db.Where("Id = ?", id).Get(&it)
+	has, err := db.Table(ObserveDataTable).Where("Id = ?", id).Get(&it)
 	if err != nil {
+		log.Printf("Error GetEphemeris: %v\n", err)
 		UIShowMsgBox(err.Error(), "确定", "确定", nil, nil)
 		return nil
 	}
 	if has {
+		a.dataQuerying = 0
 		return &it
 	} else {
-		a.DataQuerying = true
+		a.dataQuerying = 2
 		te := t.Add(NASADataTimeLast)
 		ets := te.Format(DataTimeMin)
 		go a.QueryNASAData(tid, sts, ets)
@@ -483,7 +541,7 @@ func (a *Astrolabe) GetNASAData(tid int, sts, ets string) map[string]*observeDat
 func (a *Astrolabe) QueryNASAData(tid int, sts, ets string) {
 	d := a.GetNASAData(tid, sts, ets)
 	if d == nil || len(d) == 0 {
-		a.DataQuerying = false
+		a.dataQuerying = 0
 		return
 	}
 	// 数据存到sqlite
@@ -510,15 +568,16 @@ func (a *Astrolabe) QueryNASAData(tid int, sts, ets string) {
 	}
 	_, err := db.Insert(its)
 	if err != nil {
-		UIShowMsgBox(err.Error(), "确定", "确定", nil, nil)
+		log.Printf("Error Insert: %v\n", err)
+		db.Update(its)
 	}
-	a.DataQuerying = false
+	a.dataQuerying = 0
 }
 func (a *Astrolabe) GetSolarPos() (float32, float32) {
 	return a.solarX, a.solarY
 }
 func (a *Astrolabe) GetMoonPos() (float32, float32) {
-	return Bodies[301].DrawX, Bodies[301].DrawY
+	return Bodies[301].drawX, Bodies[301].drawY
 }
 
 type ObserveData struct {
@@ -580,21 +639,4 @@ func (c *observeDataSrc) SOTR() string {
 func (c *observeDataSrc) STO() float64 {
 	v, _ := strconv.ParseFloat(c.data["S-T-O"], 64)
 	return v
-}
-
-var db *xorm.Engine
-
-func init() {
-	var err error
-	//db, err = xorm.NewEngine("sqlite3", "file::memory:?cache=shared")
-	db, err = xorm.NewEngine("sqlite3", NASADataFile)
-	if err != nil {
-		panic(err)
-	}
-
-	// 同步模型到数据库
-	err = db.Sync2(new(ObserveData))
-	if err != nil {
-		panic(err)
-	}
 }

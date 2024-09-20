@@ -130,6 +130,7 @@ var ZhiGong9 = map[string]int{
 	"午": 9, "未": 2, "申": 2, "酉": 7, "戌": 6, "亥": 6,
 }
 
+// LunarUtil.ZHI_HIDE_GAN 顺序
 var ZHI_HIDE_GAN = map[string][]string{
 	"子": {"癸"},
 	"丑": {"己", "辛", "癸"},

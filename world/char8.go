@@ -16,14 +16,14 @@ import (
 // 年干8 月干12 日元12 时干12
 // 年支4 月支40 日支12 时支12
 const (
-	HpGY = 80
-	HpZY = 40
-	HpGM = 120
-	HpZM = 400
-	HpGD = 120
-	HpZD = 120
-	HpGT = 120
-	HpZT = 120
+	HpGanYear  = 80
+	HpZhiYear  = 40
+	HpGanMonth = 120
+	HpZhiMonth = 400
+	HpGanDay   = 120
+	HpZhiDay   = 120
+	HpGanTime  = 120
+	HpZhiTime  = 120
 )
 
 // HideGanVal 藏干值比例
@@ -34,17 +34,17 @@ var HideGanVal = map[int][]int{
 }
 
 type Char8Pan struct {
-	X, Y       float32
-	FYear      *CharBody //流年通用
-	FMonth     *CharBody //流月通用
-	FDay       *CharBody //流日通用
-	FTime      *CharBody //流时通用
-	Player     *Player   //玩家
-	inited     bool
-	BodyShow   bool
-	brightness float32
+	X, Y     float32
+	FYear    *CharBody //流年通用
+	FMonth   *CharBody //流月通用
+	FDay     *CharBody //流日通用
+	FTime    *CharBody //流时通用
+	Player   *Player   //玩家
+	inited   bool
+	BodyShow bool
 
 	ui.Container
+	count int
 }
 
 func NewChar8Pan(x, y float32) *Char8Pan {
@@ -68,10 +68,10 @@ func NewChar8Pan(x, y float32) *Char8Pan {
 
 func (g *Char8Pan) Init() {
 	cal := ThisGame.qmGame.Lunar
-	g.FYear = NewCharBody(cal.GetYearGan(), cal.GetYearZhi(), HpGY, HpZY)
-	g.FMonth = NewCharBody(cal.GetMonthGan(), cal.GetMonthZhi(), HpGM, HpZM)
-	g.FDay = NewCharBody(cal.GetDayGan(), cal.GetDayZhi(), HpGD, HpZD)
-	g.FTime = NewCharBody(cal.GetTimeGan(), cal.GetTimeZhi(), HpGT, HpZT)
+	g.FYear = NewCharBody(cal.GetYearGan(), cal.GetYearZhi(), HpGanYear, HpZhiYear)
+	g.FMonth = NewCharBody(cal.GetMonthGan(), cal.GetMonthZhi(), HpGanMonth, HpZhiMonth)
+	g.FDay = NewCharBody(cal.GetDayGan(), cal.GetDayZhi(), HpGanDay, HpZhiDay)
+	g.FTime = NewCharBody(cal.GetTimeGan(), cal.GetTimeZhi(), HpGanTime, HpZhiTime)
 	g.Player = &Player{}
 	g.Player.Reset(cal, GenderMale)
 	g.inited = true
@@ -86,23 +86,25 @@ func (g *Char8Pan) Update() {
 		g.Init()
 	}
 	g.Container.Update()
+	g.count++
+	g.count %= 60
 
 	cal := ThisGame.qmGame.Lunar
 	p := g.Player
 	if g.FYear.Gan != cal.GetYearGan() || g.FYear.Zhi != cal.GetYearZhi() {
-		g.FYear = NewCharBody(cal.GetYearGan(), cal.GetYearZhi(), HpGY, HpZY)
+		g.FYear = NewCharBody(cal.GetYearGan(), cal.GetYearZhi(), HpGanYear, HpZhiYear)
 		p.UpdateCount = 10
 	}
 	if g.FMonth.Gan != cal.GetMonthGan() || g.FMonth.Zhi != cal.GetMonthZhi() {
-		g.FMonth = NewCharBody(cal.GetMonthGan(), cal.GetMonthZhi(), HpGM, HpZM)
+		g.FMonth = NewCharBody(cal.GetMonthGan(), cal.GetMonthZhi(), HpGanMonth, HpZhiMonth)
 		p.UpdateCount = 10
 	}
 	if g.FDay.Gan != cal.GetDayGan() || g.FDay.Zhi != cal.GetDayZhi() {
-		g.FDay = NewCharBody(cal.GetDayGan(), cal.GetDayZhi(), HpGD, HpZD)
+		g.FDay = NewCharBody(cal.GetDayGan(), cal.GetDayZhi(), HpGanDay, HpZhiDay)
 		p.UpdateCount = 10
 	}
 	if g.FTime.Gan != cal.GetTimeGan() || g.FTime.Zhi != cal.GetTimeZhi() {
-		g.FTime = NewCharBody(cal.GetTimeGan(), cal.GetTimeZhi(), HpGT, HpZT)
+		g.FTime = NewCharBody(cal.GetTimeGan(), cal.GetTimeZhi(), HpGanTime, HpZhiTime)
 		p.UpdateCount = 10
 	}
 	var changeYun bool
@@ -133,7 +135,7 @@ func (g *Char8Pan) Update() {
 								gz := xiaoYun.GetGanZhi()
 								gan := string([]rune(gz)[0])
 								zhi := string([]rune(gz)[1])
-								p.FYun = NewCharBody(gan, zhi, HpGM, HpZM)
+								p.FYun = NewCharBody(gan, zhi, HpGanMonth, HpZhiMonth)
 								p.YunIdx0 = j
 								p.YunIdx = i
 								break
@@ -143,7 +145,7 @@ func (g *Char8Pan) Update() {
 						gz := daYun.GetGanZhi()
 						gan := string([]rune(gz)[0])
 						zhi := string([]rune(gz)[1])
-						p.FYun = NewCharBody(gan, zhi, HpGM, HpZM)
+						p.FYun = NewCharBody(gan, zhi, HpGanMonth, HpZhiMonth)
 						p.YunIdx0 = 0
 						p.YunIdx = i
 					}
@@ -160,12 +162,8 @@ func (g *Char8Pan) Update() {
 			}
 		}
 	}
-
-	g.UpdateHp(p)
-
-	g.brightness += 1
-	if 0xff < g.brightness {
-		g.brightness = 0xff
+	if g.count%10 == 0 {
+		g.UpdateHp(p)
 	}
 }
 
@@ -220,7 +218,7 @@ func (g *Char8Pan) Draw(dst *ebiten.Image) {
 		text.Draw(dst, "中气", ft14, int(sx), int(sy+64), colorWhite)
 		text.Draw(dst, "余气", ft14, int(sx), int(sy+80), colorWhite)
 		text.Draw(dst, "纳音", ft14, int(sx), int(sy+96), colorWhite)
-		text.Draw(dst, "星运", ft14, int(sx), int(sy+112), colorWhite) //地势/长生/星运
+		text.Draw(dst, "地势", ft14, int(sx), int(sy+112), colorWhite) //地势/长生/星运
 		text.Draw(dst, "自坐", ft14, int(sx), int(sy+128), colorWhite)
 		text.Draw(dst, "空亡", ft14, int(sx), int(sy+144), colorWhite)
 		text.Draw(dst, "小运", ft14, int(sx), int(sy+160), colorWhite)
@@ -350,7 +348,7 @@ func (g *Char8Pan) Draw(dst *ebiten.Image) {
 		text.Draw(dst, p.Time.Legs, ft14, int(sx+28+16), int(sy), ColorGanZhi(p.Time.Legs))
 		text.Draw(dst, p.Time.Feet, ft14, int(sx+28+32), int(sy), ColorGanZhi(p.Time.Feet))
 	}
-	//横象 年祖月父母日夫妻时子孙 干动支静 干为军支为营 干为官支为民
+	//横象 年祖 月父母 日夫妻 时子孙 干动支静 干为军支为营 干为官支为民
 	{
 		sx, sy := cx+8, cy+420
 		g.DrawCharHP(dst, sx, sy, p.Year)
@@ -365,10 +363,10 @@ func (g *Char8Pan) Draw(dst *ebiten.Image) {
 func (g *Char8Pan) DrawCharHP(dst *ebiten.Image, sx, sy float32, body *CharBody) {
 	ft14, _ := GetFontFace(14)
 	ft28, _ := GetFontFace(28)
-	vector.StrokeRect(dst, sx, sy+2, 96, 96, 1, colorWhite, true)
+	vector.StrokeRect(dst, sx, sy, 96, 80, 1, colorWhite, true)
 	text.Draw(dst, body.Gan, ft28, int(sx), int(sy), ColorGanZhi(body.Gan))
 	DrawProBar(dst, sx+28, sy-8, 64, 8, ColorGanZhi(body.Gan), body.HPHead, body.HPMHead)
-	sy += 48
+	sy += 26
 	text.Draw(dst, body.Zhi, ft28, int(sx), int(sy), ColorGanZhi(body.Zhi))
 	text.Draw(dst, body.Body, ft14, int(sx), int(sy+16), ColorGanZhi(body.Body))
 	DrawProBar(dst, sx+28, sy+16-8, 64, 8, ColorGanZhi(body.Zhi), body.HPBody, body.HPMBody) //横HP
@@ -402,14 +400,15 @@ type CharBody struct {
 	HPMFeet int //余气值Max
 }
 
-func NewCharBody(gan, zhi string, ganM, zhiM int) *CharBody {
+func NewCharBody(gan, zhi string, ganMax, zhiMax int) *CharBody {
 	return &CharBody{Gan: gan, Zhi: zhi,
-		Body: GetHideGan(zhi, 0),
-		Legs: GetHideGan(zhi, 1), Feet: GetHideGan(zhi, 2),
-		HPMHead: ganM, HPMBody: zhiM, HPMLegs: zhiM, HPMFeet: zhiM,
+		Body:    GetHideGan(zhi, 0),
+		Legs:    GetHideGan(zhi, 1),
+		Feet:    GetHideGan(zhi, 2),
+		HPMHead: ganMax, HPMBody: zhiMax, HPMLegs: zhiMax, HPMFeet: zhiMax,
 	}
 }
-func (c *CharBody) InitHP(maxHp int) {
+func (c *CharBody) initZhiHP(maxHp int) {
 	if c.Feet != "" {
 		c.HPBody = maxHp * HideGanVal[3][0] / 100
 		c.HPLegs = maxHp * HideGanVal[3][1] / 100
@@ -458,10 +457,10 @@ func (p *Player) Reset(lunar *calendar.Lunar, gender int) {
 	p.Gender = gender
 	bz := lunar.GetEightChar()
 	zhiY, zhiM, zhiD, zhiT := bz.GetYearZhi(), bz.GetMonthZhi(), bz.GetDayZhi(), bz.GetTimeZhi()
-	p.Year = NewCharBody(bz.GetYearGan(), zhiY, HpGY, HpZY)
-	p.Month = NewCharBody(bz.GetMonthGan(), zhiM, HpGM, HpZM)
-	p.Day = NewCharBody(bz.GetDayGan(), zhiD, HpGD, HpZD)
-	p.Time = NewCharBody(bz.GetTimeGan(), zhiT, HpGT, HpZT)
+	p.Year = NewCharBody(bz.GetYearGan(), zhiY, HpGanYear, HpZhiYear)
+	p.Month = NewCharBody(bz.GetMonthGan(), zhiM, HpGanMonth, HpZhiMonth)
+	p.Day = NewCharBody(bz.GetDayGan(), zhiD, HpGanDay, HpZhiDay)
+	p.Time = NewCharBody(bz.GetTimeGan(), zhiT, HpGanTime, HpZhiTime)
 	p.ShenShaY, p.ShenShaM, p.ShenShaD, p.ShenShaT = qimen.CalcShenSha(bz)
 
 	yun := bz.GetYun(p.Gender)
@@ -483,27 +482,36 @@ func (p *Player) Reset(lunar *calendar.Lunar, gender int) {
 	}
 	p.FYun = nil
 	p.UpdateCount = 10
-	p.ResetHP()
+	p.resetHP()
 }
 
-func (p *Player) ResetHP() {
-	p.Year.HPHead = HpGY
-	p.Year.InitHP(HpZY)
-	p.Month.HPHead = HpGM
-	p.Month.InitHP(HpZM)
-	p.Day.HPHead = HpGD
-	p.Day.InitHP(HpZD)
-	p.Time.HPHead = HpGT
-	p.Time.InitHP(HpZT)
+func (p *Player) resetHP() {
+	p.Year.HPHead = HpGanYear
+	p.Year.initZhiHP(HpZhiYear)
+	p.Month.HPHead = HpGanMonth
+	p.Month.initZhiHP(HpZhiMonth)
+	p.Day.HPHead = HpGanDay
+	p.Day.initZhiHP(HpZhiDay)
+	p.Time.HPHead = HpGanTime
+	p.Time.initZhiHP(HpZhiTime)
 }
 
 func CharBodyInteractive(a, b *CharBody, force int, reduce int) {
 	if a == nil || b == nil {
 		return
 	}
+	//金赖土生，土多金埋。	土赖火生，火多土焦。
+	//火赖木生，木多火炽。	木赖水生，水多木漂。
+	//水赖金生，金多水浊。
+	//水空则流，木空则损，土空则陷，金空则则响，火空则发。
+	//旺木喜金，旺火喜水，旺土喜木，旺金喜火，旺水喜土。
+	//木怕金旺，火怕水旺，土怕木旺，金怕火旺，水怕土旺。
+	//水弱则爱金，金弱则爱土，土弱则爱火，火弱则爱木，木弱则爱水。
+	//水衰不生木，木衰不生火，火衰不生土，土衰不生金，金衰不生水。
+	//春土不克水，夏金不克木，季水不克火，秋木不克土，冬火不克金。
 	gg := LunarUtil.SHI_SHEN[a.Gan+b.Gan]
 	switch gg {
-	case "比肩", "劫财": //助
+	case "比肩", "劫财": //助分
 		if a.HPHead < a.HPMHead && a.HPHead+force < b.HPHead-force {
 			b.HPHead -= force * reduce
 			a.HPHead += force
@@ -532,7 +540,6 @@ func CharBodyInteractive(a, b *CharBody, force int, reduce int) {
 				a.HPHead += force / 2
 			}
 		}
-	//阳受阴克为害，阴受阳克为侵，阳受阳克为制，阴受阴克为乱
 	case "正官": //娶
 		if qimen.HE_GAN[a.Gan] == b.Gan { //合
 
@@ -542,7 +549,8 @@ func CharBodyInteractive(a, b *CharBody, force int, reduce int) {
 			b.HPHead += force
 		}
 	case "七杀": //夺
-		if b.HPHead < b.HPMHead && b.HPHead+force < a.HPHead-force {
+		//if b.HPHead < b.HPMHead && b.HPHead+force < a.HPHead-force {
+		if b.HPHead < b.HPMHead && a.HPHead > force {
 			a.HPHead -= force * reduce
 			b.HPHead += force / 2
 		}
@@ -555,7 +563,7 @@ func CharBodyInteractive(a, b *CharBody, force int, reduce int) {
 			a.HPHead += force
 		}
 	case "偏财": //耗
-		if a.HPHead < a.HPMHead && a.HPHead+force < b.HPHead-force {
+		if a.HPHead < a.HPMHead && b.HPHead > force {
 			b.HPHead -= force * reduce
 			a.HPHead += force / 2
 		}
