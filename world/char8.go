@@ -541,7 +541,7 @@ func CharBodyInteractive(a, b *CharBody, force int, reduce int) {
 			}
 		}
 	case "正官": //娶
-		if qimen.HE_GAN[a.Gan] == b.Gan { //合
+		if qimen.HeGan[a.Gan] == b.Gan { //合
 
 		}
 		if b.HPHead < b.HPMHead && b.HPHead+force < a.HPHead-force {
@@ -555,7 +555,7 @@ func CharBodyInteractive(a, b *CharBody, force int, reduce int) {
 			b.HPHead += force / 2
 		}
 	case "正财": //嫁
-		if qimen.HE_GAN[a.Gan] == b.Gan { //合
+		if qimen.HeGan[a.Gan] == b.Gan { //合
 
 		}
 		if a.HPHead < a.HPMHead && a.HPHead+force < b.HPHead-force {

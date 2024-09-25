@@ -116,9 +116,44 @@ func NewQMGame(solar *calendar.Solar, params QMParams) *QMGame {
 			yuan = min(yuan, 3)       //三元完新节气不到用下元
 			jqi := _JieQiIndex[jieQiName]
 			ju = _QiMenJu[jqi][yuan-1]
-		case QMJuTypeZhiRun:
-			// TODO 置闰
-
+		case QMJuTypeZhiRun: //置闰 https://www.sohu.com/a/286929542_488508
+			jqi := _JieQiIndex[jieQiName]
+			ju = _QiMenJu[jqi][yuan-1]
+			switch jieQiName {
+			case "大雪", "芒种": // "冬至", "夏至":前
+				sy := solar.GetYear()
+				var zhiRun bool
+				switch sy % 10 {
+				case 0, 3, 5, 8:
+					zhiRun = (sy/10)%2 == 1 //十位数奇数
+				case 1, 4, 7:
+					zhiRun = (sy/10)%2 == 0 //十位数偶数
+				}
+				if zhiRun {
+					jiaZiIndex := LunarUtil.GetJiaZiIndex(c8.GetDay())
+					headPreDay := jiaZiIndex % 15
+					hl := calendar.NewLunarFromSolar(solar.NextDay(-headPreDay))
+					jqName := hl.GetPrevJieQi().GetName()
+					headInJieQi := jqName == jieQiName
+					if headInJieQi { //符头在本节气
+						jqNext := lunar.GetNextJieQi() //下个节气 冬至/夏至
+						days := jqNext.GetSolar().Subtract(solar)
+						if yuan == 1 && days <= 5 { //下一节气 符头提前在本节气 超神
+							jqi++
+							if jqi > 24 {
+								jqi -= 24
+							}
+							ju = _QiMenJu[jqi][yuan-1] //上元用下一节气局
+						}
+					} else { //符头在上一节气 接气 小雪/小满
+						jqi--
+						if jqi < 1 {
+							jqi += 24
+						}
+						ju = _QiMenJu[jqi][yuan-1] //用上一节气局
+					}
+				}
+			}
 		case QMJuTypeSelf:
 			ju = params.SelfJu
 		}
@@ -218,13 +253,7 @@ func NewQMGame(solar *calendar.Solar, params QMParams) *QMGame {
 
 func getQiMenYuan3Index(dayGanZhi string) int {
 	jiaZiIndex := LunarUtil.GetJiaZiIndex(dayGanZhi)
-	qiMenYuanIdx := jiaZiIndex % 15
-	if qiMenYuanIdx < 5 {
-		return 1
-	} else if qiMenYuanIdx < 10 {
-		return 2
-	}
-	return 3
+	return (jiaZiIndex%15)/5 + 1
 }
 
 // GetTermTime 返回solar年的第n(1小寒)个节气进入时间 以1970-01-01 00:00:00 UTC为0,正后前负

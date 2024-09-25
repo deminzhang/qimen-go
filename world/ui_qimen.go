@@ -172,7 +172,6 @@ func NewUIQiMen() *UIQiMen {
 		p.inputSelfJu.SetFocused(true)
 		p.qmParams.JuType = qimen.QMJuTypeSelf
 	})
-	p.opStartZhiRun.Disabled = true
 
 	ui.MakeOptionBoxGroup(p.opHideGan0, p.opHideGan1)
 	p.opHideGan0.Select()

@@ -29,7 +29,7 @@ func CalcShenSha(bz *calendar.EightChar) ([]string, []string, []string, []string
 			(util.Contains(zhi, "亥", "酉") && util.Contains(ganYD, "丙", "丁")) ||
 			(util.Contains(zhi, "卯", "巳") && util.Contains(ganYD, "壬", "癸")) ||
 			(util.Contains(zhi, "寅", "午") && util.Contains(ganYD, "庚", "辛")) {
-			ss[i] = append(ss[i], "天乙贵人")
+			ss[i] = append(ss[i], "天乙贵")
 		}
 	}
 	//福星贵人: 年/日干见它支(甲见子寅 乙见丑卯 丙见子寅 丁亥 戊申 己未 庚午 辛巳 壬辰 癸见丑卯)
@@ -44,7 +44,7 @@ func CalcShenSha(bz *calendar.EightChar) ([]string, []string, []string, []string
 			(util.Contains(zhi, "巳") && util.Contains(ganYD, "辛")) ||
 			(util.Contains(zhi, "辰") && util.Contains(ganYD, "壬")) ||
 			(util.Contains(zhi, "丑", "卯") && util.Contains(ganYD, "癸")) {
-			ss[i] = append(ss[i], "福星贵人")
+			ss[i] = append(ss[i], "福星贵")
 		}
 	}
 	//大极贵人: 日支见它支(甲乙见子午 丙丁见卯酉 戊已见四库 庚辛见寅亥 壬癸见巳申)
@@ -54,44 +54,44 @@ func CalcShenSha(bz *calendar.EightChar) ([]string, []string, []string, []string
 			(util.Contains(zhi, "寅", "亥") && util.Contains(ganDA, "戊", "己")) ||
 			(util.Contains(zhi, "巳", "申") && util.Contains(ganDA, "庚", "辛")) ||
 			(util.Contains(zhi, "子", "午") && util.Contains(ganDA, "壬", "癸")) {
-			ss[i] = append(ss[i], "大极贵人")
+			ss[i] = append(ss[i], "大极贵")
 		}
 	}
 	//天官贵人: 日支见它支(甲未 乙辰 丙巳 丁寅 戊丑 己戌 庚亥 辛申 壬酉 癸午)
 	for i, zhi := range zhiA {
 		if util.Contains([]string{"甲未", "乙辰", "丙巳", "丁寅", "戊丑", "己戌", "庚亥", "辛申", "壬酉", "癸午"}, zhiD+zhi) {
-			ss[i] = append(ss[i], "天官贵人")
+			ss[i] = append(ss[i], "天官贵")
 		}
 	}
 	//国印贵人: 日支见它支(甲戌 乙亥、丙丑、丁寅、戊寅、己寅、庚辰、辛巳、壬未、癸申)
 	for i, zhi := range zhiA {
 		if util.Contains([]string{"甲戌", "乙亥", "乙亥", "丙丑", "丁寅", "戊寅", "己寅", "庚辰", "辛巳", "壬未", "癸申"}, zhiD+zhi) {
-			ss[i] = append(ss[i], "国印贵人")
+			ss[i] = append(ss[i], "国印贵")
 		}
 	}
 	//天厨贵人: 年/日干见它食神禄支(甲巳 乙午 丙巳 丁午 戊申 己酉 庚亥 辛子 壬寅 癸卯)
 	for i, zhi := range zhiA {
 		if util.Contains([]string{"甲巳", "乙午", "丙巳", "丁午", "戊申", "己酉", "庚亥", "辛子", "壬寅", "癸卯"}, zhiY+zhi, zhiD+zhi) {
-			ss[i] = append(ss[i], "天厨贵人")
+			ss[i] = append(ss[i], "天厨贵")
 		}
 	}
 	//文昌贵人：日干见它支(甲巳 乙午 丙申 丁酉 戊申 己酉 庚亥 辛子 壬寅 癸卯)
 	for i, zhi := range zhiA {
 		if util.Contains([]string{"甲巳", "乙午", "丙申", "丁酉", "戊申", "己酉", "庚亥", "辛子", "壬寅", "癸卯"}, zhiD+zhi) {
-			ss[i] = append(ss[i], "文昌贵人")
+			ss[i] = append(ss[i], "文昌贵")
 		}
 	}
 	//玉堂贵人：日干见它支(甲未 乙辰 丙巳 丁酉 戊戌 己卯 庚丑 辛申 壬寅 癸午)
 	for i, zhi := range zhiA {
 		if util.Contains([]string{"甲未", "乙辰", "丙巳", "丁酉", "戊戌", "己卯", "庚丑", "辛申", "壬寅", "癸午"}, zhiD+zhi) {
-			ss[i] = append(ss[i], "玉堂贵人")
+			ss[i] = append(ss[i], "玉堂贵")
 		}
 	}
 	//天德贵人：月支查干支 (子巳 丑庚 寅丁 卯申 辰壬 巳辛 午亥 未甲 申癸 酉寅 戌丙 亥丁)
 	for i, gz := range gzAA {
 		if util.Contains([]string{"子巳", "丑庚", "寅丁", "卯申", "辰壬", "巳辛",
 			"午亥", "未甲", "申癸", "酉寅", "戌丙", "亥丁"}, zhiM+gz[1], zhiM+gz[0]) {
-			ss[i] = append(ss[i], "天德贵人")
+			ss[i] = append(ss[i], "天德贵")
 		}
 	}
 	//天德合：
@@ -102,7 +102,7 @@ func CalcShenSha(bz *calendar.EightChar) ([]string, []string, []string, []string
 			(util.Contains([]string{"申", "子", "辰"}, zhiM) && "壬" == gan) ||
 			(util.Contains([]string{"亥", "卯", "未"}, zhiM) && "甲" == gan) ||
 			(util.Contains([]string{"巳", "酉", "丑"}, zhiM) && "庚" == gan) {
-			ss[i] = append(ss[i], "月德贵人")
+			ss[i] = append(ss[i], "月德贵")
 		}
 	}
 	//月德合: 月德见贵人的合 月德为丙见辛 月德为壬见丁 月德为甲见己 月德为庚见乙
@@ -117,7 +117,7 @@ func CalcShenSha(bz *calendar.EightChar) ([]string, []string, []string, []string
 	//金匮贵人：年/日干见它支(甲辰 乙巳 丙未 丁申 戊未 己申 庚戌 辛亥 壬子 癸丑)
 	for i, zhi := range zhiA {
 		if util.Contains([]string{"甲辰", "乙巳", "丙未", "丁申", "戊未", "己申", "庚戌", "辛亥", "壬子", "癸丑"}, zhiY+zhi, zhiD+zhi) {
-			ss[i] = append(ss[i], "金匮贵人")
+			ss[i] = append(ss[i], "金匮贵")
 		}
 	}
 
