@@ -43,26 +43,6 @@ const (
 	CelestialBodyTable = "celestial_body"
 )
 
-var Constellation = []string{"Ari", "Tau", "Gem", "Can", "Leo", "Vir", "Lib", "Sco", "Sgr", "Cap", "Aqr", "Psc"}
-var ConstellationS = []string{"羊", "牛", "双", "蟹", "狮", "室", "秤", "蝎", "射", "摩", "瓶", "鱼"}
-var ConstellationCN = map[string]string{
-	"Ari": "白羊座", "Tau": "金牛座", "Gem": "双子座", "Can": "巨蟹座",
-	"Leo": "狮子座", "Vir": "室女座", "Lib": "天秤座", "Sco": "天蝎座",
-	"Sgr": "射手座", "Cap": "摩羯座", "Aqr": "水瓶座", "Psc": "双鱼座",
-}
-
-// 七政四余宫名/星盘宫名
-var AstrolabeGong74 = []string{"", "命宫", "财帛", "兄弟", "田宅", "子女", "奴仆", "夫妻", "疾厄", "迁移", "官禄", "福德", "相貌"}
-var AstrolabeGong = []string{"", "命宫", "财帛", "交流", "田宅", "娱乐", "健康", "夫妻", "疾厄", "迁移", "事业", "福德", "玄秘"}
-var XiuAngle = map[string]float64{
-	"角": 12.857142857142857, "亢": 25.714285714285714, "氐": 38.57142857142857, "房": 51.42857142857143,
-	"心": 64.28571428571429, "尾": 77.14285714285714, "箕": 90, "斗": 102.85714285714286, "牛": 115.71428571428571,
-	"女": 128.57142857142858, "虚": 141.42857142857142, "危": 154.28571428571428, "室": 167.14285714285714,
-	"壁": 180, "奎": 192.85714285714286, "娄": 205.71428571428572, "胃": 218.57142857142858, "昴": 231.42857142857142,
-	"毕": 244.28571428571428, "觜": 257.14285714285717, "参": 270, "井": 282.8571428571429, "鬼": 295.7142857142857,
-	"柳": 308.5714285714286, "星": 321.42857142857144, "张": 334.28571428571433, "翼": 347.14285714285717, "轸": 360,
-}
-
 // 建星是太阳位置,星座是太阳上升,所以星座相当建星是指定地支时
 // 月将 寅丑子亥戌酉申未午巳辰卯
 // 建星 子丑寅卯辰巳午未申酉戌亥
@@ -324,7 +304,7 @@ func (a *Astrolabe) calGongLocation() {
 	//TODO 校正角度
 	for i := 1; i <= 28; i++ {
 		xiu := qimen.Xiu28[i-1]
-		degrees := a.tzRA0 + XiuAngle[xiu] + 200
+		degrees := a.tzRA0 + qimen.XiuAngle[xiu] + 200
 		r := float64(outCircleR0 - outCircleW)
 		ly1, lx1 := util.CalRadiansPos(float64(cy), float64(cx), r-outCircleW/2, degrees)
 		ly2, lx2 := util.CalRadiansPos(float64(cy), float64(cx), r+outCircleW/2, degrees)
@@ -362,8 +342,8 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 	//画12宫
 	for i := 0; i < 12; i++ {
 		l := a.ConstellationLoc[i]
-		vector.StrokeLine(dst, l.lx1, l.ly1, l.lx2, l.ly2, 1, colorGongSplit, true)        //星宫
-		text.Draw(dst, fmt.Sprintf("%s", ConstellationS[i]), ft, l.x-6, l.y+6, colorJiang) //星座
+		vector.StrokeLine(dst, l.lx1, l.ly1, l.lx2, l.ly2, 1, colorGongSplit, true)                  //星宫
+		text.Draw(dst, fmt.Sprintf("%s", qimen.ConstellationShort[i]), ft, l.x-6, l.y+6, colorJiang) //星座
 		l = a.AstrolabeLoc[i]
 		vector.StrokeLine(dst, l.lx1, l.ly1, l.lx2, l.ly2, 1, colorGongSplit, true) //宫
 		text.Draw(dst, fmt.Sprintf("%d", i+1), ft, l.x-4, l.y+4, colorJiang)        //宫位
@@ -439,14 +419,14 @@ func (a *Astrolabe) GetEphemeris(tid int, s *calendar.Solar) *ObserveData {
 		s.GetMinute(), 0, 0, time.Local)
 	sts := t.In(time.UTC).Format(DataTimeMin)
 	id := fmt.Sprintf("%d_%s", tid, sts)
+	if a.DataQuerying() {
+		return nil
+	}
 	a.RWMutex.RLock()
 	defer a.RWMutex.RUnlock()
 	v := a.Ephemeris[id]
 	if v != nil {
 		return v
-	}
-	if a.DataQuerying() {
-		return nil
 	}
 	a.dataQuerying = 1
 	var it ObserveData

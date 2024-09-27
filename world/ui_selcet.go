@@ -14,15 +14,16 @@ type UISelect struct {
 	inputSYear, inputSMonth, inputSDay, inputSHour, inputSMin *ui.InputBox
 	opMale, opFemale                                          *ui.OptionBox
 	btnX, btnOK                                               *ui.Button
+	onOK                                                      func(*calendar.Solar, int)
 }
 
-func UIShowSelect() *UISelect {
-	uiSelect := NewUISelect()
+func UIShowSelectBirth(date *calendar.Solar, gender int, onOK func(*calendar.Solar, int)) *UISelect {
+	uiSelect := NewUISelect(date, gender, onOK)
 	ui.ActiveUI(uiSelect)
 	return uiSelect
 }
 
-func NewUISelect() *UISelect {
+func NewUISelect(solar *calendar.Solar, gender int, onOK func(*calendar.Solar, int)) *UISelect {
 	p := &UISelect{BaseUI: ui.BaseUI{Visible: true}}
 	px0, py0 := screenWidth/2-176, 210
 	h := 32
@@ -51,9 +52,7 @@ func NewUISelect() *UISelect {
 	p.inputSDay.DefaultText = "日"
 	p.inputSHour.DefaultText = "时"
 	p.inputSMin.DefaultText = "分"
-	oldBirthTime := ThisGame.char8.Player.Lunar
-	if oldBirthTime != nil {
-		solar := oldBirthTime.GetSolar()
+	if solar != nil {
 		p.inputSYear.SetText(solar.GetYear())
 		p.inputSMonth.SetText(solar.GetMonth())
 		p.inputSDay.SetText(solar.GetDay())
@@ -63,7 +62,11 @@ func NewUISelect() *UISelect {
 	p.panelBG.AddChildren(p.inputSYear, p.inputSMonth, p.inputSDay, p.inputSHour, p.inputSMin,
 		p.btnX, p.btnOK, p.opMale, p.opFemale)
 	ui.MakeOptionBoxGroup(p.opMale, p.opFemale)
-	p.opMale.Select()
+	if gender == GenderFemale {
+		p.opFemale.Select()
+	} else {
+		p.opMale.Select()
+	}
 
 	p.btnX.SetOnClick(func(b *ui.Button) {
 		ui.CloseUI(p)
@@ -80,12 +83,12 @@ func NewUISelect() *UISelect {
 		day, _ := strconv.Atoi(p.inputSDay.Text())
 		hour, _ := strconv.Atoi(p.inputSHour.Text())
 		minute, _ := strconv.Atoi(p.inputSMin.Text())
-		solar := calendar.NewSolar(year, month, day, hour, minute, 0)
-		gender := GenderFemale
+		s := calendar.NewSolar(year, month, day, hour, minute, 0)
+		g := GenderFemale
 		if p.opMale.Selected() {
-			gender = GenderMale
+			g = GenderMale
 		}
-		ThisGame.char8.Player.Reset(calendar.NewLunarFromSolar(solar), gender)
+		onOK(s, g)
 		ui.CloseUI(p)
 	})
 	return p

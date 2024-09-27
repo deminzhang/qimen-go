@@ -66,11 +66,14 @@ var (
 )
 
 const (
-	GenderMale   = 1
-	GenderFemale = 0
+	GenderFemale = 0 //女♀
+	GenderMale   = 1 //男♂
 )
 
 var GenderName = []string{"女", "男"}
+var GenderSoul = []string{"坤造", "乾造"}
+
+//var GenderSymbol = []string{"♀", "♂"}
 
 func GetHideGan(gan string, idx int) string {
 	a := qimen.ZHI_HIDE_GAN[gan]

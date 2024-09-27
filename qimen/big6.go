@@ -5,6 +5,8 @@ import (
 	"github.com/6tail/lunar-go/LunarUtil"
 )
 
+// 大六壬
+
 // Gong12 十二宫 地支 黄黑道 大六壬等用
 type Gong12 struct {
 	Idx int //宫数子起1 1-12
