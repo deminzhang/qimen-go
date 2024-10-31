@@ -127,17 +127,22 @@ func (g *Char8Pan) Update() {
 
 	cal := ThisGame.qmGame.Lunar
 	p := g.Player
+	var change bool
 	if g.Flow.Year.Gan != cal.GetYearGan() || g.Flow.Year.Zhi != cal.GetYearZhi() {
 		g.Flow.Year = NewCharBody(cal.GetYearGan(), cal.GetYearZhi(), HpGanYear, HpZhiYear, true)
+		change = true
 	}
 	if g.Flow.Month.Gan != cal.GetMonthGan() || g.Flow.Month.Zhi != cal.GetMonthZhi() {
 		g.Flow.Month = NewCharBody(cal.GetMonthGan(), cal.GetMonthZhi(), HpGanMonth, HpZhiMonth, true)
+		change = true
 	}
 	if g.Flow.Day.Gan != cal.GetDayGan() || g.Flow.Day.Zhi != cal.GetDayZhi() {
 		g.Flow.Day = NewCharBody(cal.GetDayGan(), cal.GetDayZhi(), HpGanDay, HpZhiDay, true)
+		change = true
 	}
 	if g.Flow.Time.Gan != cal.GetTimeGan() || g.Flow.Time.Zhi != cal.GetTimeZhi() {
 		g.Flow.Time = NewCharBody(cal.GetTimeGan(), cal.GetTimeZhi(), HpGanTime, HpZhiTime, true)
+		change = true
 	}
 	var changeYun bool
 	if p.FYun == nil {
@@ -156,6 +161,7 @@ func (g *Char8Pan) Update() {
 		}
 	}
 	if changeYun { //大运变化
+		change = true
 		if cal.GetYear() < p.yuns[0].GetStartYear() {
 			p.FYun = nil //未出生,穿越过去
 		} else {
@@ -195,6 +201,20 @@ func (g *Char8Pan) Update() {
 			}
 		}
 	}
+	if change {
+		if p.FYun != nil {
+			sss := qimen.CalcShenSha(p.Birth.GetEightChar(), p.FYun.GetGanZhi(),
+				cal.GetYearInGanZhiExact(), cal.GetMonthInGanZhiExact(), cal.GetDayInGanZhiExact(), cal.GetTimeInGanZhi())
+			p.ShenShaY, p.ShenShaM, p.ShenShaD, p.ShenShaT = sss[0], sss[1], sss[2], sss[3]
+			p.ShenShaYY, p.ShenShaFY, p.ShenShaFM, p.ShenShaFD, p.ShenShaFT = sss[4], sss[5], sss[6], sss[7], sss[8]
+		} else {
+			sss := qimen.CalcShenSha(p.Birth.GetEightChar(),
+				cal.GetYearInGanZhiExact(), cal.GetMonthInGanZhiExact(), cal.GetDayInGanZhiExact(), cal.GetTimeInGanZhi())
+			p.ShenShaY, p.ShenShaM, p.ShenShaD, p.ShenShaT = sss[0], sss[1], sss[2], sss[3]
+			p.ShenShaFY, p.ShenShaFM, p.ShenShaFD, p.ShenShaFT = sss[4], sss[5], sss[6], sss[7]
+		}
+	}
+
 	if g.count%1 == 0 {
 		g.UpdateHp(p)
 	}
@@ -296,32 +316,59 @@ func (g *Char8Pan) Draw(dst *ebiten.Image) {
 		if p.FYun != nil {
 			text.Draw(dst, LunarUtil.SHI_SHEN[soul+p.FYun.Gan], ft14, int(sx), int(sy-32), colorWhite)
 			DrawFlow(dst, sx, sy, soul, p.FYun)
+			text.Draw(dst, strings.Join(p.ShenShaYY, "\n"), ft12, int(sx), int(sy+160+48), colorWhite)
 		}
 		sx += 48
 		vector.StrokeLine(dst, sx-3, sy-28, sx-3, sy+148, 1, colorWhite, true)
 		text.Draw(dst, "流年", ft14, int(sx), int(sy-48), colorWhite)
 		text.Draw(dst, LunarUtil.SHI_SHEN[soul+g.Flow.Year.Gan], ft14, int(sx), int(sy-32), colorWhite)
 		DrawFlow(dst, sx, sy, soul, g.Flow.Year)
+		text.Draw(dst, strings.Join(p.ShenShaFY, "\n"), ft12, int(sx), int(sy+160+48), colorWhite)
 		sx += 48
 		text.Draw(dst, "流月", ft14, int(sx), int(sy-48), colorWhite)
 		text.Draw(dst, LunarUtil.SHI_SHEN[soul+g.Flow.Month.Gan], ft14, int(sx), int(sy-32), colorWhite)
 		DrawFlow(dst, sx, sy, soul, g.Flow.Month)
+		text.Draw(dst, strings.Join(p.ShenShaFM, "\n"), ft12, int(sx), int(sy+160+48), colorWhite)
 		if !g.BodyShow {
 			sx += 48
 			text.Draw(dst, "流日", ft14, int(sx), int(sy-48), colorWhite)
 			text.Draw(dst, LunarUtil.SHI_SHEN[soul+g.Flow.Day.Gan], ft14, int(sx), int(sy-32), colorWhite)
 			DrawFlow(dst, sx, sy, soul, g.Flow.Day)
+			text.Draw(dst, strings.Join(p.ShenShaFD, "\n"), ft12, int(sx), int(sy+160+48), colorWhite)
 			sx += 48
 			text.Draw(dst, "流时", ft14, int(sx), int(sy-48), colorWhite)
 			text.Draw(dst, LunarUtil.SHI_SHEN[soul+g.Flow.Time.Gan], ft14, int(sx), int(sy-32), colorWhite)
 			DrawFlow(dst, sx, sy, soul, g.Flow.Time)
+			text.Draw(dst, strings.Join(p.ShenShaFT, "\n"), ft12, int(sx), int(sy+160+48), colorWhite)
 		}
 	}
 	//竖象 身体全息
 	//年头颈/月胸腹/日腹股/时腿足
 	//年额/月目/日鼻/时口 干左支右?
-	//男甲<申 左大右小 右近视度高
-	//女乙>未 左大右小 左双右单
+	//男甲<申 右小左大 右近视度高
+	//女乙>未 右小左大 右单左双
+	//女辛<巳 右扁左圆
+	//七杀疤痕,伤宫胎记,袅神痣,劫财纹身 喜用则美,忌神则丑
+	//通常四柱中：
+	//1、天干有官杀之人或有木克土之人，上半身容易留下疤痕；
+	//2、地支有官杀或有木克土之人，下半身容易留下疤痕；
+	//具体说来：
+	//一、年干：
+	//1、时干克年干，疤痕在身体的右侧；
+	//2、日干克年干，疤痕在身体中间的偏右侧部位；
+	//3、月干克年干，疤痕在身体的左侧部位；
+	//二、月干：
+	//1、年干克月干，疤痕在身体的左侧明显部位；
+	//2、日干克月干，疤痕在身体的右侧明显部位；
+	//3、时干克月干，疤痕在身体的左侧明显部位；
+	//三、日干：
+	//1、时干克日干，疤痕在身体的中间偏右侧部位；
+	//2、年干克日干，疤痕在身体的左侧部位；
+	//3、月干克日干，疤痕在身体中间的偏左侧部位；
+	//四、时干：
+	//1、月干克时干，疤痕在身体中间的偏左侧部位；
+	//2、年干克时干，疤痕在身体的左侧明显部位；
+	//3、日干克时干，疤痕在身体的右侧明显部位。
 	if g.BodyShow {
 		sx, sy := cx+408, cy
 		mx := int(sx + 28)
@@ -488,6 +535,9 @@ func NewCharBody(gan, zhi string, ganMax, zhiMax int, flow bool) *CharBody {
 	cb.initZhiHP(zhiMax)
 	return cb
 }
+func (b *CharBody) GetGanZhi() string {
+	return b.Gan + b.Zhi
+}
 func (b *CharBody) initZhiHP(maxHp int) {
 	if b.Feet != "" {
 		b.HPBody = maxHp * HideGanVal[3][0] / 100
@@ -559,15 +609,15 @@ type Player struct {
 
 	UpdateCount int
 
-	ShenShaY []string //神煞年
-	ShenShaM []string //神煞月
-	ShenShaD []string //神煞日
-	ShenShaT []string //神煞时
-	//ShenShaYY []string //神煞大运
-	//ShenShaFY []string //神煞流年
-	//ShenShaFM []string //神煞流月
-	//ShenShaFD []string //神煞流日
-	//ShenShaFT []string //神煞流时
+	ShenShaY  []string //神煞年
+	ShenShaM  []string //神煞月
+	ShenShaD  []string //神煞日
+	ShenShaT  []string //神煞时
+	ShenShaYY []string //神煞大运
+	ShenShaFY []string //神煞流年
+	ShenShaFM []string //神煞流月
+	ShenShaFD []string //神煞流日
+	ShenShaFT []string //神煞流时
 }
 
 func (p *Player) Reset(lunar *calendar.Lunar, gender int) {
@@ -579,7 +629,8 @@ func (p *Player) Reset(lunar *calendar.Lunar, gender int) {
 	p.Month = NewCharBody(bz.GetMonthGan(), zhiM, HpGanMonth, HpZhiMonth, false)
 	p.Day = NewCharBody(bz.GetDayGan(), zhiD, HpGanDay, HpZhiDay, false)
 	p.Time = NewCharBody(bz.GetTimeGan(), zhiT, HpGanTime, HpZhiTime, false)
-	p.ShenShaY, p.ShenShaM, p.ShenShaD, p.ShenShaT = qimen.CalcShenSha(bz)
+	sss := qimen.CalcShenSha(bz)
+	p.ShenShaY, p.ShenShaM, p.ShenShaD, p.ShenShaT = sss[0], sss[1], sss[2], sss[3]
 
 	yun := bz.GetYun(p.Gender)
 	p.yun = yun
@@ -699,7 +750,7 @@ func InteractiveShi(va, vb *int, ma, mb int, speed int) {
 	if *va < ma/2 { //不旺不生
 		return
 	}
-	if *vb >= mb { //满不生
+	if *vb >= mb { //子满不生
 		return
 	}
 	if *vb > *va/2 { //衰不生
