@@ -3,7 +3,7 @@ package mobile
 import (
 	"github.com/hajimehoshi/ebiten/v2/mobile"
 
-	"qimen/world"
+	"github.com/deminzhang/qimen-go/world"
 )
 
 func init() {

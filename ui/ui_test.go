@@ -1,10 +1,10 @@
 package ui_test
 
 import (
+	. "github.com/deminzhang/qimen-go/ui"
 	"github.com/hajimehoshi/ebiten/v2"
 	"image/color"
 	_ "image/png"
-	. "qimen/ui"
 
 	"image"
 	"log"

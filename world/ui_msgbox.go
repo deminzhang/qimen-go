@@ -1,8 +1,8 @@
 package world
 
 import (
+	"github.com/deminzhang/qimen-go/ui"
 	"image"
-	"qimen/ui"
 )
 
 type UIMsgBox struct {
