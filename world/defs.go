@@ -76,7 +76,7 @@ var GenderSoul = []string{"坤造", "乾造"}
 //var GenderSymbol = []string{"♀", "♂"}
 
 func GetHideGan(gan string, idx int) string {
-	a := qimen.ZHI_HIDE_GAN[gan]
+	a := LunarUtil.ZHI_HIDE_GAN[gan]
 	if idx < len(a) {
 		return a[idx]
 	}
