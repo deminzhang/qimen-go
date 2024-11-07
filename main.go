@@ -1,9 +1,9 @@
 package main
 
 import (
+	"github.com/deminzhang/qimen-go/world"
 	"github.com/hajimehoshi/ebiten/v2"
 	"log"
-	"qimen/world"
 )
 
 func main() {

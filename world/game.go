@@ -2,9 +2,9 @@ package world
 
 import (
 	"github.com/6tail/lunar-go/calendar"
+	"github.com/deminzhang/qimen-go/qimen"
+	"github.com/deminzhang/qimen-go/ui"
 	"github.com/hajimehoshi/ebiten/v2"
-	"qimen/qimen"
-	"qimen/ui"
 	"time"
 )
 

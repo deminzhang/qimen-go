@@ -2,8 +2,8 @@ package world
 
 import (
 	"github.com/6tail/lunar-go/LunarUtil"
+	"github.com/deminzhang/qimen-go/qimen"
 	"image/color"
-	"qimen/qimen"
 )
 
 const (

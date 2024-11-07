@@ -2,7 +2,7 @@ package qimen
 
 import (
 	"github.com/6tail/lunar-go/calendar"
-	"qimen/util"
+	"github.com/deminzhang/qimen-go/util"
 	"slices"
 )
 

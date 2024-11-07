@@ -1,4 +1,4 @@
-module qimen
+module github.com/deminzhang/qimen-go
 
 go 1.23
 

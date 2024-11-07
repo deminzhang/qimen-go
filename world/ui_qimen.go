@@ -3,9 +3,9 @@ package world
 import (
 	"fmt"
 	"github.com/6tail/lunar-go/calendar"
+	"github.com/deminzhang/qimen-go/qimen"
+	"github.com/deminzhang/qimen-go/ui"
 	"image"
-	"qimen/qimen"
-	"qimen/ui"
 	"strconv"
 	"time"
 )

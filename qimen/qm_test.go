@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/6tail/lunar-go/LunarUtil"
 	"github.com/6tail/lunar-go/calendar"
-	"qimen/qimen"
+	"github.com/deminzhang/qimen-go/qimen"
 	"testing"
 	"time"
 )

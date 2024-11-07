@@ -3,6 +3,8 @@ package world
 import (
 	"fmt"
 	"github.com/6tail/lunar-go/calendar"
+	"github.com/deminzhang/qimen-go/qimen"
+	"github.com/deminzhang/qimen-go/util"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
@@ -14,8 +16,6 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
-	"qimen/qimen"
-	"qimen/util"
 	"regexp"
 	"strconv"
 	"strings"

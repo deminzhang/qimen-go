@@ -1,12 +1,12 @@
 package world
 
 import (
+	"github.com/deminzhang/qimen-go/asset"
+	"github.com/deminzhang/qimen-go/ui"
 	"github.com/hajimehoshi/ebiten/v2"
 	"golang.org/x/image/font"
 	"image"
 	"log"
-	"qimen/asset"
-	"qimen/ui"
 )
 
 var (
