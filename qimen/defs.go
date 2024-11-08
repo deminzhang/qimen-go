@@ -451,5 +451,8 @@ func GetDayYuanJu(jieQiName string) (int, int) {
 	yuan := (jqi-1)/4 + 1
 	ju := _QiMenJuDay[yuan]
 	yuan = yuan % 3
+	if yuan == 0 {
+		yuan = 3
+	}
 	return yuan, ju
 }
