@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/6tail/lunar-go/calendar"
 	"github.com/deminzhang/qimen-go/qimen"
+	"github.com/deminzhang/qimen-go/ui"
 	"github.com/deminzhang/qimen-go/util"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
@@ -58,7 +59,7 @@ type Astrolabe struct {
 	solar    calendar.Solar
 	timezone string
 	tzOffset int
-	tzRA0    float64 //春分点角度
+	tzRA0    float32 //春分点角度
 
 	dataQuerying int
 	Ephemeris    map[string]*ObserveData
@@ -66,6 +67,9 @@ type Astrolabe struct {
 	ConstellationLoc [12]gongLocation //星座位
 	AstrolabeLoc     [12]gongLocation //宫位
 	XiuLoc           [28]gongLocation //星宿宫位
+
+	Sun  *ebiten.Image
+	Moon *ebiten.Image
 }
 type gongLocation struct {
 	lx1, ly1, lx2, ly2 float32 //分割线
@@ -160,6 +164,8 @@ func NewAstrolabe(x, y float32) *Astrolabe {
 		timezone:  tz,
 		tzOffset:  offset,
 		Ephemeris: make(map[string]*ObserveData),
+		Sun:       ui.NewSunImage(16),
+		Moon:      ui.NewMoonImage(16),
 	}
 	for i := 1; i <= 12; i++ { //固定宫位
 		degrees := float64(i)*30 - 90
@@ -196,18 +202,19 @@ func (a *Astrolabe) Update() {
 
 	cx, cy := a.X, a.Y
 	//计算太阳位置 以时间计角度
-	degreesS := 360 - (float64(hour)+float64(minute)/60)*15 //本地时区太阳角度 0~360 0时0度
+	degreesS := 360 - (float32(hour)+float32(minute)/60)*15 //本地时区太阳角度 0~360 0时0度
 	degreesSO := 360 - degreesS
-	solarY, solarX := util.CalRadiansPos(float64(a.Y), float64(a.X), float64(Bodies[a.observer].DrawR()), degreesS)
-	a.solarX, a.solarY = float32(solarX), float32(solarY)
+	solarY, solarX := util.CalRadiansPos(a.Y, a.X, Bodies[a.observer].DrawR(), degreesS)
+	a.solarX, a.solarY = solarX, solarY
 
 	//计算月球位置 暂以农历近似
 	lDay := ThisGame.qmGame.Lunar.GetDay()
-	degreesM := -(float64(hour)+float64(minute)/60)*15 + float64(lDay)/29*360
+	mDays := ThisGame.qmGame.LunarMonthDays
+	degreesM := -(float32(hour)+float32(minute)/60)*15 + float32(lDay-1)/float32(mDays)*360
 	{
 		moon := Bodies[301]
-		moonY, moonX := util.CalRadiansPos(float64(a.Y), float64(a.X), float64(moon.DrawR()), degreesM)
-		moon.drawX, moon.drawY = float32(moonX), float32(moonY)
+		moonY, moonX := util.CalRadiansPos(a.Y, a.X, moon.DrawR(), degreesM)
+		moon.drawX, moon.drawY = moonX, moonY
 		v1 := (&util.Vec2[float32]{X: moon.drawX - cx, Y: moon.drawY - cy}).ScaledToLength(sphereR)
 		moon.sphereX = cx + v1.X
 		moon.sphereY = cy + v1.Y
@@ -250,16 +257,14 @@ func (a *Astrolabe) Update() {
 			a.tzRA0 = degreesS - oe.RARadius()
 		} else {
 			ost := 180 - oe.STO - oe.SOT
-			var degrees float64
+			var degrees float32
 			switch oe.SOTR {
 			case "/T": //TRAILS 目标跟踪太阳
 				degrees = 90 - 270 - degreesSO - ost
 			case "/L": //LEADS 目标引领太阳
 				degrees = 90 - 270 - degreesSO + ost
 			}
-			y, x := util.CalRadiansPos(solarY, solarX, float64(body.DrawR()), degrees)
-			body.drawX = float32(x)
-			body.drawY = float32(y)
+			body.drawY, body.drawX = util.CalRadiansPos(solarY, solarX, body.DrawR(), degrees)
 			v1 := (&util.Vec2[float32]{X: body.drawX - cx, Y: body.drawY - cy}).ScaledToLength(sphereR)
 			body.sphereX = cx + v1.X
 			body.sphereY = cy + v1.Y
@@ -294,22 +299,22 @@ func (a *Astrolabe) updateGravityRange(tid int, gravity float64) {
 func (a *Astrolabe) calGongLocation() {
 	cx, cy := a.X, a.Y
 	for i := 1; i <= 12; i++ {
-		degrees := a.tzRA0 + float64(i-1)*30
+		degrees := a.tzRA0 + float32(i-1)*30
 		r := float64(outCircleR0)
-		ly1, lx1 := util.CalRadiansPos(float64(cy), float64(cx), r-outCircleW/2, degrees)
-		ly2, lx2 := util.CalRadiansPos(float64(cy), float64(cx), r+outCircleW/2, degrees)
-		y, x := util.CalRadiansPos(float64(cy), float64(cx), r, degrees+15)
-		a.ConstellationLoc[i-1] = gongLocation{float32(lx1), float32(ly1), float32(lx2), float32(ly2), int(x), int(y)}
+		ly1, lx1 := util.CalRadiansPos(cy, cx, float32(r-outCircleW/2), degrees)
+		ly2, lx2 := util.CalRadiansPos(cy, cx, float32(r+outCircleW/2), degrees)
+		y, x := util.CalRadiansPos(cy, cx, float32(r), degrees+15)
+		a.ConstellationLoc[i-1] = gongLocation{lx1, ly1, lx2, ly2, int(x), int(y)}
 	}
 	//TODO 校正角度
 	for i := 1; i <= 28; i++ {
 		xiu := qimen.Xiu28[i-1]
 		degrees := a.tzRA0 + qimen.XiuAngle[xiu] + 200
 		r := float64(outCircleR0 - outCircleW)
-		ly1, lx1 := util.CalRadiansPos(float64(cy), float64(cx), r-outCircleW/2, degrees)
-		ly2, lx2 := util.CalRadiansPos(float64(cy), float64(cx), r+outCircleW/2, degrees)
-		y, x := util.CalRadiansPos(float64(cy), float64(cx), r, degrees+6.4285)
-		a.XiuLoc[i-1] = gongLocation{float32(lx1), float32(ly1), float32(lx2), float32(ly2), int(x), int(y)}
+		ly1, lx1 := util.CalRadiansPos(cy, cx, float32(r-outCircleW/2), degrees)
+		ly2, lx2 := util.CalRadiansPos(cy, cx, float32(r+outCircleW/2), degrees)
+		y, x := util.CalRadiansPos(cy, cx, float32(r), degrees+6.4285)
+		a.XiuLoc[i-1] = gongLocation{lx1, ly1, lx2, ly2, int(x), int(y)}
 	}
 }
 func (a *Astrolabe) DataQuerying() bool {
@@ -334,8 +339,8 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 	vector.StrokeLine(dst, cx-outCircleR, cy-horizons, cx+outCircleR, cy-horizons, 1, colorCross, true)
 	vector.StrokeLine(dst, cx, cy-outCircleR, cx, cy+outCircleR, 1, colorCross, true)
 	//春分点 RA0
-	tzY, tzX := util.CalRadiansPos(float64(cy), float64(cx), outCircleR/2, a.tzRA0)
-	vector.StrokeLine(dst, cx, cy, float32(tzX), float32(tzY), 1, colorOrbits, true)
+	tzY, tzX := util.CalRadiansPos(cy, cx, outCircleR/2, a.tzRA0)
+	vector.StrokeLine(dst, cx, cy, tzX, tzY, 1, colorOrbits, true)
 	text.Draw(dst, "春分", ft, int(tzX), int(tzY), colorLeader)                                                        //春分点
 	text.Draw(dst, fmt.Sprintf("%s月", ThisGame.qmGame.Lunar.GetYueXiang()), ft, int(cx-16), int(cy-25), colorLeader) //月相
 
@@ -366,20 +371,33 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 			}
 			vector.StrokeLine(dst, cx, cy, obj.sphereX, obj.sphereY, 1, colorOrbits, true) // sphere line
 			//vector.DrawFilledCircle(dst, obj.sphereX, obj.sphereY, 2, obj.color, true)     // sphere
+
 			text.Draw(dst, obj.nameCN, ft, int(obj.sphereX), int(obj.sphereY), obj.color)
 		}
-		vector.DrawFilledCircle(dst, obj.drawX, obj.drawY, 2, obj.color, true) //planet
+		if obj.Id == 10 { //日
+			op := &ebiten.DrawImageOptions{}
+			op.GeoM.Translate(float64(obj.drawX-8), float64(obj.drawY-8))
+			op.ColorScale.ScaleWithColor(colorYellow)
+			dst.DrawImage(a.Sun, op)
+		} else {
+			vector.DrawFilledCircle(dst, obj.drawX, obj.drawY, 2, obj.color, true) //planet
+		}
 
 		for _, sid := range obj.satellite {
 			ob := Bodies[sid]
 			if ob.Id == 301 {
 				vector.StrokeCircle(dst, obj.drawX, obj.drawY, ob.DrawR(), 1, colorOrbits, true) //satellite Orbit
 				vector.StrokeLine(dst, cx, cy, ob.sphereX, ob.sphereY, 1, colorOrbits, true)     // sphere line
-				vector.DrawFilledCircle(dst, ob.drawX, ob.drawY, 1, ob.color, true)              //moon
+				//vector.DrawFilledCircle(dst, ob.drawX, ob.drawY, 1, ob.color, true)              //moon
+				op := &ebiten.DrawImageOptions{}
+				op.GeoM.Translate(float64(ob.drawX-8), float64(ob.drawY-8))
+				op.ColorScale.ScaleWithColor(colorWhite)
+				dst.DrawImage(a.Moon, op)
+
 				text.Draw(dst, ob.nameCN, ft, int(ob.sphereX), int(ob.sphereY), ob.color)
 			} else {
-				mx, my := util.CalRadiansPos(float64(obj.drawX), float64(obj.drawY), float64(ob.DrawR()), float64(rand.Intn(360)))
-				vector.DrawFilledCircle(dst, float32(mx), float32(my), 1, obj.color, true) //satellite
+				mx, my := util.CalRadiansPos(obj.drawX, obj.drawY, ob.DrawR(), float32(rand.Intn(360)))
+				vector.DrawFilledCircle(dst, mx, my, 1, obj.color, true) //satellite
 			}
 		}
 	}
@@ -571,9 +589,9 @@ type ObserveData struct {
 	RA_DEC string  // 赤经赤纬
 	Delta  float64 // 距离 AU
 	Deldot float64 // delta-dot 距离变化 KM/S 为正表示远离观察者
-	SOT    float64 // S-O-T 观察者-目标-太阳角度
+	SOT    float32 // S-O-T 观察者-目标-太阳角度
 	SOTR   string  // "/T": TRAILS 目标跟踪S  "/L": LEADS 目标引领S
-	STO    float64 // S-T-O 太阳-目标-观察者角度
+	STO    float32 // S-T-O 太阳-目标-观察者角度
 	Cnst   string  // 星座
 }
 
@@ -583,13 +601,13 @@ func (c *ObserveData) RA() string {
 }
 
 // RARadius 赤经角度
-func (c *ObserveData) RARadius() float64 {
+func (c *ObserveData) RARadius() float32 {
 	ra := c.RA() //05 29 58.88
 	ss := strings.Split(ra, " ")
 	h, _ := strconv.ParseFloat(ss[0], 64)
 	m, _ := strconv.ParseFloat(ss[1], 64)
 	s, _ := strconv.ParseFloat(ss[2], 64)
-	return h*15 + m/4 + s/240
+	return float32(h*15 + m/4 + s/240)
 }
 
 // DEC 赤纬 +23 15 24.3
@@ -609,14 +627,14 @@ func (c *observeDataSrc) Deldot() float64 {
 	v, _ := strconv.ParseFloat(c.data["deldot"], 64)
 	return v
 }
-func (c *observeDataSrc) SOT() float64 {
+func (c *observeDataSrc) SOT() float32 {
 	v, _ := strconv.ParseFloat(c.data["S-O-T"], 64)
-	return v
+	return float32(v)
 }
 func (c *observeDataSrc) SOTR() string {
 	return c.data["/r"]
 }
-func (c *observeDataSrc) STO() float64 {
+func (c *observeDataSrc) STO() float32 {
 	v, _ := strconv.ParseFloat(c.data["S-T-O"], 64)
-	return v
+	return float32(v)
 }

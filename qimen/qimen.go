@@ -66,8 +66,9 @@ type QMParams struct {
 
 // QMGame 奇门遁甲盘局
 type QMGame struct {
-	Solar *calendar.Solar
-	Lunar *calendar.Lunar
+	Solar          *calendar.Solar
+	Lunar          *calendar.Lunar
+	LunarMonthDays int //农历月天数
 
 	YueJian  string //月建
 	YueJiang string //月将
@@ -93,12 +94,13 @@ func NewQMGame(solar *calendar.Solar, params QMParams) *QMGame {
 	jieQiName := lunar.GetPrevJieQi().GetName()
 
 	p := QMGame{
-		Solar:     solar,
-		Lunar:     lunar,
-		YueJian:   Jie2YueJian(lunar.GetPrevJie().GetName()),
-		YueJiang:  Qi2YueJiang(lunar.GetPrevQi().GetName()),
-		JieQi:     jieQiName,
-		TimeHorse: Horse[c8.GetTimeZhi()],
+		Solar:          solar,
+		Lunar:          lunar,
+		LunarMonthDays: calendar.NewLunarYear(lunar.GetYear()).GetMonth(lunar.GetMonth()).GetDayCount(),
+		YueJian:        Jie2YueJian(lunar.GetPrevJie().GetName()),
+		YueJiang:       Qi2YueJiang(lunar.GetPrevQi().GetName()),
+		JieQi:          jieQiName,
+		TimeHorse:      Horse[c8.GetTimeZhi()],
 	}
 	switch ymdh {
 	case QMGameHour: //排时家奇门
