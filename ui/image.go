@@ -25,6 +25,70 @@ func NewTaiJiImage(size int) *ebiten.Image {
 	return cover
 }
 
+func NewBaGuaImage(gua string, size int) *ebiten.Image {
+	bg := ebiten.NewImage(size, size)
+	h := float32(size) / 5
+	ll := float32(size) * 2 / 5
+	drawUpS := func() {
+		vector.DrawFilledRect(bg, 0, 0, float32(size), h, color.White, true)
+	}
+	drawMidS := func() {
+		vector.DrawFilledRect(bg, 0, float32(size)*2/5, float32(size), h, color.White, false)
+	}
+	drawDownS := func() {
+		vector.DrawFilledRect(bg, 0, float32(size)*4/5, float32(size), h, color.White, false)
+	}
+	drawUpL := func() {
+		vector.DrawFilledRect(bg, 0, 0, ll, h, color.White, false)
+		vector.DrawFilledRect(bg, ll+h, 0, ll, h, color.White, false)
+	}
+	drawMidL := func() {
+		vector.DrawFilledRect(bg, 0, float32(size)*2/5, ll, float32(size)/5, color.White, false)
+		vector.DrawFilledRect(bg, ll+h, float32(size)*2/5, ll, h, color.White, false)
+	}
+	drawDownL := func() {
+		vector.DrawFilledRect(bg, 0, float32(size)*4/5, ll, float32(size)/5, color.White, false)
+		vector.DrawFilledRect(bg, ll+h, float32(size)*4/5, ll, h, color.White, false)
+	}
+	switch gua {
+	case "乾":
+		drawUpS()
+		drawMidS()
+		drawDownS()
+	case "坤":
+		drawUpL()
+		drawMidL()
+		drawDownL()
+	case "艮":
+		drawUpS()
+		drawMidL()
+		drawDownL()
+	case "兑":
+		drawUpL()
+		drawMidS()
+		drawDownS()
+	case "震":
+		drawUpL()
+		drawMidL()
+		drawDownS()
+	case "巽":
+		drawUpS()
+		drawMidS()
+		drawDownL()
+	case "坎":
+		drawUpL()
+		drawMidS()
+		drawDownL()
+	case "离":
+		drawUpS()
+		drawMidL()
+		drawDownS()
+	default:
+		bg.DrawImage(NewTaiJiImage(size), nil)
+	}
+	return bg
+}
+
 func NewSunImage(size int) *ebiten.Image {
 	sun := ebiten.NewImage(size, size)
 	hs := float32(size / 2)

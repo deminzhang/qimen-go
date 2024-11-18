@@ -28,7 +28,7 @@ func CalBig6(yueJian, yueJiang string, shiZhiIdx int, horse string) []Gong12 {
 	var yueJiangIdx, yueJianIdx int
 	for i := 1; i <= 12; i++ {
 		if yueJian == LunarUtil.ZHI[i] {
-			yueJiangIdx = i
+			yueJianIdx = i
 			break
 		}
 	}
