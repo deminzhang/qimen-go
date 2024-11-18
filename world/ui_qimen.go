@@ -11,7 +11,6 @@ import (
 )
 
 const (
-	gongWidth   = 128
 	zhiPanWidth = 48
 )
 

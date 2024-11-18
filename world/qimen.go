@@ -59,14 +59,14 @@ func (q *QMShow) DrawHead(dst *ebiten.Image) {
 	text.Draw(dst, lunar.GetMonthXunKongExact(), ft, 108, 96, colorGray)
 	text.Draw(dst, lunar.GetDayXunKongExact(), ft, 144, 96, colorGray)
 	text.Draw(dst, lunar.GetTimeXunKong(), ft, 178, 96, colorGray)
-
-	text.Draw(dst, pp.JieQiText, ft, 32, 96+16, colorWhite)
-	text.Draw(dst, pp.JuText, ft, 32, 96+16*2, colorWhite)
-	text.Draw(dst, pp.DutyText, ft, 32, 96+16*3, colorWhite)
-	text.Draw(dst, pp.YuJiang, ft, 32, 96+16*4, colorWhite)
-
-	text.Draw(dst, fmt.Sprintf("日值宿 %s%s%s", lunar.GetXiu(), lunar.GetZheng(), lunar.GetAnimal()),
-		ft, 32, 96+16*5, colorWhite)
+	text.Draw(dst, fmt.Sprintf("%s%s", pp.JieQi, pp.JieQiDate), ft, 32, 96+16, colorWhite)
+	text.Draw(dst, fmt.Sprintf("%s%s", pp.JieQiNext, pp.JieQiDateNext), ft, 32, 96+16*2, colorWhite)
+	text.Draw(dst, pp.JuText, ft, 32, 96+16*3, colorWhite)
+	text.Draw(dst, pp.DutyText, ft, 32, 96+16*4, colorWhite)
+	text.Draw(dst, pp.JiText, ft, 32, 96+16*5, colorWhite)
+	text.Draw(dst, pp.YueJiang, ft, 32, 96+16*6, colorWhite)
+	text.Draw(dst, fmt.Sprintf("日值 %s%s%s", lunar.GetXiu(), lunar.GetZheng(), lunar.GetAnimal()),
+		ft, 32, 96+16*7, colorWhite)
 }
 func (q *QMShow) draw9Gong(dst *ebiten.Image) {
 	qm := ThisGame.qmGame

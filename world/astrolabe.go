@@ -356,8 +356,8 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 	//画28星宿
 	for i := 0; i < 28; i++ {
 		l := a.XiuLoc[i]
-		vector.StrokeLine(dst, l.lx1, l.ly1, l.lx2, l.ly2, 1, colorGongSplit, true)     //星宿
-		text.Draw(dst, fmt.Sprintf("%s", qimen.Xiu28[i]), ft, l.x-4, l.y+4, colorJiang) //星宿
+		vector.StrokeLine(dst, l.lx1, l.ly1, l.lx2, l.ly2, 1, colorGongSplit, true) //星宿
+		text.Draw(dst, qimen.Xiu28[i], ft, l.x-4, l.y+4, colorJiang)                //星宿
 	}
 	//画星体
 	for _, id := range Draws {

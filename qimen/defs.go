@@ -319,7 +319,7 @@ var ChangSheng12 = map[string]map[string]string{
 }
 
 // Xiu28 LunarUtil.XIU_LUCK
-var Xiu28 = []string{
+var Xiu28 = []string{"轸",
 	"角", "亢", "氐", "房", "心", "尾", "箕",
 	"斗", "牛", "女", "虚", "危", "室", "壁",
 	"奎", "娄", "胃", "昴", "毕", "觜", "参",
