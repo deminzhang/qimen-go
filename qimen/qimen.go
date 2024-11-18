@@ -97,10 +97,15 @@ func NewQMGame(solar *calendar.Solar, params QMParams) *QMGame {
 		Solar:          solar,
 		Lunar:          lunar,
 		LunarMonthDays: calendar.NewLunarYear(lunar.GetYear()).GetMonth(lunar.GetMonth()).GetDayCount(),
-		YueJian:        Jie2YueJian(lunar.GetPrevJie().GetName()),
-		YueJiang:       Qi2YueJiang(lunar.GetPrevQi().GetName()),
 		JieQi:          jieQiName,
 		TimeHorse:      Horse[c8.GetTimeZhi()],
+	}
+	if jieQi.IsJie() {
+		p.YueJian = Jie2YueJian(jieQi.GetName())
+		p.YueJiang = Qi2YueJiang(lunar.GetPrevQi().GetName())
+	} else { //qi
+		p.YueJian = Jie2YueJian(lunar.GetPrevJie().GetName())
+		p.YueJiang = Qi2YueJiang(jieQi.GetName())
 	}
 	switch ymdh {
 	case QMGameHour: //排时家奇门

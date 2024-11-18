@@ -10,10 +10,6 @@ import (
 	"time"
 )
 
-const (
-	zhiPanWidth = 48
-)
-
 var gongOffset = [][]int{{0, 0},
 	{1, 2}, {2, 0}, {0, 1},
 	{0, 0}, {1, 1}, {2, 2},
@@ -75,7 +71,7 @@ func NewUIQiMen() *UIQiMen {
 			HideGanType: qimen.QMHideGanDutyDoorHour,
 		},
 	}
-	px0, py0 := 32, 0
+	px0, py0 := 16, 0
 	h := 32
 	p.panelSDate = ui.NewPanel(image.Rect(px0, py0, px0+72*4+64, py0+h), nil)
 	p.inputSYear = ui.NewInputBox(image.Rect(px0, py0, px0+64, py0+h))
@@ -83,38 +79,39 @@ func NewUIQiMen() *UIQiMen {
 	p.inputSDay = ui.NewInputBox(image.Rect(px0+72*2, py0, px0+72*2+64, py0+h))
 	p.inputSHour = ui.NewInputBox(image.Rect(px0+72*3, py0, px0+72*3+64, py0+h))
 	p.inputSMin = ui.NewInputBox(image.Rect(px0+72*4, py0, px0+72*4+64, py0+h))
-	p.opTypeRoll = ui.NewOptionBox(px0+72*5, py0, qimen.QMType[0])
-	p.opTypeFly = ui.NewOptionBox(px0+72*6, py0, qimen.QMType[1])
-	p.opTypeAmaze = ui.NewOptionBox(px0+72*7, py0, qimen.QMType[2])
-	p.btnCalc = ui.NewTextButton(px0+72*8, py0, "排局", colorWhite, true)
-	p.btnNow = ui.NewTextButton(px0+72*9, py0, "此时", colorWhite, true)
+	opcbX := 346
+	p.opTypeRoll = ui.NewOptionBox(px0+72*5+opcbX, py0, qimen.QMType[0])
+	p.opTypeFly = ui.NewOptionBox(px0+72*6+opcbX, py0, qimen.QMType[1])
+	p.opTypeAmaze = ui.NewOptionBox(px0+72*7+opcbX, py0, qimen.QMType[2])
+	p.btnCalc = ui.NewTextButton(px0+72*8+opcbX, py0, "排局", colorWhite, true)
+	p.btnNow = ui.NewTextButton(px0+72*8+36+opcbX, py0, "此时", colorWhite, true)
 
 	py0 += 18
-	p.cbHostingType = ui.NewCheckBox(px0+72*5, py0, qimen.QMHostingType[qimen.QMHostingType28])
-	p.cbFlyType = ui.NewCheckBox(px0+72*6, py0, qimen.QMFlyType[qimen.QMFlyTypeAllOrder])
-	p.btnPreJu = ui.NewTextButton(px0+72*8, py0, "上一局", colorWhite, true)
+	p.cbHostingType = ui.NewCheckBox(px0+72*5+opcbX, py0, qimen.QMHostingType[qimen.QMHostingType28])
+	p.cbFlyType = ui.NewCheckBox(px0+72*6+opcbX, py0, qimen.QMFlyType[qimen.QMFlyTypeAllOrder])
+	p.btnPreJu = ui.NewTextButton(px0+72*8+opcbX, py0, "上一局", colorWhite, true)
 
 	py0 += 18
-	p.btnNextJu = ui.NewTextButton(px0+72*8, py0, "下一局", colorWhite, true)
-	p.cbAuto = ui.NewCheckBox(px0+72*9, py0, "自动")
+	p.btnNextJu = ui.NewTextButton(px0+72*8+opcbX, py0, "下一局", colorWhite, true)
 
 	p.inputSelfJu = ui.NewInputBox(image.Rect(px0+72*4, py0, px0+72*4+64, py0+h))
-	p.opStartSelf = ui.NewOptionBox(px0+72*4, py0, qimen.QMJuType[qimen.QMJuTypeSelf])
+	p.opStartSelf = ui.NewOptionBox(px0+72*4+opcbX, py0, qimen.QMJuType[qimen.QMJuTypeSelf])
 
-	p.opStartSplit = ui.NewOptionBox(px0+72*5, py0, qimen.QMJuType[qimen.QMJuTypeSplit])
-	p.opStartMaoShan = ui.NewOptionBox(px0+72*6, py0, qimen.QMJuType[qimen.QMJuTypeMaoShan])
-	p.opStartZhiRun = ui.NewOptionBox(px0+72*7, py0, qimen.QMJuType[qimen.QMJuTypeZhiRun])
+	p.opStartSplit = ui.NewOptionBox(px0+72*5+opcbX, py0, qimen.QMJuType[qimen.QMJuTypeSplit])
+	p.opStartMaoShan = ui.NewOptionBox(px0+72*6+opcbX, py0, qimen.QMJuType[qimen.QMJuTypeMaoShan])
+	p.opStartZhiRun = ui.NewOptionBox(px0+72*7+opcbX, py0, qimen.QMJuType[qimen.QMJuTypeZhiRun])
 
 	py0 += 18
-	p.opHideGan0 = ui.NewOptionBox(px0+72*5, py0, qimen.QMHideGanType[qimen.QMHideGanDutyDoorHour])
-	p.opHideGan1 = ui.NewOptionBox(px0+72*7, py0, qimen.QMHideGanType[qimen.QMHideGanDoorHomeGan])
+	p.opHideGan0 = ui.NewOptionBox(px0+72*5+opcbX, py0, qimen.QMHideGanType[qimen.QMHideGanDutyDoorHour])
+	p.opHideGan1 = ui.NewOptionBox(px0+72*7+opcbX, py0, qimen.QMHideGanType[qimen.QMHideGanDoorHomeGan])
 	py0 += 18
-	p.opHourPan = ui.NewOptionBox(px0+72*5, py0, "时家")
-	p.opDayPan = ui.NewOptionBox(px0+72*6, py0, "日家")
-	p.opMonthPan = ui.NewOptionBox(px0+72*7, py0, "月家")
-	p.opYearPan = ui.NewOptionBox(px0+72*8, py0, "年家")
+	p.opHourPan = ui.NewOptionBox(px0+72*5+opcbX, py0, "时家")
+	p.opDayPan = ui.NewOptionBox(px0+72*6+opcbX, py0, "日家")
+	p.opMonthPan = ui.NewOptionBox(px0+72*7+opcbX, py0, "月家")
+	p.opYearPan = ui.NewOptionBox(px0+72*8+opcbX, py0, "年家")
 	py0 += 18
-	p.opDay2Pan = ui.NewOptionBox(px0+72*6, py0, "_日家2")
+	p.opDay2Pan = ui.NewOptionBox(px0+72*6+opcbX, py0, "_日家2")
+	p.cbAuto = ui.NewCheckBox(px0+72*8+opcbX, py0, "自动")
 
 	p.AddChild(p.panelSDate)
 	p.inputSYear.MaxChars = 5
@@ -360,9 +357,20 @@ func (p *UIQiMen) Apply(solar *calendar.Solar) *qimen.QMGame {
 	pan.CalBig6()
 	return pan
 }
-func (p *UIQiMen) NextApply() *qimen.QMGame {
+func (p *UIQiMen) NextHour() *qimen.QMGame {
 	solar := p.solar.NextHour(2)
 	return p.Apply(solar)
+}
+
+func (p *UIQiMen) NextMinute() *qimen.QMGame {
+	s := p.solar
+	if s.GetMinute() == 59 {
+		s = s.NextHour(1)
+		s = calendar.NewSolar(s.GetYear(), s.GetMonth(), s.GetDay(), s.GetHour(), 0, 0)
+	} else {
+		s = calendar.NewSolar(s.GetYear(), s.GetMonth(), s.GetDay(), s.GetHour(), s.GetMinute()+1, 0)
+	}
+	return p.Apply(s)
 }
 
 func (p *UIQiMen) AutoTick() bool {
