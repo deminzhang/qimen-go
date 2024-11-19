@@ -104,12 +104,12 @@ func (q *QMShow) drawHead(dst *ebiten.Image) {
 
 }
 func (q *QMShow) drawTaiJi(dst *ebiten.Image) {
-	op := &ebiten.DrawImageOptions{}
+	op := ebiten.DrawImageOptions{}
 	op.GeoM.Translate(-_TaiJiSize/2, -_TaiJiSize/2)
 	op.GeoM.Rotate(math.Pi * float64(q.count) / 360 * 2)
 	op.GeoM.Translate(float64(q.X), float64(q.Y))
 	op.ColorScale.ScaleWithColor(colorGray5)
-	dst.DrawImage(q.TaiJi, op)
+	dst.DrawImage(q.TaiJi, &op)
 }
 func (q *QMShow) draw9Gong(dst *ebiten.Image) {
 	qm := ThisGame.qmGame

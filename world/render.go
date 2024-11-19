@@ -36,22 +36,22 @@ func DrawProBarV[T util.Numeric](dst *ebiten.Image, x, y, width, height float32,
 }
 
 // DrawFlow 流年流月流日流时柱
-func DrawFlow(dst *ebiten.Image, sx, sy float32, soul string, cb *CharBody) {
+func DrawFlow(dst *ebiten.Image, sx, sy int, soul string, cb *CharBody) {
 	ft14, _ := GetFontFace(14)
 	ft28, _ := GetFontFace(28)
 	//text.Draw(dst, LunarUtil.SHI_SHEN[soul+cb.Gan], ft14, int(sx), int(sy-32), colorWhite)
-	text.Draw(dst, cb.Gan, ft28, int(sx), int(sy), ColorGanZhi(cb.Gan))
-	text.Draw(dst, cb.Zhi, ft28, int(sx), int(sy+32), ColorGanZhi(cb.Zhi))
-	text.Draw(dst, cb.Body, ft14, int(sx), int(sy+48), ColorGanZhi(cb.Body))
-	text.Draw(dst, ShiShenShort(soul, cb.Body), ft14, int(sx+16), int(sy+48), colorWhite)
-	text.Draw(dst, cb.Legs, ft14, int(sx), int(sy+64), ColorGanZhi(cb.Legs))
-	text.Draw(dst, ShiShenShort(soul, cb.Legs), ft14, int(sx+16), int(sy+64), colorWhite)
-	text.Draw(dst, cb.Feet, ft14, int(sx), int(sy+80), ColorGanZhi(cb.Feet))
-	text.Draw(dst, ShiShenShort(soul, cb.Feet), ft14, int(sx+16), int(sy+80), colorWhite)
-	text.Draw(dst, LunarUtil.NAYIN[cb.Gan+cb.Zhi], ft14, int(sx), int(sy+96), ColorNaYin(cb.Gan+cb.Zhi))
-	text.Draw(dst, qimen.ChangSheng12[soul][cb.Zhi], ft14, int(sx), int(sy+112), ColorGanZhi(soul))
-	text.Draw(dst, qimen.ChangSheng12[cb.Gan][cb.Zhi], ft14, int(sx), int(sy+128), ColorGanZhi(cb.Gan))
-	text.Draw(dst, LunarUtil.GetXunKong(cb.Gan+cb.Zhi), ft14, int(sx), int(sy+144), colorGray)
+	text.Draw(dst, cb.Gan, ft28, sx, sy, ColorGanZhi(cb.Gan))
+	text.Draw(dst, cb.Zhi, ft28, sx, sy+32, ColorGanZhi(cb.Zhi))
+	text.Draw(dst, cb.Body, ft14, sx, sy+48, ColorGanZhi(cb.Body))
+	text.Draw(dst, ShiShenShort(soul, cb.Body), ft14, sx+16, sy+48, colorWhite)
+	text.Draw(dst, cb.Legs, ft14, sx, sy+64, ColorGanZhi(cb.Legs))
+	text.Draw(dst, ShiShenShort(soul, cb.Legs), ft14, sx+16, sy+64, colorWhite)
+	text.Draw(dst, cb.Feet, ft14, sx, sy+80, ColorGanZhi(cb.Feet))
+	text.Draw(dst, ShiShenShort(soul, cb.Feet), ft14, sx+16, sy+80, colorWhite)
+	text.Draw(dst, LunarUtil.NAYIN[cb.Gan+cb.Zhi], ft14, sx, sy+96, ColorNaYin(cb.Gan+cb.Zhi))
+	text.Draw(dst, qimen.ChangSheng12[soul][cb.Zhi], ft14, sx, sy+112, ColorGanZhi(soul))
+	text.Draw(dst, qimen.ChangSheng12[cb.Gan][cb.Zhi], ft14, sx, sy+128, ColorGanZhi(cb.Gan))
+	text.Draw(dst, LunarUtil.GetXunKong(cb.Gan+cb.Zhi), ft14, sx, sy+144, colorGray)
 }
 
 // DrawRangeBar draw a range bar

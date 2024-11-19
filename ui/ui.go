@@ -67,6 +67,7 @@ type BaseUI struct {
 	Depth       int  //update draw depth
 	children    []IUIPanel
 	parent      IUIPanel
+	GeoM        ebiten.GeoM
 }
 
 func (u *BaseUI) IsDisabled() bool {
@@ -86,6 +87,12 @@ func (u *BaseUI) GetParent() IUIPanel {
 }
 func (u *BaseUI) SetParent(p IUIPanel) {
 	u.parent = p
+}
+func (u *BaseUI) GetGeoM() ebiten.GeoM {
+	return u.GeoM
+}
+func (u *BaseUI) SetGeoM(p ebiten.GeoM) {
+	u.GeoM = p
 }
 
 func (u *BaseUI) Update() {
@@ -109,10 +116,12 @@ func (u *BaseUI) AddChild(c IUIPanel) {
 	sort.Slice(u.children, func(a, b int) bool {
 		return u.children[a].GetDepth() > u.children[b].GetDepth()
 	})
+	c.SetParent(u)
 }
 func (u *BaseUI) AddChildren(cs ...IUIPanel) {
 	for _, c := range cs {
 		u.children = append(u.children, c)
+		c.SetParent(u)
 	}
 	sort.Slice(u.children, func(a, b int) bool {
 		return u.children[a].GetDepth() > u.children[b].GetDepth()
@@ -122,6 +131,7 @@ func (u *BaseUI) AddChildren(cs ...IUIPanel) {
 func (u *BaseUI) RemoveChild(c IUIPanel) {
 	for i, child := range u.children {
 		if c == child {
+			c.SetParent(nil)
 			if i == 0 {
 				u.children = u.children[1:]
 			} else {

@@ -20,6 +20,7 @@ type UIQiMen struct {
 	ui.BaseUI
 	//pan                                                       *qimen.QMGame
 	panelSDate                                                *ui.Panel
+	panelOpCb                                                 *ui.Panel
 	inputSYear, inputSMonth, inputSDay, inputSHour, inputSMin *ui.InputBox
 
 	opTypeRoll, opTypeFly, opTypeAmaze *ui.OptionBox
@@ -73,7 +74,8 @@ func NewUIQiMen() *UIQiMen {
 	}
 	px0, py0 := 16, 0
 	h := 32
-	p.panelSDate = ui.NewPanel(image.Rect(px0, py0, px0+72*4+64, py0+h), nil)
+	p.panelSDate = ui.NewPanel(image.Rect(0, 0, px0+72*4+64, py0+h), nil)
+	p.panelOpCb = ui.NewPanel(image.Rect(600, 0, px0+72*4+64, py0+h), nil)
 	p.inputSYear = ui.NewInputBox(image.Rect(px0, py0, px0+64, py0+h))
 	p.inputSMonth = ui.NewInputBox(image.Rect(px0+72, py0, px0+72+64, py0+h))
 	p.inputSDay = ui.NewInputBox(image.Rect(px0+72*2, py0, px0+72*2+64, py0+h))
@@ -113,7 +115,7 @@ func NewUIQiMen() *UIQiMen {
 	p.opDay2Pan = ui.NewOptionBox(px0+72*6+opcbX, py0, "_日家2")
 	p.cbAuto = ui.NewCheckBox(px0+72*8+opcbX, py0, "自动")
 
-	p.AddChild(p.panelSDate)
+	p.AddChildren(p.panelSDate, p.panelOpCb)
 	p.inputSYear.MaxChars = 5
 	p.inputSMonth.MaxChars = 2
 	p.inputSDay.MaxChars = 2
@@ -126,12 +128,12 @@ func NewUIQiMen() *UIQiMen {
 	p.inputSMin.DefaultText = "分"
 	p.inputSelfJu.DefaultText = "手选局数"
 	p.panelSDate.AddChildren(p.inputSYear, p.inputSMonth, p.inputSDay, p.inputSHour, p.inputSMin)
-	p.AddChildren(p.btnCalc, p.btnNow, p.opTypeRoll, p.opTypeFly, p.opTypeAmaze)
-	p.AddChildren(p.btnPreJu, p.btnNextJu, p.cbHostingType, p.cbFlyType)
-	p.AddChildren(p.opHourPan, p.opDayPan, p.opMonthPan, p.opYearPan, p.opDay2Pan)
-	p.AddChildren(p.opStartSplit, p.opStartMaoShan, p.opStartZhiRun, p.opStartSelf, p.inputSelfJu)
-	p.AddChildren(p.cbAuto)
-	p.AddChildren(p.opHideGan0, p.opHideGan1)
+	p.panelOpCb.AddChildren(p.btnCalc, p.btnNow, p.opTypeRoll, p.opTypeFly, p.opTypeAmaze,
+		p.btnPreJu, p.btnNextJu, p.cbHostingType, p.cbFlyType,
+		p.opHourPan, p.opDayPan, p.opMonthPan, p.opYearPan, p.opDay2Pan,
+		p.opStartSplit, p.opStartMaoShan, p.opStartZhiRun, p.opStartSelf, p.inputSelfJu,
+		p.cbAuto,
+		p.opHideGan0, p.opHideGan1)
 
 	ui.MakeOptionBoxGroup(p.opTypeRoll, p.opTypeFly, p.opTypeAmaze)
 	p.opTypeRoll.Select()

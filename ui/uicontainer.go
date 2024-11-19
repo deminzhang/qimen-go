@@ -3,7 +3,8 @@ package ui
 import "github.com/hajimehoshi/ebiten/v2"
 
 type Container struct {
-	uis []IUIPanel
+	X, Y float32
+	uis  []IUIPanel
 }
 
 func (c *Container) Add(u ...IUIPanel) {
