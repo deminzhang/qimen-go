@@ -9,14 +9,12 @@ import (
 
 type Panel struct {
 	BaseUI
-	Rect  image.Rectangle
 	Color *color.RGBA
 }
 
 func NewPanel(rect image.Rectangle, c *color.RGBA) *Panel {
 	return &Panel{
-		BaseUI: BaseUI{Visible: true, X: 0, Y: 0},
-		Rect:   rect,
+		BaseUI: BaseUI{Visible: true, X: 0, Y: 0, Rect: rect},
 		Color:  c,
 	}
 }

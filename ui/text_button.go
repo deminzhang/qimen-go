@@ -17,8 +17,9 @@ type TextButton struct {
 // NewTextButton 按text长度自动调整大小无背景UI
 func NewTextButton(x0, y0 int, text string, c color.Color, drawBorder bool) *TextButton {
 	return &TextButton{
-		Button: Button{BaseUI: BaseUI{Visible: true, X: 0, Y: 0},
-			Rect:      image.Rect(x0, y0, x0, y0),
+		Button: Button{BaseUI: BaseUI{Visible: true, X: 0, Y: 0,
+			Rect: image.Rect(x0, y0, x0, y0),
+		},
 			Text:      text,
 			TextColor: c,
 		},

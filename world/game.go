@@ -26,8 +26,8 @@ func (g *game) Update() error {
 	g.qiMen.Update()
 	g.char8.Update()
 	g.astrolabe.Update()
-	//g.stars.SetPos(g.astrolabe.GetSolarPos())
-	//g.stars.Update()
+	g.stars.SetPos(g.astrolabe.GetSolarPos())
+	g.stars.Update()
 	//if g.autoMinute && !g.astrolabe.DataQuerying() {
 	if g.autoMinute {
 		if g.count%10 == 0 {
@@ -41,17 +41,17 @@ func (g *game) Update() error {
 }
 
 func (g *game) Draw(screen *ebiten.Image) {
-	//g.char8.Draw(screen)
-	//g.astrolabe.Draw(screen)
+	g.astrolabe.Draw(screen)
 	//g.stars.Draw(screen)
 	g.qiMen.Draw(screen)
+	g.char8.Draw(screen)
 	ui.Draw(screen)
 }
 
 func (g *game) Layout(w, h int) (int, int) {
-	if g.qiMen != nil {
-		g.qiMen.X, g.qiMen.Y = float32(w/2), float32(h/2)
-	}
+	//if g.qiMen != nil {
+	//	g.qiMen.X, g.qiMen.Y = float32(w/2), float32(h/2)
+	//}
 	return w, h
 }
 
@@ -62,9 +62,9 @@ func NewGame() *game {
 	g := &game{
 		uiQM:      u,
 		stars:     NewStarEffect(screenWidth/2, 217),
-		qiMen:     NewQiMenShow(500, 400),
-		astrolabe: NewAstrolabe(770+500, 450),
-		char8:     NewChar8Pan(522, 174),
+		qiMen:     NewQiMenShow(400, 450),
+		astrolabe: NewAstrolabe(1650, 450),
+		char8:     NewChar8Pan(830, 174),
 		qmGame:    pan,
 	}
 	return g

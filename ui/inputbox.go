@@ -20,7 +20,7 @@ var textSelectColor = color.RGBA{B: 200, A: 128}
 
 type InputBox struct {
 	BaseUI
-	Rect         image.Rectangle
+	//Rect         image.Rectangle
 	textRune     []rune
 	DefaultText  string //无Text时默认灰文本
 	MaxChars     int    //最大长度
@@ -48,8 +48,7 @@ type InputBox struct {
 
 func NewInputBox(rect image.Rectangle) *InputBox {
 	return &InputBox{
-		BaseUI:     BaseUI{Visible: true, EnableFocus: true},
-		Rect:       rect,
+		BaseUI:     BaseUI{Visible: true, EnableFocus: true, Rect: rect},
 		Editable:   true,
 		Selectable: true,
 		//default resource

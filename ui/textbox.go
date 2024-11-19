@@ -19,7 +19,6 @@ var defaultTextColor = color.Black
 
 type TextBox struct {
 	BaseUI
-	Rect      image.Rectangle
 	Text      string
 	TextColor color.Color
 
@@ -39,8 +38,7 @@ type TextBox struct {
 
 func NewTextBox(rect image.Rectangle) *TextBox {
 	return &TextBox{
-		BaseUI:         BaseUI{Visible: true, X: 0, Y: 0},
-		Rect:           rect,
+		BaseUI:         BaseUI{Visible: true, X: 0, Y: 0, Rect: rect},
 		TextColor:      defaultTextColor,
 		lineHeight:     defaultLineHeight,
 		textBoxPadding: defaultTextBoxPadding,

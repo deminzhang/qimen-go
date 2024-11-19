@@ -67,6 +67,7 @@ type BaseUI struct {
 	Depth       int  //update draw depth
 	children    []IUIPanel
 	parent      IUIPanel
+	Rect        image.Rectangle
 	GeoM        ebiten.GeoM
 }
 
@@ -104,11 +105,13 @@ func (u *BaseUI) Update() {
 }
 
 func (u *BaseUI) Draw(screen *ebiten.Image) {
+	//img := ebiten.NewImage(u.Rect.Max.X, u.Rect.Max.Y)
 	for _, p := range u.children {
 		if p.IsVisible() {
 			p.Draw(screen)
 		}
 	}
+	//screen.DrawImage(img, &ebiten.DrawImageOptions{GeoM: u.GeoM})
 }
 
 func (u *BaseUI) AddChild(c IUIPanel) {

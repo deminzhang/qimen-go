@@ -249,7 +249,7 @@ func (q *QMShow) draw12Gong(dst *ebiten.Image) {
 			degreesNext += 360
 		}
 		degreesMid := degrees + (degreesNext-qimen.XiuAngle[xi])/2
-		y, x := util.CalRadiansPos(q.Y, q.X, _XiuR, degreesMid)
+		y, x = util.CalRadiansPos(q.Y, q.X, _XiuR, degreesMid)
 		text.Draw(dst, xi, ft, int(x-6), int(y+4), colorLeader) //星宿
 	}
 	//画12星座

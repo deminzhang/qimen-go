@@ -94,8 +94,8 @@ func NewSunImage(size int) *ebiten.Image {
 	hs := float32(size / 2)
 	vector.DrawFilledCircle(sun, hs, hs, float32(size/4), color.White, true)
 	for i := 0; i < 8; i++ {
-		lx, ly := util.CalRadiansPos(hs, hs, hs, float32(i*45))
-		vector.StrokeLine(sun, hs, hs, lx, ly, 0.5, color.White, true)
+		y, x := util.CalRadiansPos(hs, hs, hs, float32(i*45))
+		vector.StrokeLine(sun, hs, hs, x, y, 0.5, color.White, true)
 	}
 	return sun
 }

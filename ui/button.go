@@ -11,7 +11,7 @@ import (
 
 type Button struct {
 	BaseUI
-	Rect         image.Rectangle
+	//Rect         image.Rectangle
 	Text         string
 	textX, textY int
 
@@ -26,9 +26,10 @@ type Button struct {
 
 func NewButton(rect image.Rectangle, text string) *Button {
 	return &Button{
-		BaseUI: BaseUI{Visible: true, X: 0, Y: 0},
-		Rect:   rect,
-		Text:   text,
+		BaseUI: BaseUI{Visible: true, X: 0, Y: 0,
+			Rect: rect,
+		},
+		Text: text,
 		//default resource
 		TextColor:        color.Black,
 		UIImage:          GetDefaultUIImage(),
@@ -39,8 +40,9 @@ func NewButton(rect image.Rectangle, text string) *Button {
 
 func NewButtonTransparent(rect image.Rectangle, text string) *Button {
 	return &Button{
-		BaseUI:    BaseUI{Visible: true, X: 0, Y: 0},
-		Rect:      rect,
+		BaseUI: BaseUI{Visible: true, X: 0, Y: 0,
+			Rect: rect,
+		},
 		Text:      text,
 		TextColor: color.White,
 	}
