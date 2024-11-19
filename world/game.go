@@ -2,8 +2,8 @@ package world
 
 import (
 	"github.com/6tail/lunar-go/calendar"
+	"github.com/deminzhang/qimen-go/gui"
 	"github.com/deminzhang/qimen-go/qimen"
-	"github.com/deminzhang/qimen-go/ui"
 	"github.com/hajimehoshi/ebiten/v2"
 	"time"
 )
@@ -36,7 +36,7 @@ func (g *game) Update() error {
 		}
 	}
 
-	ui.Update()
+	gui.Update()
 	return nil
 }
 
@@ -45,13 +45,14 @@ func (g *game) Draw(screen *ebiten.Image) {
 	//g.stars.Draw(screen)
 	g.qiMen.Draw(screen)
 	g.char8.Draw(screen)
-	ui.Draw(screen)
+	gui.Draw(screen)
 }
 
 func (g *game) Layout(w, h int) (int, int) {
-	//if g.qiMen != nil {
-	//	g.qiMen.X, g.qiMen.Y = float32(w/2), float32(h/2)
-	//}
+	if g.qiMen != nil {
+		//g.qiMen.X = float32(w / 2)
+		g.qiMen.Y = float32(h / 2)
+	}
 	return w, h
 }
 

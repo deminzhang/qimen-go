@@ -2,7 +2,7 @@ package world
 
 import (
 	"github.com/deminzhang/qimen-go/asset"
-	"github.com/deminzhang/qimen-go/ui"
+	"github.com/deminzhang/qimen-go/gui"
 	"github.com/hajimehoshi/ebiten/v2"
 	"golang.org/x/image/font"
 	"image"
@@ -18,7 +18,7 @@ func init() {
 	if err != nil {
 		return
 	}
-	ui.SetDefaultUIFont(face)
+	gui.SetDefaultUIFont(face)
 }
 
 func GetFontFace(size float64) (font.Face, error) {

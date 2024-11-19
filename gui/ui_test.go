@@ -1,4 +1,4 @@
-package ui_test
+package gui_test
 
 import (
 	. "github.com/deminzhang/qimen-go/ui"

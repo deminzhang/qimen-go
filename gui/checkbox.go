@@ -1,4 +1,4 @@
-package ui
+package gui
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
@@ -30,7 +30,7 @@ type CheckBox struct {
 
 func NewCheckBox(x, y int, text string) *CheckBox {
 	return &CheckBox{
-		BaseUI: BaseUI{Visible: true, X: x, Y: y},
+		BaseUI: BaseUI{Visible: true, X: x, Y: y, Rect: image.Rect(0, 0, checkBoxWidth, checkBoxWidth)},
 		Text:   text,
 
 		UIImage:          GetDefaultUIImage(),
@@ -48,9 +48,11 @@ func (c *CheckBox) width() int {
 }
 
 func (c *CheckBox) Update() {
+	c.Rect.Max.X = c.Rect.Min.X + c.width()
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-		x, y := ebiten.CursorPosition()
-		c.mouseDown = c.X <= x && x < c.X+c.width() && c.Y <= y && y < c.Y+checkBoxWidth
+		mx, my := ebiten.CursorPosition()
+		x, y := c.GetRectXY()
+		c.mouseDown = x <= mx && mx < x+c.width() && y <= my && my < y+checkBoxWidth
 	} else {
 		if c.mouseDown {
 			c.checked = !c.checked
@@ -66,7 +68,7 @@ func (c *CheckBox) Draw(dst *ebiten.Image) {
 	if !c.Visible {
 		return
 	}
-	r := image.Rect(c.X, c.Y, c.X+checkBoxWidth, c.Y+checkBoxWidth)
+	r := image.Rect(0, 0, checkBoxWidth, checkBoxWidth)
 	if c.mouseDown {
 		drawNinePatches(dst, c.UIImage, r, c.ImageRectPressed)
 	} else {
@@ -76,8 +78,8 @@ func (c *CheckBox) Draw(dst *ebiten.Image) {
 		drawNinePatches(dst, c.UIImage, r, c.ImageRectMark)
 	}
 
-	x := c.X + checkBoxWidth + checkBoxPaddingLeft
-	y := (c.Y + 16) - (16-uiFontMHeight)/2
+	x := checkBoxWidth //+ checkBoxPaddingLeft
+	y := checkBoxWidth - (checkBoxWidth-uiFontMHeight)/2
 	if c.Disabled {
 		text.Draw(dst, c.Text, uiFont, x, y, color.Gray16{Y: 0x8888})
 	} else {

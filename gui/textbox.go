@@ -1,4 +1,4 @@
-package ui
+package gui
 
 import (
 	"fmt"
@@ -37,8 +37,10 @@ type TextBox struct {
 }
 
 func NewTextBox(rect image.Rectangle) *TextBox {
+	x, y := rect.Min.X, rect.Min.Y
+	rect = image.Rect(0, 0, rect.Dx(), rect.Dy())
 	return &TextBox{
-		BaseUI:         BaseUI{Visible: true, X: 0, Y: 0, Rect: rect},
+		BaseUI:         BaseUI{Visible: true, X: x, Y: y, Rect: rect},
 		TextColor:      defaultTextColor,
 		lineHeight:     defaultLineHeight,
 		textBoxPadding: defaultTextBoxPadding,
@@ -58,13 +60,14 @@ func (t *TextBox) AppendLine(line string) {
 }
 
 func (t *TextBox) Update() {
+	x, y := t.GetXY()
 	w, h := t.contentSize()
 	if h > t.Rect.Dy() && !t.DisableVScroll {
 		if t.vScrollBar == nil {
 			t.vScrollBar = NewVScrollBar()
 		}
-		t.vScrollBar.X = t.Rect.Max.X - t.vScrollBar.ScrollBarWidth
-		t.vScrollBar.Y = t.Rect.Min.Y
+		t.vScrollBar.X = x + t.Rect.Min.X + t.Rect.Dx() - t.vScrollBar.ScrollBarWidth
+		t.vScrollBar.Y = y + t.Rect.Min.Y
 		t.vScrollBar.Height = t.Rect.Dy()
 		if t.hScrollBar != nil {
 			t.vScrollBar.Height -= t.hScrollBar.ScrollBarHeight
@@ -81,8 +84,8 @@ func (t *TextBox) Update() {
 		if t.hScrollBar == nil {
 			t.hScrollBar = NewHScrollBar()
 		}
-		t.hScrollBar.X = t.Rect.Min.X
-		t.hScrollBar.Y = t.Rect.Max.Y - t.hScrollBar.ScrollBarHeight
+		t.hScrollBar.X = x + t.Rect.Min.X
+		t.hScrollBar.Y = y + t.Rect.Min.Y + t.Rect.Dy() - t.hScrollBar.ScrollBarHeight
 		t.hScrollBar.Width = t.Rect.Dx()
 		if t.vScrollBar != nil {
 			t.hScrollBar.Width -= t.vScrollBar.ScrollBarWidth
@@ -157,9 +160,9 @@ func (t *TextBox) Draw(dst *ebiten.Image) {
 		}
 		text.Draw(t.contentBuf, line, uiFont, x, y, t.TextColor)
 	}
-	op := &ebiten.DrawImageOptions{}
+	op := ebiten.DrawImageOptions{}
 	op.GeoM.Translate(float64(t.Rect.Min.X), float64(t.Rect.Min.Y))
-	dst.DrawImage(t.contentBuf, op)
+	dst.DrawImage(t.contentBuf, &op)
 
 	if t.vScrollBar != nil {
 		t.vScrollBar.Draw(dst)

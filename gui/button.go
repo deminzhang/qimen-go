@@ -1,4 +1,4 @@
-package ui
+package gui
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
@@ -25,11 +25,11 @@ type Button struct {
 }
 
 func NewButton(rect image.Rectangle, text string) *Button {
+	x, y := rect.Min.X, rect.Min.Y
+	rect = image.Rect(0, 0, rect.Dx(), rect.Dy())
 	return &Button{
-		BaseUI: BaseUI{Visible: true, X: 0, Y: 0,
-			Rect: rect,
-		},
-		Text: text,
+		BaseUI: BaseUI{Visible: true, X: x, Y: y, Rect: rect},
+		Text:   text,
 		//default resource
 		TextColor:        color.Black,
 		UIImage:          GetDefaultUIImage(),
@@ -39,10 +39,10 @@ func NewButton(rect image.Rectangle, text string) *Button {
 }
 
 func NewButtonTransparent(rect image.Rectangle, text string) *Button {
+	x, y := rect.Min.X, rect.Min.Y
+	rect = image.Rect(0, 0, rect.Dx(), rect.Dy())
 	return &Button{
-		BaseUI: BaseUI{Visible: true, X: 0, Y: 0,
-			Rect: rect,
-		},
+		BaseUI:    BaseUI{Visible: true, X: x, Y: y, Rect: rect},
 		Text:      text,
 		TextColor: color.White,
 	}
@@ -54,8 +54,9 @@ func (b *Button) Update() {
 	b.textX = b.Rect.Min.X + (b.Rect.Dx()-w)/2
 	b.textY = b.Rect.Max.Y - (b.Rect.Dy()-uiFontMHeight)/2
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-		x, y := ebiten.CursorPosition()
-		if b.Rect.Min.X <= x && x < b.Rect.Max.X && b.Rect.Min.Y <= y && y < b.Rect.Max.Y {
+		mx, my := ebiten.CursorPosition()
+		x, y := b.GetXY()
+		if x+b.Rect.Min.X <= mx && mx < x+b.Rect.Max.X && y+b.Rect.Min.Y <= my && my < y+b.Rect.Max.Y {
 			b.mouseDown = true
 		} else {
 			b.mouseDown = false
@@ -64,6 +65,7 @@ func (b *Button) Update() {
 		if b.mouseDown {
 			if b.onClick != nil {
 				b.onClick(b)
+				SetFrameClick()
 			}
 		}
 		b.mouseDown = false

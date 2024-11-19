@@ -1,4 +1,4 @@
-package ui
+package gui
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
@@ -13,14 +13,18 @@ type IUIPanel interface {
 
 	IsDisabled() bool
 	IsVisible() bool
+	//GetWH() (int, int)
 	GetXY() (int, int)
 	GetDepth() int
+	GetRect() *image.Rectangle
+	SetRect(v image.Rectangle)
 	GetParent() IUIPanel
 	SetParent(p IUIPanel)
 }
 
 // var uis = make(map[IUIPanel]struct{})
 var uis []IUIPanel
+var frameClick bool
 
 func ActiveUI(ui IUIPanel) {
 	uis = append(uis, ui)
@@ -44,6 +48,7 @@ func CloseUI(ui IUIPanel) {
 	}
 }
 func Update() {
+	frameClick = false
 	for _, u := range uis {
 		if !u.IsDisabled() && u.IsVisible() {
 			u.Update()
@@ -54,9 +59,25 @@ func Update() {
 func Draw(screen *ebiten.Image) {
 	for _, u := range uis {
 		if u.IsVisible() {
+			//rect := u.GetRect()
+			//if rect.Max.X == 0 && rect.Max.Y == 0 {
 			u.Draw(screen)
+			//	continue
+			//}
+			//img := ebiten.NewImage(rect.Dx(), rect.Dy())
+			//x, y := u.GetXY()
+			//op := ebiten.DrawImageOptions{}
+			//op.GeoM.Translate(float64(x), float64(y))
+			//u.Draw(img)
+			//screen.DrawImage(img, &op)
 		}
 	}
+}
+func IsFrameClick() bool {
+	return frameClick
+}
+func SetFrameClick() {
+	frameClick = true
 }
 
 type BaseUI struct {
@@ -77,11 +98,28 @@ func (u *BaseUI) IsDisabled() bool {
 func (u *BaseUI) IsVisible() bool {
 	return u.Visible
 }
+
+// GetXY 获取绝对坐标
 func (u *BaseUI) GetXY() (int, int) {
+	if u.parent != nil {
+		x, y := u.parent.GetXY()
+		return u.X + x, u.Y + y
+	}
 	return u.X, u.Y
+}
+func (u *BaseUI) GetRectXY() (int, int) {
+	x, y := u.Rect.Min.X, u.Rect.Min.Y
+	x1, y1 := u.GetXY()
+	return x + x1, y + y1
 }
 func (u *BaseUI) GetDepth() int {
 	return u.Depth
+}
+func (u *BaseUI) GetRect() *image.Rectangle {
+	return &u.Rect
+}
+func (u *BaseUI) SetRect(v image.Rectangle) {
+	u.Rect = v
 }
 func (u *BaseUI) GetParent() IUIPanel {
 	return u.parent
@@ -105,13 +143,22 @@ func (u *BaseUI) Update() {
 }
 
 func (u *BaseUI) Draw(screen *ebiten.Image) {
-	//img := ebiten.NewImage(u.Rect.Max.X, u.Rect.Max.Y)
 	for _, p := range u.children {
 		if p.IsVisible() {
-			p.Draw(screen)
+			//p.Draw(screen)
+			rect := p.GetRect()
+			if rect.Dx() == 0 && rect.Dy() == 0 {
+				//p.Draw(screen)
+				continue
+			}
+			img := ebiten.NewImage(rect.Dx(), rect.Dy())
+			x, y := p.GetXY()
+			op := ebiten.DrawImageOptions{}
+			op.GeoM.Translate(float64(x+rect.Min.X), float64(y+rect.Min.Y))
+			p.Draw(img)
+			screen.DrawImage(img, &op)
 		}
 	}
-	//screen.DrawImage(img, &ebiten.DrawImageOptions{GeoM: u.GeoM})
 }
 
 func (u *BaseUI) AddChild(c IUIPanel) {

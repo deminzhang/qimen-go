@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/6tail/lunar-go/LunarUtil"
 	"github.com/6tail/lunar-go/calendar"
+	"github.com/deminzhang/qimen-go/gui"
 	"github.com/deminzhang/qimen-go/qimen"
-	"github.com/deminzhang/qimen-go/ui"
 	"github.com/deminzhang/qimen-go/util"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
@@ -40,13 +40,13 @@ type QMShow struct {
 func NewQiMenShow(centerX, centerY float32) *QMShow {
 	var bg = make(map[int]*ebiten.Image, 9)
 	for i := 1; i <= 9; i++ {
-		bg[i] = ui.NewBaGuaImage(qimen.Diagrams9(i), _BaGuaSize)
+		bg[i] = gui.NewBaGuaImage(qimen.Diagrams9(i), _BaGuaSize)
 	}
 	return &QMShow{
 		X: centerX, Y: centerY,
-		TaiJi: ui.NewTaiJiImage(_TaiJiSize),
-		Sun:   ui.NewSunImage(_StarSize),
-		Moon:  ui.NewMoonImage(_StarSize),
+		TaiJi: gui.NewTaiJiImage(_TaiJiSize),
+		Sun:   gui.NewSunImage(_StarSize),
+		Moon:  gui.NewMoonImage(_StarSize),
 		BaGua: bg,
 	}
 }

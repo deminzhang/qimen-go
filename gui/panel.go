@@ -1,4 +1,4 @@
-package ui
+package gui
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
@@ -13,17 +13,20 @@ type Panel struct {
 }
 
 func NewPanel(rect image.Rectangle, c *color.RGBA) *Panel {
+	x, y := rect.Min.X, rect.Min.Y
+	rect = image.Rect(0, 0, rect.Dx(), rect.Dy())
 	return &Panel{
-		BaseUI: BaseUI{Visible: true, X: 0, Y: 0, Rect: rect},
+		BaseUI: BaseUI{Visible: true, X: x, Y: y, Rect: rect},
 		Color:  c,
 	}
 }
+
 func (p *Panel) Draw(dst *ebiten.Image) {
 	if !p.Visible {
 		return
 	}
 	if p.Color != nil {
-		vector.DrawFilledRect(dst, float32(p.X+p.Rect.Min.X), float32(p.Y+p.Rect.Min.Y),
+		vector.DrawFilledRect(dst, float32(p.Rect.Min.X), float32(p.Rect.Min.Y),
 			float32(p.Rect.Dx()), float32(p.Rect.Dy()), *p.Color, false)
 	}
 	p.BaseUI.Draw(dst)

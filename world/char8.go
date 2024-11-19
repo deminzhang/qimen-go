@@ -3,12 +3,13 @@ package world
 import (
 	"github.com/6tail/lunar-go/LunarUtil"
 	"github.com/6tail/lunar-go/calendar"
+	"github.com/deminzhang/qimen-go/gui"
 	"github.com/deminzhang/qimen-go/qimen"
-	"github.com/deminzhang/qimen-go/ui"
 	"github.com/deminzhang/qimen-go/util"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"image"
 	"strings"
 )
 
@@ -34,7 +35,9 @@ var HideGanVal = map[int][]int{
 }
 
 type Char8Pan struct {
-	ui.Panel
+	X, Y int
+	//gui.BaseUI
+	UIPanel      *gui.Panel
 	Flow         *Body4  //流气
 	Player       *Player //玩家
 	BodyShow     bool
@@ -45,12 +48,14 @@ type Char8Pan struct {
 
 func NewChar8Pan(x, y int) *Char8Pan {
 	p := &Char8Pan{
-		Panel:        ui.Panel{BaseUI: ui.BaseUI{Visible: true, X: x, Y: y}},
+		X: x, Y: y,
+		//BaseUI:       gui.BaseUI{Visible: true, X: x, Y: y, Rect: image.Rect(0, 0, screenWidth, screenHeight)},
+		UIPanel:      gui.NewPanel(image.Rect(x, y, screenWidth, screenHeight), nil),
 		BodyShow:     false,
 		OverviewShow: false,
 	}
-	btnBirth := ui.NewTextButton(x+350, y+386, "命造", colorWhite, true)
-	btnBirth.SetOnClick(func(b *ui.Button) {
+	btnBirth := gui.NewTextButton(350, 386, "命造", colorWhite, true)
+	btnBirth.SetOnClick(func(b *gui.Button) {
 		oldBirthTime := ThisGame.char8.Player.Birth
 		var oldBirthSolar *calendar.Solar
 		if oldBirthTime != nil {
@@ -60,18 +65,18 @@ func NewChar8Pan(x, y int) *Char8Pan {
 			ThisGame.char8.Player.Reset(calendar.NewLunarFromSolar(birth), gender)
 		})
 	})
-	cbShowBody := ui.NewCheckBox(x+410, y+-18, "身象")
-	cbShowBody.SetOnCheckChanged(func(c *ui.CheckBox) {
+	cbShowBody := gui.NewCheckBox(410, 0, "身象")
+	cbShowBody.SetOnCheckChanged(func(c *gui.CheckBox) {
 		p.BodyShow = c.Checked()
 	})
-	cbShowOverview := ui.NewCheckBox(x+210, y+-18, "总览")
-	cbShowOverview.SetOnCheckChanged(func(c *ui.CheckBox) {
+	cbShowOverview := gui.NewCheckBox(210, 0, "总览")
+	cbShowOverview.SetOnCheckChanged(func(c *gui.CheckBox) {
 		p.OverviewShow = c.Checked()
 	})
 	//cbShowBody.SetChecked(false)
-	btnMarry := ui.NewTextButton(x+350, y+418, "耦合", colorWhite, true)
-	btnSplit := ui.NewTextButton(x+350, y+518, "解耦", colorWhite, true)
-	btnMarry.SetOnClick(func(b *ui.Button) {
+	btnMarry := gui.NewTextButton(350, 418, "耦合", colorWhite, true)
+	btnSplit := gui.NewTextButton(350, 518, "解耦", colorWhite, true)
+	btnMarry.SetOnClick(func(b *gui.Button) {
 		mate := ThisGame.char8.Player.Mate
 		if mate == nil {
 			mate = &Player{}
@@ -88,13 +93,14 @@ func NewChar8Pan(x, y int) *Char8Pan {
 			btnSplit.Visible = true
 		})
 	})
-	btnSplit.SetOnClick(func(b *ui.Button) {
+	btnSplit.SetOnClick(func(b *gui.Button) {
 		btnSplit.Visible = false
 		ThisGame.char8.Player.Mate = nil
 	})
 	btnSplit.Visible = false
 
-	p.AddChildren(btnBirth, cbShowBody, btnMarry, btnSplit, cbShowOverview)
+	p.UIPanel.AddChildren(btnBirth, cbShowBody, btnMarry, btnSplit, cbShowOverview)
+	gui.ActiveUI(p.UIPanel)
 	return p
 }
 
@@ -119,7 +125,6 @@ func (g *Char8Pan) Update() {
 	if g.Flow == nil || g.Player == nil {
 		g.Init()
 	}
-	g.Panel.Update()
 	g.count++
 	g.count %= 60
 
@@ -254,8 +259,6 @@ func (g *Char8Pan) UpdateHp(p *Player) {
 }
 
 func (g *Char8Pan) Draw(dst *ebiten.Image) {
-	g.Panel.Draw(dst)
-
 	ft12, _ := GetFontFace(12)
 	ft14, _ := GetFontFace(14)
 	ft28, _ := GetFontFace(28)

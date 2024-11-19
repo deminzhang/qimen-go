@@ -1,4 +1,4 @@
-package ui
+package gui
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
@@ -15,11 +15,9 @@ type TextButton struct {
 }
 
 // NewTextButton 按text长度自动调整大小无背景UI
-func NewTextButton(x0, y0 int, text string, c color.Color, drawBorder bool) *TextButton {
+func NewTextButton(x, y int, text string, c color.Color, drawBorder bool) *TextButton {
 	return &TextButton{
-		Button: Button{BaseUI: BaseUI{Visible: true, X: 0, Y: 0,
-			Rect: image.Rect(x0, y0, x0, y0),
-		},
+		Button: Button{BaseUI: BaseUI{Visible: true, X: x, Y: y, Rect: image.Rect(0, 0, 0, 0)},
 			Text:      text,
 			TextColor: c,
 		},
@@ -29,13 +27,14 @@ func NewTextButton(x0, y0 int, text string, c color.Color, drawBorder bool) *Tex
 func (b *TextButton) Update() {
 	bounds, _ := font.BoundString(uiFont, b.Text)
 	w := (bounds.Max.X - bounds.Min.X).Ceil()
-	b.Rect.Max.X = b.Rect.Min.X + w + 6
-	b.Rect.Max.Y = b.Rect.Min.Y + uiFontMHeight + 6
+	b.Rect.Max.X = b.Rect.Min.X + w + 6             // 自动调整大小w
+	b.Rect.Max.Y = b.Rect.Min.Y + uiFontMHeight + 6 // 自动调整大小h
 	b.textX = b.Rect.Min.X + (b.Rect.Dx()-w)/2
 	b.textY = b.Rect.Max.Y - (b.Rect.Dy()-uiFontMHeight)/2
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-		x, y := ebiten.CursorPosition()
-		if b.Rect.Min.X <= x && x < b.Rect.Max.X && b.Rect.Min.Y <= y && y < b.Rect.Max.Y {
+		x, y := b.GetXY()
+		mx, my := ebiten.CursorPosition()
+		if x+b.Rect.Min.X <= mx && mx < x+b.Rect.Max.X && y+b.Rect.Min.Y <= my && my < y+b.Rect.Max.Y {
 			b.mouseDown = true
 		} else {
 			b.mouseDown = false
@@ -43,7 +42,10 @@ func (b *TextButton) Update() {
 	} else {
 		if b.mouseDown {
 			if b.onClick != nil {
-				b.onClick(&b.Button)
+				if !IsFrameClick() {
+					b.onClick(&b.Button)
+					SetFrameClick()
+				}
 			}
 		}
 		b.mouseDown = false

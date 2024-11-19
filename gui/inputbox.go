@@ -1,4 +1,4 @@
-package ui
+package gui
 
 import (
 	"fmt"
@@ -20,7 +20,6 @@ var textSelectColor = color.RGBA{B: 200, A: 128}
 
 type InputBox struct {
 	BaseUI
-	//Rect         image.Rectangle
 	textRune     []rune
 	DefaultText  string //无Text时默认灰文本
 	MaxChars     int    //最大长度
@@ -47,8 +46,10 @@ type InputBox struct {
 }
 
 func NewInputBox(rect image.Rectangle) *InputBox {
+	x, y := rect.Min.X, rect.Min.Y
+	rect = image.Rect(0, 0, rect.Dx(), rect.Dy())
 	return &InputBox{
-		BaseUI:     BaseUI{Visible: true, EnableFocus: true, Rect: rect},
+		BaseUI:     BaseUI{X: x, Y: y, Visible: true, EnableFocus: true, Rect: rect},
 		Editable:   true,
 		Selectable: true,
 		//default resource
@@ -85,13 +86,14 @@ func (i *InputBox) Update() {
 		return
 	}
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		x, y := ebiten.CursorPosition()
-		if i.Rect.Min.X <= x && x < i.Rect.Max.X && i.Rect.Min.Y <= y && y < i.Rect.Max.Y {
+		cx, cy := ebiten.CursorPosition()
+		x, y := i.GetXY()
+		if x+i.Rect.Min.X <= cx && cx < x+i.Rect.Max.X && y+i.Rect.Min.Y <= cy && cy < y+i.Rect.Max.Y {
 			if i.Focused() {
 				pos := len(i.textRune)
 				for ii := 0; ii < pos; ii++ {
 					w := getFontWidth(uiFont, string(i.textRune[:ii]))
-					if x < i.Rect.Min.X+i.textPadding+w {
+					if cx < x+i.Rect.Min.X+i.textPadding+w {
 						pos = ii
 						break
 					}
@@ -111,15 +113,16 @@ func (i *InputBox) Update() {
 		}
 
 		//} else if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-	} else if inpututil.MouseButtonPressDuration(ebiten.MouseButtonLeft) >= 2 {
+	} else if inpututil.MouseButtonPressDuration(ebiten.MouseButtonLeft) >= 2 { //拖动选中
 		//drag cursorPos
-		x, y := ebiten.CursorPosition()
-		if i.Rect.Min.X <= x && x < i.Rect.Max.X && i.Rect.Min.Y <= y && y < i.Rect.Max.Y {
+		cx, cy := ebiten.CursorPosition()
+		x, y := i.GetXY()
+		if x+i.Rect.Min.X <= cx && cx < x+i.Rect.Max.X && y+i.Rect.Min.Y <= cy && cy < y+i.Rect.Max.Y {
 			if i.Focused() {
 				pos := len(i.textRune)
 				for ii := 0; ii < pos; ii++ {
 					w := getFontWidth(uiFont, string(i.textRune[:ii]))
-					if x < i.Rect.Min.X+i.textPadding+w {
+					if cx < x+i.Rect.Min.X+i.textPadding+w {
 						pos = ii
 						break
 					}
