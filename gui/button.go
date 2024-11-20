@@ -24,11 +24,10 @@ type Button struct {
 	ImageRectPressed image.Rectangle
 }
 
-func NewButton(rect image.Rectangle, text string) *Button {
-	x, y := rect.Min.X, rect.Min.Y
-	rect = image.Rect(0, 0, rect.Dx(), rect.Dy())
+func NewButton(x, y, w, h int, text string) *Button {
+	rect := image.Rect(0, 0, w, h)
 	return &Button{
-		BaseUI: BaseUI{Visible: true, X: x, Y: y, Rect: rect},
+		BaseUI: BaseUI{Visible: true, X: x, Y: y, W: w, H: h, Rect: rect},
 		Text:   text,
 		//default resource
 		TextColor:        color.Black,
@@ -38,11 +37,9 @@ func NewButton(rect image.Rectangle, text string) *Button {
 	}
 }
 
-func NewButtonTransparent(rect image.Rectangle, text string) *Button {
-	x, y := rect.Min.X, rect.Min.Y
-	rect = image.Rect(0, 0, rect.Dx(), rect.Dy())
+func NewButtonTransparent(x, y, w, h int, text string) *Button {
 	return &Button{
-		BaseUI:    BaseUI{Visible: true, X: x, Y: y, Rect: rect},
+		BaseUI:    BaseUI{Visible: true, X: x, Y: y, W: w, H: h},
 		Text:      text,
 		TextColor: color.White,
 	}
@@ -51,12 +48,13 @@ func NewButtonTransparent(rect image.Rectangle, text string) *Button {
 func (b *Button) Update() {
 	bounds, _ := font.BoundString(uiFont, b.Text)
 	w := (bounds.Max.X - bounds.Min.X).Ceil()
-	b.textX = b.Rect.Min.X + (b.Rect.Dx()-w)/2
-	b.textY = b.Rect.Max.Y - (b.Rect.Dy()-uiFontMHeight)/2
+	x, y := b.GetWorldXY()
+	b.textX = (b.W - w) / 2
+	b.textY = b.H - (b.H-uiFontMHeight)/2
+	b.Rect = image.Rect(0, 0, b.W, b.H)
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		mx, my := ebiten.CursorPosition()
-		x, y := b.GetXY()
-		if x+b.Rect.Min.X <= mx && mx < x+b.Rect.Max.X && y+b.Rect.Min.Y <= my && my < y+b.Rect.Max.Y {
+		if x <= mx && mx < x+b.W && y <= my && my < y+b.H {
 			b.mouseDown = true
 		} else {
 			b.mouseDown = false
@@ -81,7 +79,7 @@ func (b *Button) Draw(dst *ebiten.Image) {
 		imageRect = b.ImageRectPressed
 	}
 	if b.UIImage == nil {
-		vector.StrokeRect(dst, float32(b.Rect.Min.X), float32(b.Rect.Min.Y), float32(b.Rect.Dx()), float32(b.Rect.Dy()),
+		vector.StrokeRect(dst, float32(b.X), float32(b.Y), float32(b.W), float32(b.H),
 			0.5, color.Gray{Y: 128}, true)
 		text.Draw(dst, b.Text, uiFont, b.textX, b.textY, color.White)
 	} else {

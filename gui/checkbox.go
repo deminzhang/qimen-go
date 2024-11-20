@@ -30,7 +30,7 @@ type CheckBox struct {
 
 func NewCheckBox(x, y int, text string) *CheckBox {
 	return &CheckBox{
-		BaseUI: BaseUI{Visible: true, X: x, Y: y, Rect: image.Rect(0, 0, checkBoxWidth, checkBoxWidth)},
+		BaseUI: BaseUI{Visible: true, X: x, Y: y, W: checkBoxWidth, H: checkBoxWidth},
 		Text:   text,
 
 		UIImage:          GetDefaultUIImage(),
@@ -48,10 +48,10 @@ func (c *CheckBox) width() int {
 }
 
 func (c *CheckBox) Update() {
-	c.Rect.Max.X = c.Rect.Min.X + c.width()
+	c.W = c.width()
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		mx, my := ebiten.CursorPosition()
-		x, y := c.GetRectXY()
+		x, y := c.GetWorldXY()
 		c.mouseDown = x <= mx && mx < x+c.width() && y <= my && my < y+checkBoxWidth
 	} else {
 		if c.mouseDown {

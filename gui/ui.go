@@ -4,6 +4,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"golang.org/x/image/font"
 	"image"
+	"image/color"
 	"sort"
 )
 
@@ -13,11 +14,11 @@ type IUIPanel interface {
 
 	IsDisabled() bool
 	IsVisible() bool
-	//GetWH() (int, int)
 	GetXY() (int, int)
+	GetWH() (int, int)
+	GetWorldXY() (int, int)
 	GetDepth() int
-	GetRect() *image.Rectangle
-	SetRect(v image.Rectangle)
+	GetBDColor() color.Color
 	GetParent() IUIPanel
 	SetParent(p IUIPanel)
 }
@@ -59,17 +60,18 @@ func Update() {
 func Draw(screen *ebiten.Image) {
 	for _, u := range uis {
 		if u.IsVisible() {
-			//rect := u.GetRect()
-			//if rect.Max.X == 0 && rect.Max.Y == 0 {
-			u.Draw(screen)
-			//	continue
-			//}
-			//img := ebiten.NewImage(rect.Dx(), rect.Dy())
-			//x, y := u.GetXY()
-			//op := ebiten.DrawImageOptions{}
-			//op.GeoM.Translate(float64(x), float64(y))
-			//u.Draw(img)
-			//screen.DrawImage(img, &op)
+			w, h := u.GetWH()
+			if w == 0 || h == 0 {
+				continue
+			}
+			img := ebiten.NewImage(w, h)
+			x, y := u.GetXY()
+			op := ebiten.DrawImageOptions{}
+			op.GeoM.Translate(float64(x), float64(y))
+			u.Draw(img)
+			//vector.StrokeRect(img, 1, 1, float32(w-1), float32(h-1), 1,
+			//	color.Gray{Y: 128}, false)
+			screen.DrawImage(img, &op)
 		}
 	}
 }
@@ -81,7 +83,7 @@ func SetFrameClick() {
 }
 
 type BaseUI struct {
-	X, Y        int
+	X, Y, W, H  int
 	Visible     bool //`default:"true"` disable draw
 	Disabled    bool //disable update
 	EnableFocus bool //enable focus
@@ -89,7 +91,9 @@ type BaseUI struct {
 	children    []IUIPanel
 	parent      IUIPanel
 	Rect        image.Rectangle
-	GeoM        ebiten.GeoM
+	BGColor     color.Color
+	BDColor     color.Color
+	//GeoM        *ebiten.GeoM
 }
 
 func (u *BaseUI) IsDisabled() bool {
@@ -99,39 +103,37 @@ func (u *BaseUI) IsVisible() bool {
 	return u.Visible
 }
 
-// GetXY 获取绝对坐标
+// GetWH 获取宽高
+func (u *BaseUI) GetWH() (int, int) {
+	return u.W, u.H
+}
+
+// GetXY 获取相对坐标
 func (u *BaseUI) GetXY() (int, int) {
-	if u.parent != nil {
-		x, y := u.parent.GetXY()
-		return u.X + x, u.Y + y
-	}
 	return u.X, u.Y
 }
-func (u *BaseUI) GetRectXY() (int, int) {
-	x, y := u.Rect.Min.X, u.Rect.Min.Y
-	x1, y1 := u.GetXY()
-	return x + x1, y + y1
+
+// GetWorldXY 获取绝对坐标
+func (u *BaseUI) GetWorldXY() (int, int) {
+	x, y := u.X, u.Y
+	if u.parent != nil {
+		x2, y2 := u.parent.GetWorldXY()
+		x += x2
+		y += y2
+	}
+	return x, y
 }
 func (u *BaseUI) GetDepth() int {
 	return u.Depth
 }
-func (u *BaseUI) GetRect() *image.Rectangle {
-	return &u.Rect
-}
-func (u *BaseUI) SetRect(v image.Rectangle) {
-	u.Rect = v
+func (u *BaseUI) GetBDColor() color.Color {
+	return u.BDColor
 }
 func (u *BaseUI) GetParent() IUIPanel {
 	return u.parent
 }
 func (u *BaseUI) SetParent(p IUIPanel) {
 	u.parent = p
-}
-func (u *BaseUI) GetGeoM() ebiten.GeoM {
-	return u.GeoM
-}
-func (u *BaseUI) SetGeoM(p ebiten.GeoM) {
-	u.GeoM = p
 }
 
 func (u *BaseUI) Update() {
@@ -143,19 +145,27 @@ func (u *BaseUI) Update() {
 }
 
 func (u *BaseUI) Draw(screen *ebiten.Image) {
+	if !u.Visible {
+		return
+	}
+	//if !util.IsNil(u.BGColor) {
+	//	vector.DrawFilledRect(screen, 1, 1, float32(u.W-1), float32(u.H-1), u.BGColor, false)
+	//}
 	for _, p := range u.children {
 		if p.IsVisible() {
-			//p.Draw(screen)
-			rect := p.GetRect()
-			if rect.Dx() == 0 && rect.Dy() == 0 {
-				//p.Draw(screen)
+			w, h := p.GetWH()
+			if w == 0 || h == 0 {
 				continue
 			}
-			img := ebiten.NewImage(rect.Dx(), rect.Dy())
+			img := ebiten.NewImage(w, h)
 			x, y := p.GetXY()
 			op := ebiten.DrawImageOptions{}
-			op.GeoM.Translate(float64(x+rect.Min.X), float64(y+rect.Min.Y))
+			op.GeoM.Translate(float64(x), float64(y))
 			p.Draw(img)
+			//if !util.IsNil(p.GetBDColor()) {
+			//vector.StrokeRect(img, 1, 1, float32(w-1), float32(h-1), 1,
+			//	color.Gray{Y: 128}, false)
+			//}
 			screen.DrawImage(img, &op)
 		}
 	}

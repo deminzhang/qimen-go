@@ -45,11 +45,10 @@ type InputBox struct {
 	onPressEnter func(i *InputBox)
 }
 
-func NewInputBox(rect image.Rectangle) *InputBox {
-	x, y := rect.Min.X, rect.Min.Y
-	rect = image.Rect(0, 0, rect.Dx(), rect.Dy())
+func NewInputBox(x, y, w, h int) *InputBox {
+	rect := image.Rect(0, 0, w, h)
 	return &InputBox{
-		BaseUI:     BaseUI{X: x, Y: y, Visible: true, EnableFocus: true, Rect: rect},
+		BaseUI:     BaseUI{X: x, Y: y, W: w, H: h, Visible: true, EnableFocus: true, Rect: rect},
 		Editable:   true,
 		Selectable: true,
 		//default resource
@@ -87,7 +86,7 @@ func (i *InputBox) Update() {
 	}
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		cx, cy := ebiten.CursorPosition()
-		x, y := i.GetXY()
+		x, y := i.GetWorldXY()
 		if x+i.Rect.Min.X <= cx && cx < x+i.Rect.Max.X && y+i.Rect.Min.Y <= cy && cy < y+i.Rect.Max.Y {
 			if i.Focused() {
 				pos := len(i.textRune)
@@ -116,7 +115,7 @@ func (i *InputBox) Update() {
 	} else if inpututil.MouseButtonPressDuration(ebiten.MouseButtonLeft) >= 2 { //拖动选中
 		//drag cursorPos
 		cx, cy := ebiten.CursorPosition()
-		x, y := i.GetXY()
+		x, y := i.GetWorldXY()
 		if x+i.Rect.Min.X <= cx && cx < x+i.Rect.Max.X && y+i.Rect.Min.Y <= cy && cy < y+i.Rect.Max.Y {
 			if i.Focused() {
 				pos := len(i.textRune)

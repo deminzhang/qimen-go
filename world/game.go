@@ -44,7 +44,7 @@ func (g *game) Draw(screen *ebiten.Image) {
 	g.astrolabe.Draw(screen)
 	//g.stars.Draw(screen)
 	g.qiMen.Draw(screen)
-	g.char8.Draw(screen)
+	//g.char8.Draw(screen)
 	gui.Draw(screen)
 }
 

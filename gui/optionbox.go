@@ -32,7 +32,7 @@ type OptionBox struct {
 
 func NewOptionBox(x, y int, text string) *OptionBox {
 	return &OptionBox{
-		BaseUI:           BaseUI{Visible: true, X: x, Y: y, Rect: image.Rect(0, 0, optionBoxWidth, optionBoxWidth)},
+		BaseUI:           BaseUI{Visible: true, X: x, Y: y, W: optionBoxWidth, H: optionBoxWidth},
 		Text:             text,
 		boxWidth:         optionBoxWidth,
 		boxPaddingLeft:   optionBoxPaddingLeft,
@@ -64,10 +64,10 @@ func (o *OptionBox) width() int {
 }
 
 func (o *OptionBox) Update() {
-	o.Rect.Max.X = o.Rect.Min.X + o.width()
+	o.W = o.width()
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		mx, my := ebiten.CursorPosition()
-		x, y := o.GetRectXY()
+		x, y := o.GetWorldXY()
 		o.mouseDown = x <= mx && mx < x+o.width() && y <= my && my < y+optionBoxWidth
 	} else {
 		if o.mouseDown {

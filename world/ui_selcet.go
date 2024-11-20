@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/6tail/lunar-go/calendar"
 	"github.com/deminzhang/qimen-go/gui"
-	"image"
 	"strconv"
 )
 
@@ -24,29 +23,32 @@ func UIShowSelectBirth(date *calendar.Solar, gender int, onOK func(*calendar.Sol
 }
 
 const (
-	UISelectWidth  = 350
+	UISelectWidth  = 352
 	UISelectHeight = 100
 )
 
 func NewUISelect(solar *calendar.Solar, gender int, onOK func(*calendar.Solar, int)) *UISelect {
-	p := &UISelect{BaseUI: gui.BaseUI{Visible: true, X: 0, Y: 0, Rect: image.Rect(0, 0, UISelectWidth, UISelectHeight)}}
-	px0, py0 := screenWidth/2-176, 210
+	p := &UISelect{BaseUI: gui.BaseUI{Visible: true,
+		X: screenWidth/2 - UISelectWidth/2, Y: screenHeight/2 - UISelectHeight/2,
+		W: UISelectWidth, H: UISelectHeight,
+	}}
+	px0, py0 := 0, 0
 	h := 32
-	p.panelBG = gui.NewPanel(image.Rect(screenWidth/2-176, 210, screenWidth/2+176, 310), &colorGray)
-	p.btnX = gui.NewButton(image.Rect(px0+72*4+32, py0, px0+72*4+64, py0+h), "X")
+	p.panelBG = gui.NewPanel(0, 0, UISelectWidth, UISelectHeight, &colorGray)
+	p.btnX = gui.NewButton(px0+72*4+32, py0, 32, h, "X")
 	py0 += 32
 	px0 += 8
-	p.inputSYear = gui.NewInputBox(image.Rect(px0, py0, px0+64, py0+h))
-	p.inputSMonth = gui.NewInputBox(image.Rect(px0+70, py0, px0+70+48, py0+h))
-	p.inputSDay = gui.NewInputBox(image.Rect(px0+70+52, py0, px0+70+52+48, py0+h))
-	p.inputSHour = gui.NewInputBox(image.Rect(px0+70+52*2, py0, px0+70+52*2+48, py0+h))
-	p.inputSMin = gui.NewInputBox(image.Rect(px0+70+52*3, py0, px0+70+52*3+48, py0+h))
+	p.inputSYear = gui.NewInputBox(px0, py0, 64, h)
+	p.inputSMonth = gui.NewInputBox(px0+70, py0, 48, h)
+	p.inputSDay = gui.NewInputBox(px0+70+52, py0, 48, h)
+	p.inputSHour = gui.NewInputBox(px0+70+52*2, py0, 48, h)
+	p.inputSMin = gui.NewInputBox(px0+70+52*3, py0, 48, h)
 	py0 += 32
 	p.opMale = gui.NewOptionBox(px0+70+52*2, py0+8, "男")
 	p.opFemale = gui.NewOptionBox(px0+70+52*3, py0+8, "女")
-	p.btnOK = gui.NewButton(image.Rect(px0+70*4, py0, px0+70*4+64, py0+h), "确定")
+	p.btnOK = gui.NewButton(px0+70*4, py0, 64, h, "确定")
 
-	p.AddChild(p.panelBG)
+	p.AddChildren(p.panelBG)
 	p.inputSYear.MaxChars = 5
 	p.inputSMonth.MaxChars = 2
 	p.inputSDay.MaxChars = 2

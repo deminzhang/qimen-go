@@ -21,10 +21,10 @@ func UIShowMsgBox(text, btnText1, btnText2 string, btnClick1, btnClick2 func(b *
 func NewUIMsgBox(text, btnText1, btnText2 string, btnClick1, btnClick2 func(b *gui.Button)) *UIMsgBox {
 	u := &UIMsgBox{BaseUI: gui.BaseUI{Visible: true}}
 	halfW := screenWidth / 2
-	u.panelBG = gui.NewPanel(image.Rect(halfW-108, 230, halfW+108, 340), &colorGray)
+	u.panelBG = gui.NewPanel(halfW-108, 230, halfW+108, 340, &colorGray)
 	u.textMain = gui.NewTextBox(image.Rect(halfW-96, 240, halfW+96, 300))
-	u.btnConfirm = gui.NewButton(image.Rect(halfW-64, 320, halfW-16, 336), "confirm")
-	u.btnCancel = gui.NewButton(image.Rect(halfW+16, 320, halfW+64, 336), "cancel")
+	u.btnConfirm = gui.NewButton(halfW-64, 320, halfW-16, 336, "confirm")
+	u.btnCancel = gui.NewButton(halfW+16, 320, halfW+64, 336, "cancel")
 	u.AddChildren(u.panelBG, u.textMain, u.btnConfirm, u.btnCancel)
 
 	u.textMain.Text = text
