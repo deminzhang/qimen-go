@@ -8,8 +8,12 @@ import (
 	"time"
 )
 
+var (
+	ScreenWidth  = screenWidth
+	ScreenHeight = screenHeight
+)
+
 type game struct {
-	world      *ebiten.Image
 	count      int
 	uiQM       *UIQiMen
 	stars      *StarEffect
@@ -49,9 +53,18 @@ func (g *game) Draw(screen *ebiten.Image) {
 }
 
 func (g *game) Layout(w, h int) (int, int) {
+	ScreenWidth = w
+	ScreenHeight = h
 	if g.qiMen != nil {
-		//g.qiMen.X = float32(w / 2)
 		g.qiMen.Y = float32(h / 2)
+	}
+	if g.uiQM != nil {
+		g.uiQM.W = w - g.uiQM.X
+		g.uiQM.H = h - g.uiQM.Y
+	}
+	if g.char8 != nil {
+		g.char8.W = w - g.char8.X
+		g.char8.H = h - g.char8.Y
 	}
 	return w, h
 }
@@ -68,5 +81,6 @@ func NewGame() *game {
 		char8:     NewChar8Pan(830, 174),
 		qmGame:    pan,
 	}
+	gui.SetBorderDebug(true)
 	return g
 }

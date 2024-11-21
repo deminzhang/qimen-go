@@ -45,11 +45,11 @@ type Char8Pan struct {
 
 func NewChar8Pan(x, y int) *Char8Pan {
 	p := &Char8Pan{
-		BaseUI:       gui.BaseUI{X: x, Y: y, Visible: true, W: screenWidth, H: screenHeight},
+		BaseUI:       gui.BaseUI{X: x, Y: y, Visible: true, W: ScreenWidth, H: ScreenHeight},
 		BodyShow:     false,
 		OverviewShow: false,
 	}
-	btnBirth := gui.NewTextButton(350, 386, "命造", colorYellow, colorGray)
+	btnBirth := gui.NewTextButton(350, 386, "命造", &colorYellow, &colorGray)
 	btnBirth.SetOnClick(func(b *gui.Button) {
 		oldBirthTime := ThisGame.char8.Player.Birth
 		var oldBirthSolar *calendar.Solar
@@ -69,8 +69,8 @@ func NewChar8Pan(x, y int) *Char8Pan {
 		p.OverviewShow = c.Checked()
 	})
 	//cbShowBody.SetChecked(false)
-	btnMarry := gui.NewTextButton(350, 418, "耦合", colorPink, colorGray)
-	btnSplit := gui.NewTextButton(350, 518, "解耦", colorGreen, colorGray)
+	btnMarry := gui.NewTextButton(350, 418, "耦合", &colorPink, &colorGray)
+	btnSplit := gui.NewTextButton(350, 518, "解耦", &colorGreen, &colorGray)
 	btnMarry.SetOnClick(func(b *gui.Button) {
 		mate := ThisGame.char8.Player.Mate
 		if mate == nil {

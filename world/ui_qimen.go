@@ -62,7 +62,7 @@ func UIHideQiMen() {
 
 func NewUIQiMen() *UIQiMen {
 	p := &UIQiMen{
-		BaseUI: gui.BaseUI{Visible: true, W: screenWidth, H: screenHeight},
+		BaseUI: gui.BaseUI{Visible: true, W: ScreenWidth, H: ScreenHeight},
 		qmParams: qimen.QMParams{
 			Type:        qimen.QMTypeRotating,
 			HostingType: qimen.QMHostingType2,
@@ -84,16 +84,16 @@ func NewUIQiMen() *UIQiMen {
 	p.opTypeRoll = gui.NewOptionBox(px0, py0, qimen.QMType[0])
 	p.opTypeFly = gui.NewOptionBox(px0+72*1, py0, qimen.QMType[1])
 	p.opTypeAmaze = gui.NewOptionBox(px0+72*2, py0, qimen.QMType[2])
-	p.btnCalc = gui.NewTextButton(px0+72*4, py0, "排局", colorWhite, colorGray)
-	p.btnNow = gui.NewTextButton(px0+72*4+36, py0, "此时", colorWhite, colorGray)
+	p.btnCalc = gui.NewTextButton(px0+72*4, py0, "排局", &colorWhite, &colorGray)
+	p.btnNow = gui.NewTextButton(px0+72*4+50, py0, "此时", &colorWhite, &colorGray)
 
 	py0 += 18
 	p.cbHostingType = gui.NewCheckBox(px0, py0, qimen.QMHostingType[qimen.QMHostingType28])
 	p.cbFlyType = gui.NewCheckBox(px0+72*1, py0, qimen.QMFlyType[qimen.QMFlyTypeAllOrder])
-	p.btnPreJu = gui.NewTextButton(px0+72*4, py0, "上一局", colorWhite, colorGray)
+	p.btnPreJu = gui.NewTextButton(px0+72*4, py0, "上一局", &colorWhite, &colorGray)
 
 	py0 += 18
-	p.btnNextJu = gui.NewTextButton(px0+72*4, py0, "下一局", colorWhite, colorGray)
+	p.btnNextJu = gui.NewTextButton(px0+72*4, py0, "下一局", &colorWhite, &colorGray)
 
 	p.opStartSplit = gui.NewOptionBox(px0, py0, qimen.QMJuType[qimen.QMJuTypeSplit])
 	p.opStartMaoShan = gui.NewOptionBox(px0+72, py0, qimen.QMJuType[qimen.QMJuTypeMaoShan])

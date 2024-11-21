@@ -25,9 +25,8 @@ type Button struct {
 }
 
 func NewButton(x, y, w, h int, text string) *Button {
-	rect := image.Rect(0, 0, w, h)
 	return &Button{
-		BaseUI: BaseUI{Visible: true, X: x, Y: y, W: w, H: h, Rect: rect},
+		BaseUI: BaseUI{Visible: true, X: x, Y: y, W: w, H: h},
 		Text:   text,
 		//default resource
 		TextColor:        color.Black,
@@ -48,12 +47,11 @@ func NewButtonTransparent(x, y, w, h int, text string) *Button {
 func (b *Button) Update() {
 	bounds, _ := font.BoundString(uiFont, b.Text)
 	w := (bounds.Max.X - bounds.Min.X).Ceil()
-	x, y := b.GetWorldXY()
 	b.textX = (b.W - w) / 2
 	b.textY = b.H - (b.H-uiFontMHeight)/2
-	b.Rect = image.Rect(0, 0, b.W, b.H)
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		mx, my := ebiten.CursorPosition()
+		x, y := b.GetWorldXY()
 		if x <= mx && mx < x+b.W && y <= my && my < y+b.H {
 			b.mouseDown = true
 		} else {
@@ -83,7 +81,7 @@ func (b *Button) Draw(dst *ebiten.Image) {
 			0.5, color.Gray{Y: 128}, true)
 		text.Draw(dst, b.Text, uiFont, b.textX, b.textY, color.White)
 	} else {
-		drawNinePatches(dst, b.UIImage, b.Rect, imageRect)
+		drawNinePatches(dst, b.UIImage, image.Rect(0, 0, b.W, b.H), imageRect)
 		text.Draw(dst, b.Text, uiFont, b.textX, b.textY, color.Black)
 	}
 }

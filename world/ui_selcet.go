@@ -7,6 +7,11 @@ import (
 	"strconv"
 )
 
+const (
+	selectUIWidth  = 352
+	selectUIHeight = 100
+)
+
 type UISelect struct {
 	gui.BaseUI
 	panelBG                                                   *gui.Panel
@@ -22,19 +27,14 @@ func UIShowSelectBirth(date *calendar.Solar, gender int, onOK func(*calendar.Sol
 	return uiSelect
 }
 
-const (
-	UISelectWidth  = 352
-	UISelectHeight = 100
-)
-
 func NewUISelect(solar *calendar.Solar, gender int, onOK func(*calendar.Solar, int)) *UISelect {
 	p := &UISelect{BaseUI: gui.BaseUI{Visible: true,
-		X: screenWidth/2 - UISelectWidth/2, Y: screenHeight/2 - UISelectHeight/2,
-		W: UISelectWidth, H: UISelectHeight,
+		X: ScreenWidth/2 - selectUIWidth/2, Y: ScreenHeight/2 - selectUIHeight/2,
+		W: selectUIWidth, H: selectUIHeight,
 	}}
 	px0, py0 := 0, 0
 	h := 32
-	p.panelBG = gui.NewPanel(0, 0, UISelectWidth, UISelectHeight, &colorGray)
+	p.panelBG = gui.NewPanel(0, 0, selectUIWidth, selectUIHeight, &colorGray)
 	p.btnX = gui.NewButton(px0+72*4+32, py0, 32, h, "X")
 	py0 += 32
 	px0 += 8

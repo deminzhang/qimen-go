@@ -2,6 +2,7 @@ package gui
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"golang.org/x/image/font"
 	"image"
 	"image/color"
@@ -18,7 +19,7 @@ type IUIPanel interface {
 	GetWH() (int, int)
 	GetWorldXY() (int, int)
 	GetDepth() int
-	GetBDColor() color.Color
+	GetBDColor() *color.RGBA
 	GetParent() IUIPanel
 	SetParent(p IUIPanel)
 }
@@ -26,6 +27,7 @@ type IUIPanel interface {
 // var uis = make(map[IUIPanel]struct{})
 var uis []IUIPanel
 var frameClick bool
+var uiBorderDebug bool
 
 func ActiveUI(ui IUIPanel) {
 	uis = append(uis, ui)
@@ -69,8 +71,9 @@ func Draw(screen *ebiten.Image) {
 			op := ebiten.DrawImageOptions{}
 			op.GeoM.Translate(float64(x), float64(y))
 			u.Draw(img)
-			//vector.StrokeRect(img, 1, 1, float32(w-1), float32(h-1), 1,
-			//	color.Gray{Y: 128}, false)
+			if uiBorderDebug {
+				vector.StrokeRect(img, 1, 1, float32(w-1), float32(h-1), 1, color.Gray{Y: 128}, true)
+			}
 			screen.DrawImage(img, &op)
 		}
 	}
@@ -81,6 +84,9 @@ func IsFrameClick() bool {
 func SetFrameClick() {
 	frameClick = true
 }
+func SetBorderDebug(v bool) {
+	uiBorderDebug = v
+}
 
 type BaseUI struct {
 	X, Y, W, H  int
@@ -90,10 +96,8 @@ type BaseUI struct {
 	Depth       int  //update draw depth
 	children    []IUIPanel
 	parent      IUIPanel
-	Rect        image.Rectangle
-	BGColor     color.Color
-	BDColor     color.Color
-	//GeoM        *ebiten.GeoM
+	BGColor     *color.RGBA
+	BDColor     *color.RGBA
 }
 
 func (u *BaseUI) IsDisabled() bool {
@@ -126,7 +130,7 @@ func (u *BaseUI) GetWorldXY() (int, int) {
 func (u *BaseUI) GetDepth() int {
 	return u.Depth
 }
-func (u *BaseUI) GetBDColor() color.Color {
+func (u *BaseUI) GetBDColor() *color.RGBA {
 	return u.BDColor
 }
 func (u *BaseUI) GetParent() IUIPanel {
@@ -148,9 +152,9 @@ func (u *BaseUI) Draw(screen *ebiten.Image) {
 	if !u.Visible {
 		return
 	}
-	//if !util.IsNil(u.BGColor) {
-	//	vector.DrawFilledRect(screen, 1, 1, float32(u.W-1), float32(u.H-1), u.BGColor, false)
-	//}
+	if u.BGColor != nil {
+		vector.DrawFilledRect(screen, 1, 1, float32(u.W-1), float32(u.H-1), u.BGColor, false)
+	}
 	for _, p := range u.children {
 		if p.IsVisible() {
 			w, h := p.GetWH()
@@ -162,10 +166,10 @@ func (u *BaseUI) Draw(screen *ebiten.Image) {
 			op := ebiten.DrawImageOptions{}
 			op.GeoM.Translate(float64(x), float64(y))
 			p.Draw(img)
-			//if !util.IsNil(p.GetBDColor()) {
-			//vector.StrokeRect(img, 1, 1, float32(w-1), float32(h-1), 1,
-			//	color.Gray{Y: 128}, false)
-			//}
+			if p.GetBDColor() != nil {
+				vector.StrokeRect(img, 1, 1, float32(w-1), float32(h-1), 1,
+					p.GetBDColor(), false)
+			}
 			screen.DrawImage(img, &op)
 		}
 	}

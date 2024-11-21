@@ -2,7 +2,11 @@ package world
 
 import (
 	"github.com/deminzhang/qimen-go/gui"
-	"image"
+)
+
+const (
+	msgBoxUIWidth  = 216
+	msgBoxUIHeight = 110
 )
 
 type UIMsgBox struct {
@@ -19,12 +23,14 @@ func UIShowMsgBox(text, btnText1, btnText2 string, btnClick1, btnClick2 func(b *
 }
 
 func NewUIMsgBox(text, btnText1, btnText2 string, btnClick1, btnClick2 func(b *gui.Button)) *UIMsgBox {
-	u := &UIMsgBox{BaseUI: gui.BaseUI{Visible: true}}
-	halfW := screenWidth / 2
-	u.panelBG = gui.NewPanel(halfW-108, 230, halfW+108, 340, &colorGray)
-	u.textMain = gui.NewTextBox(image.Rect(halfW-96, 240, halfW+96, 300))
-	u.btnConfirm = gui.NewButton(halfW-64, 320, halfW-16, 336, "confirm")
-	u.btnCancel = gui.NewButton(halfW+16, 320, halfW+64, 336, "cancel")
+	u := &UIMsgBox{BaseUI: gui.BaseUI{Visible: true,
+		X: ScreenWidth/2 - msgBoxUIWidth/2, Y: ScreenHeight/2 - msgBoxUIHeight,
+		W: msgBoxUIWidth, H: msgBoxUIHeight,
+	}}
+	u.panelBG = gui.NewPanel(0, 0, msgBoxUIWidth, msgBoxUIHeight, &colorGray)
+	u.textMain = gui.NewTextBox(8, 8, 200, 60)
+	u.btnConfirm = gui.NewButton(40, 70, 48, 16, "confirm")
+	u.btnCancel = gui.NewButton(130, 70, 48, 16, "cancel")
 	u.AddChildren(u.panelBG, u.textMain, u.btnConfirm, u.btnCancel)
 
 	u.textMain.Text = text

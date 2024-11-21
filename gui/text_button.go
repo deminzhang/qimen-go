@@ -12,7 +12,7 @@ type TextButton struct {
 }
 
 // NewTextButton 按text长度自动调整大小无背景UI
-func NewTextButton(x, y int, text string, textColor, bgColor color.Color) *TextButton {
+func NewTextButton(x, y int, text string, textColor, bgColor *color.RGBA) *TextButton {
 	return &TextButton{
 		Button: Button{BaseUI: BaseUI{Visible: true, X: x, Y: y, W: 1, H: 1, BDColor: bgColor},
 			Text:      text,
@@ -25,11 +25,11 @@ func (b *TextButton) Update() {
 	w := (bounds.Max.X - bounds.Min.X).Ceil()
 	b.W = w + 6             // 自动调整大小w
 	b.H = uiFontMHeight + 6 // 自动调整大小h
-	x, y := b.GetWorldXY()
 	b.textX = (b.W - w) / 2
 	b.textY = b.H - (b.H-uiFontMHeight)/2
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		mx, my := ebiten.CursorPosition()
+		x, y := b.GetWorldXY()
 		if x <= mx && mx < x+b.W && y <= my && my < y+b.H {
 			b.mouseDown = true
 		} else {

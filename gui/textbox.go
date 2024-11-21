@@ -36,11 +36,9 @@ type TextBox struct {
 	ImageRect image.Rectangle
 }
 
-func NewTextBox(rect image.Rectangle) *TextBox {
-	x, y := rect.Min.X, rect.Min.Y
-	rect = image.Rect(0, 0, rect.Dx(), rect.Dy())
+func NewTextBox(x, y, w, h int) *TextBox {
 	return &TextBox{
-		BaseUI:         BaseUI{Visible: true, X: x, Y: y, Rect: rect},
+		BaseUI:         BaseUI{Visible: true, X: x, Y: y, W: w, H: h},
 		TextColor:      defaultTextColor,
 		lineHeight:     defaultLineHeight,
 		textBoxPadding: defaultTextBoxPadding,
@@ -62,13 +60,13 @@ func (t *TextBox) AppendLine(line string) {
 func (t *TextBox) Update() {
 	x, y := t.GetWorldXY()
 	w, h := t.contentSize()
-	if h > t.Rect.Dy() && !t.DisableVScroll {
+	if h > t.H && !t.DisableVScroll {
 		if t.vScrollBar == nil {
 			t.vScrollBar = NewVScrollBar()
 		}
-		t.vScrollBar.X = x + t.Rect.Min.X + t.Rect.Dx() - t.vScrollBar.ScrollBarWidth
-		t.vScrollBar.Y = y + t.Rect.Min.Y
-		t.vScrollBar.Height = t.Rect.Dy()
+		t.vScrollBar.X = x + t.W - t.vScrollBar.ScrollBarWidth
+		t.vScrollBar.Y = y
+		t.vScrollBar.Height = t.H
 		if t.hScrollBar != nil {
 			t.vScrollBar.Height -= t.hScrollBar.ScrollBarHeight
 		}
@@ -80,13 +78,13 @@ func (t *TextBox) Update() {
 		t.vScrollBar = nil
 		t.offsetY = 0
 	}
-	if w > t.Rect.Dx() && !t.DisableHScroll {
+	if w > t.W && !t.DisableHScroll {
 		if t.hScrollBar == nil {
 			t.hScrollBar = NewHScrollBar()
 		}
-		t.hScrollBar.X = x + t.Rect.Min.X
-		t.hScrollBar.Y = y + t.Rect.Min.Y + t.Rect.Dy() - t.hScrollBar.ScrollBarHeight
-		t.hScrollBar.Width = t.Rect.Dx()
+		t.hScrollBar.X = x
+		t.hScrollBar.Y = y + t.H - t.hScrollBar.ScrollBarHeight
+		t.hScrollBar.Width = t.W
 		if t.vScrollBar != nil {
 			t.hScrollBar.Width -= t.vScrollBar.ScrollBarWidth
 		}
@@ -103,7 +101,7 @@ func (t *TextBox) Update() {
 func (t *TextBox) contentSize() (int, int) {
 	lines := strings.Split(t.Text, "\n")
 	h := len(lines) * t.lineHeight
-	w := t.Rect.Dx()
+	w := t.W
 	for _, line := range lines {
 		bounds, _ := font.BoundString(uiFont, line)
 		w = max(w, (bounds.Max.X-bounds.Min.X).Ceil()+2*t.textBoxPadding)
@@ -120,7 +118,7 @@ func (t *TextBox) viewSize() (int, int) {
 	if t.hScrollBar != nil {
 		hsb = t.hScrollBar.ScrollBarHeight
 	}
-	return t.Rect.Dx() - vsb - t.textBoxPadding, t.Rect.Dy() - hsb
+	return t.W - vsb - t.textBoxPadding, t.H - hsb
 }
 
 func (t *TextBox) contentOffset() (int, int) {
@@ -132,7 +130,7 @@ func (t *TextBox) Draw(dst *ebiten.Image) {
 		return
 	}
 	if t.UIImage != nil {
-		drawNinePatches(dst, t.UIImage, t.Rect, t.ImageRect)
+		drawNinePatches(dst, t.UIImage, image.Rect(0, 0, t.W, t.H), t.ImageRect)
 	}
 
 	if t.contentBuf != nil {
@@ -161,7 +159,7 @@ func (t *TextBox) Draw(dst *ebiten.Image) {
 		text.Draw(t.contentBuf, line, uiFont, x, y, t.TextColor)
 	}
 	op := ebiten.DrawImageOptions{}
-	op.GeoM.Translate(float64(t.Rect.Min.X), float64(t.Rect.Min.Y))
+	//op.GeoM.Translate(float64(t.Rect.Min.X), float64(t.Rect.Min.Y))
 	dst.DrawImage(t.contentBuf, &op)
 
 	if t.vScrollBar != nil {
