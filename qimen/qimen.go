@@ -411,6 +411,7 @@ func (p *QMGame) calcGong(pp *QMPan) {
 		}
 		var starRollIdx = _QM2RollIdx[dutyStarPos] //转起宫
 		var startIdx = _QM2RollIdx[dutyRoll]       //转起
+		g9[5].Star = QMStar9(5)
 		for i := starRollIdx; i < starRollIdx+8; i++ {
 			gIdx := _QMRollIdx[Idx8[i]]
 			g9[gIdx].Star = QMStar8(startIdx)

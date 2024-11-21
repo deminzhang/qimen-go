@@ -22,6 +22,8 @@ type IUIPanel interface {
 	GetBDColor() *color.RGBA
 	GetParent() IUIPanel
 	SetParent(p IUIPanel)
+	GetImage() *ebiten.Image
+	GetDrawOp() *ebiten.DrawImageOptions
 }
 
 // var uis = make(map[IUIPanel]struct{})
@@ -60,6 +62,7 @@ func Update() {
 }
 
 func Draw(screen *ebiten.Image) {
+	op := ebiten.DrawImageOptions{}
 	for _, u := range uis {
 		if u.IsVisible() {
 			w, h := u.GetWH()
@@ -68,7 +71,7 @@ func Draw(screen *ebiten.Image) {
 			}
 			img := ebiten.NewImage(w, h)
 			x, y := u.GetXY()
-			op := ebiten.DrawImageOptions{}
+			op.GeoM.Reset()
 			op.GeoM.Translate(float64(x), float64(y))
 			u.Draw(img)
 			if uiBorderDebug {
@@ -99,6 +102,8 @@ type BaseUI struct {
 	parent      IUIPanel
 	BGColor     *color.RGBA
 	BDColor     *color.RGBA
+	Image       *ebiten.Image
+	DrawOp      ebiten.DrawImageOptions
 }
 
 func (u *BaseUI) IsDisabled() bool {
@@ -158,6 +163,13 @@ func (u *BaseUI) AutoResize() {
 	u.H = ch
 }
 
+func (u *BaseUI) GetImage() *ebiten.Image {
+	return u.Image
+}
+func (u *BaseUI) GetDrawOp() *ebiten.DrawImageOptions {
+	return &u.DrawOp
+}
+
 func (u *BaseUI) Update() {
 	if u.AutoSize {
 		u.AutoResize()
@@ -176,6 +188,7 @@ func (u *BaseUI) Draw(screen *ebiten.Image) {
 	if u.BGColor != nil {
 		vector.DrawFilledRect(screen, 1, 1, float32(u.W-1), float32(u.H-1), u.BGColor, false)
 	}
+	op := ebiten.DrawImageOptions{}
 	for _, p := range u.children {
 		if p.IsVisible() {
 			w, h := p.GetWH()
@@ -184,7 +197,7 @@ func (u *BaseUI) Draw(screen *ebiten.Image) {
 			}
 			img := ebiten.NewImage(w, h)
 			x, y := p.GetXY()
-			op := ebiten.DrawImageOptions{}
+			op.GeoM.Reset()
 			op.GeoM.Translate(float64(x), float64(y))
 			p.Draw(img)
 			if p.GetBDColor() != nil {

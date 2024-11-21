@@ -3,7 +3,7 @@ package world
 import (
 	"fmt"
 	"github.com/6tail/lunar-go/calendar"
-	"github.com/deminzhang/qimen-go/gui"
+	"github.com/deminzhang/qimen-go/graphic"
 	"github.com/deminzhang/qimen-go/qimen"
 	"github.com/deminzhang/qimen-go/util"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -165,8 +165,8 @@ func NewAstrolabe(x, y float32) *Astrolabe {
 		timezone:  tz,
 		tzOffset:  offset,
 		Ephemeris: make(map[string]*ObserveData),
-		Sun:       gui.NewSunImage(16),
-		Moon:      gui.NewMoonImage(16),
+		Sun:       graphic.NewSunImage(16),
+		Moon:      graphic.NewMoonImage(16),
 	}
 	for i := 1; i <= 12; i++ { //固定宫位
 		degrees := float64(i)*30 - 90

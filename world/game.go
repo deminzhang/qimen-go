@@ -1,11 +1,13 @@
 package world
 
 import (
+	"fmt"
 	"github.com/6tail/lunar-go/calendar"
 	"github.com/deminzhang/qimen-go/gui"
 	"github.com/deminzhang/qimen-go/qimen"
 	"github.com/deminzhang/qimen-go/util"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"time"
 )
 
@@ -29,8 +31,8 @@ func (g *game) Update() error {
 	g.count++
 	g.count %= 60
 	g.qiMen.Update()
-	g.char8.Update()
-	g.astrolabe.Update()
+	//g.char8.Update()
+	//g.astrolabe.Update()
 	g.stars.SetPos(g.astrolabe.GetSolarPos())
 	g.stars.Update()
 	//if g.autoMinute && !g.astrolabe.DataQuerying() {
@@ -46,11 +48,13 @@ func (g *game) Update() error {
 }
 
 func (g *game) Draw(screen *ebiten.Image) {
-	g.astrolabe.Draw(screen)
+	//g.astrolabe.Draw(screen)
 	//g.stars.Draw(screen)
 	g.qiMen.Draw(screen)
 	//g.char8.Draw(screen)
 	gui.Draw(screen)
+	msg := fmt.Sprintf(`FPS: %0.2f, TPS: %0.2f`, ebiten.ActualFPS(), ebiten.ActualTPS())
+	ebitenutil.DebugPrint(screen, msg)
 }
 
 func (g *game) Layout(w, h int) (int, int) {
@@ -73,10 +77,10 @@ func NewGame() *game {
 	g := &game{
 		uiQM:      u,
 		stars:     NewStarEffect(screenWidth/2, 217),
-		qiMen:     NewQiMenShow(400, 450),
+		qiMen:     NewQiMenShow(500, 500),
 		astrolabe: NewAstrolabe(1650, 450),
-		char8:     NewChar8Pan(830, 174),
-		qmGame:    pan,
+		//char8:     NewChar8Pan(830, 174),
+		qmGame: pan,
 	}
 	args := util.Args2Map()
 	if _, ok := args["debug"]; ok {

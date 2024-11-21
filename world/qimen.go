@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/6tail/lunar-go/LunarUtil"
 	"github.com/6tail/lunar-go/calendar"
-	"github.com/deminzhang/qimen-go/gui"
+	"github.com/deminzhang/qimen-go/graphic"
 	"github.com/deminzhang/qimen-go/qimen"
 	"github.com/deminzhang/qimen-go/util"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -35,33 +35,44 @@ type QMShow struct {
 	Sun   *ebiten.Image
 	Moon  *ebiten.Image
 	BaGua map[int]*ebiten.Image
+	CampM *ebiten.Image
+	Camp  *ebiten.Image
+	Army  *ebiten.Image
+	ArmyA *ebiten.Image
 }
 
 func NewQiMenShow(centerX, centerY float32) *QMShow {
-	var bg = make(map[int]*ebiten.Image, 9)
+	bg := make(map[int]*ebiten.Image, 9)
 	for i := 1; i <= 9; i++ {
-		bg[i] = gui.NewBaGuaImage(qimen.Diagrams9(i), _BaGuaSize)
+		bg[i] = graphic.NewBaGuaImage(qimen.Diagrams9(i), _BaGuaSize)
 	}
 	return &QMShow{
 		X: centerX, Y: centerY,
-		TaiJi: gui.NewTaiJiImage(_TaiJiSize),
-		Sun:   gui.NewSunImage(_StarSize),
-		Moon:  gui.NewMoonImage(_StarSize),
+		TaiJi: graphic.NewTaiJiImage(_TaiJiSize),
+		Sun:   graphic.NewSunImage(_StarSize),
+		Moon:  graphic.NewMoonImage(_StarSize),
 		BaGua: bg,
+		CampM: graphic.NewCampImage(64),
+		Camp:  graphic.NewCampImage(32),
+		Army:  graphic.NewArmyImage("庚", 32, 0),
+		ArmyA: graphic.NewArmyImage("兵", 32, 1),
 	}
 }
 func (q *QMShow) Update() {
 	q.count++
 	q.count %= 360
+	q.updateBattle()
+}
+func (q *QMShow) updateBattle() {
 
 }
 
 func (q *QMShow) Draw(dst *ebiten.Image) {
 	//q.drawTaiJi(dst)
 	q.drawHead(dst)
-	q.draw9Gong(dst)
 	q.draw12Gong(dst)
-	//q.DrawCards(dst)
+	q.draw9Gong(dst)
+	//q.drawBattle(dst)
 }
 func (q *QMShow) drawHead(dst *ebiten.Image) {
 	pan := ThisGame.qmGame
@@ -161,23 +172,25 @@ func (q *QMShow) drawGong(dst *ebiten.Image, x, y float32, g *qimen.QMPalace) {
 	if g.Door == "" {
 		door = "    "
 	}
+
 	y += 35
-	text.Draw(dst, empty, ft, int(x+8), int(y), colorWhite)     //空亡
-	text.Draw(dst, g.God, ft, int(x+32), int(y), colorWhite)    //神盘
+	text.Draw(dst, empty, ft, int(x+8), int(y), colorWhite) //空亡
+	text.Draw(dst, g.God, ft, int(x+24), int(y),
+		util.If(g.God == qimen.QMGod8(1), colorLeader, colorWhite)) //神盘
 	text.Draw(dst, horse, ft, int(x+8+64), int(y), colorLeader) //驿马
 	y += 32
 	text.Draw(dst, g.PathGan, ft, int(x+8), int(y), colorGray) //流干
 	text.Draw(dst, g.HideGan, ft, int(x+8), int(y), colorGray) //隐干
-	text.Draw(dst, star, ft, int(x+32), int(y),
+	text.Draw(dst, star, ft, int(x+24), int(y),
 		util.If(g.Star == pp.DutyStar, colorLeader, colorWhite)) //星
 	text.Draw(dst, hosting, ft, int(x+8+32), int(y), colorGray) //寄禽
 	//text.Draw(dst, "", ft, int(x+8+32), int(y), colorGray)           //中寄
-	text.Draw(dst, g.GuestGan, ft, int(x+8+64), int(y), color.White) //天盘
+	text.Draw(dst, g.GuestGan, ft, int(x+64+24), int(y), color.White) //天盘
 	y += 32
 	text.Draw(dst, g.PathZhi, ft, int(x+8), int(y), colorGray) //流支
-	text.Draw(dst, door, ft, int(x+32), int(y),
+	text.Draw(dst, door, ft, int(x+24), int(y),
 		util.If(g.Door == pp.DutyDoor, colorLeader, colorWhite)) //门
-	text.Draw(dst, g.HostGan, ft, int(x+8+64), int(y), colorWhite) //地盘
+	text.Draw(dst, g.HostGan, ft, int(x+64+24), int(y), colorWhite) //地盘
 	//colorMaster           = colorGreen   //奇门符值
 	//colorTomb             = colorDarkRed //奇门入墓
 	//colorJiXing           = colorPurple  //奇门击刑
@@ -234,8 +247,14 @@ func (q *QMShow) draw12Gong(dst *ebiten.Image) {
 	pr := cfN.SubtractMinute(pan.Solar)
 	degreesR0 := float32(pr) / float32(yearMin) * 360 //春分角
 	degreesR := degreesS + degreesR0                  //春分角+太阳角
-	y, x = util.CalRadiansPos(q.Y, q.X, _XiuR, degreesR)
-	text.Draw(dst, "*", ft, int(x), int(y), colorGreen) //春分角 白羊双鱼界
+	y, x = util.CalRadiansPos(q.Y, q.X, _XiuR+5, degreesR)
+	text.Draw(dst, "*", ft, int(x-6), int(y), colorGreen) //春分角 白羊双鱼界
+	y, x = util.CalRadiansPos(q.Y, q.X, _XiuR+5, degreesR+90)
+	text.Draw(dst, "*", ft, int(x-6), int(y), colorRed) //夏至
+	y, x = util.CalRadiansPos(q.Y, q.X, _XiuR+5, degreesR+180)
+	text.Draw(dst, "*", ft, int(x-6), int(y), colorYellow) //秋分
+	y, x = util.CalRadiansPos(q.Y, q.X, _XiuR+5, degreesR+270)
+	text.Draw(dst, "*", ft, int(x-6), int(y), colorWhite) //冬至
 
 	//画28星宿
 	for i := 1; i <= 28; i++ {
@@ -320,4 +339,96 @@ func (q *QMShow) draw12Gong(dst *ebiten.Image) {
 		//	text.Draw(dst, "天马", ft, int(x-14), int(y+4), colorLeader)
 		//}s
 	}
+}
+
+func (q *QMShow) drawBattle(dst *ebiten.Image) {
+	//qm := ThisGame.qmGame
+	//pp := qm.ShowPan
+	op := ebiten.DrawImageOptions{}
+	var y, x float32
+	//画九宫
+	for i := 1; i <= 9; i++ {
+		x, y = q.GetInCampPos(i)
+		op.GeoM.Reset()
+		op.ColorScale.Reset()
+		if i == 5 {
+			op.GeoM.Translate(float64(x), float64(y))
+			op.ColorScale.ScaleWithColor(colorLeader)
+			dst.DrawImage(q.CampM, &op)
+		} else {
+			op.GeoM.Translate(float64(x), float64(y))
+			op.ColorScale.ScaleWithColor(colorGreen)
+			dst.DrawImage(q.Camp, &op)
+
+			x, y = q.GetInBornPos(i)
+			op.GeoM.Reset()
+			op.ColorScale.Reset()
+			op.GeoM.Translate(float64(x), float64(y))
+			op.ColorScale.ScaleWithColor(colorGreen)
+			dst.DrawImage(q.ArmyA, &op)
+
+			x, y = q.GetInArmyPos(i)
+			op.GeoM.Reset()
+			op.ColorScale.Reset()
+			op.GeoM.Translate(float64(x), float64(y))
+			op.ColorScale.ScaleWithColor(colorWhite)
+			dst.DrawImage(q.ArmyA, &op)
+		}
+	}
+
+	for i := 1; i <= 12; i++ {
+		y, x = q.GetOutCampPos(i)
+		op.GeoM.Reset()
+		op.ColorScale.Reset()
+		op.GeoM.Translate(float64(x-16), float64(y-16))
+		op.ColorScale.ScaleWithColor(colorWhite)
+		dst.DrawImage(q.Camp, &op)
+
+		op.GeoM.Reset()
+		op.ColorScale.Reset()
+		y, x = q.GetOutCampBornPos(i)
+		op = ebiten.DrawImageOptions{}
+		op.GeoM.Translate(float64(x-16), float64(y-16))
+		op.ColorScale.ScaleWithColor(colorWhite)
+		dst.DrawImage(q.Army, &op)
+	}
+}
+
+func (q *QMShow) GetInCampPos(i int) (float32, float32) {
+	offX, offZ := gongOffset[i][0]*_Gong9Width-_Gong9Width/2, gongOffset[i][1]*_Gong9Width-_Gong9Width/2
+	px, py := q.X+float32(offX)-32-8, q.Y+float32(offZ)-32
+	if i == 5 {
+		return q.X - 32, q.Y - 32
+	}
+	return px - 32, py
+}
+
+func (q *QMShow) GetInBornPos(i int) (float32, float32) {
+	offX, offZ := gongOffset[i][0]*_Gong9Width-_Gong9Width/2, gongOffset[i][1]*_Gong9Width-_Gong9Width/2
+	px, py := q.X+float32(offX)-32-8, q.Y+float32(offZ)-32
+	if i == 5 {
+		return q.X, q.Y
+	}
+	return px - 32, py - 32
+}
+
+func (q *QMShow) GetInArmyPos(i int) (float32, float32) {
+	offX, offZ := gongOffset[i][0]*_Gong9Width-_Gong9Width/2, gongOffset[i][1]*_Gong9Width-_Gong9Width/2
+	px, py := q.X+float32(offX)-32-8, q.Y+float32(offZ)-32
+	if i == 5 {
+		return q.X - 32, q.Y - 32
+	}
+	return px - 32, py - 64
+}
+
+func (q *QMShow) GetOutCampPos(i int) (float32, float32) {
+	degrees := -float32(i-1) * 30
+	y, x := util.CalRadiansPos(q.Y, q.X, _JianR-_SkyCircleWidth/2, degrees)
+	return y, x
+}
+
+func (q *QMShow) GetOutCampBornPos(i int) (float32, float32) {
+	degrees := -float32(i-1) * 30
+	y, x := util.CalRadiansPos(q.Y, q.X, _JianR-_SkyCircleWidth, degrees)
+	return y, x
 }

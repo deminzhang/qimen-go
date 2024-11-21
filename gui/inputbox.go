@@ -134,11 +134,16 @@ func (i *InputBox) Update() {
 		}
 	}
 	if i.Focused() {
-		if i.MaxChars <= 0 || i.MaxChars > len(i.textRune) {
-			sRune := ebiten.AppendInputChars(i.inputRunes[:0])
-			l := len(sRune)
-			if l > 0 {
-				left, right := i.cursorSelected()
+		sRune := ebiten.AppendInputChars(i.inputRunes[:0])
+		l := len(sRune)
+		if l > 0 {
+			left, right := i.cursorSelected()
+			if left != right { //删选中区
+				i.textRune = []rune(string(i.textRune[:left]) + string(i.textRune[right:]))
+				i.cursorPos = left
+				right = left
+			}
+			if i.MaxChars <= 0 || i.MaxChars > len(i.textRune) {
 				sRune = append(sRune, i.textRune[right:]...)
 				i.textRune = append(i.textRune[:left], sRune...)
 				if left == right {

@@ -26,7 +26,7 @@ const (
 	HpGanDay   = 120
 	HpZhiDay   = 120
 	HpGanTime  = 120
-	HpZhiTime  = 120
+	HpZhiTime  = 240
 )
 
 // HideGanVal 藏干值比例

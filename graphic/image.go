@@ -1,12 +1,15 @@
-package gui
+package graphic
 
 import (
+	"github.com/deminzhang/qimen-go/asset"
 	"github.com/deminzhang/qimen-go/util"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"image/color"
 )
 
+// 太极
 func NewTaiJiImage(size int) *ebiten.Image {
 	halfSize := float32(size / 2)
 	tj := ebiten.NewImage(size, size)
@@ -25,6 +28,7 @@ func NewTaiJiImage(size int) *ebiten.Image {
 	return cover
 }
 
+// 八卦
 func NewBaGuaImage(gua string, size int) *ebiten.Image {
 	bg := ebiten.NewImage(size, size)
 	h := float32(size) / 5
@@ -89,6 +93,7 @@ func NewBaGuaImage(gua string, size int) *ebiten.Image {
 	return bg
 }
 
+// 太阳
 func NewSunImage(size int) *ebiten.Image {
 	sun := ebiten.NewImage(size, size)
 	hs := float32(size / 2)
@@ -100,6 +105,7 @@ func NewSunImage(size int) *ebiten.Image {
 	return sun
 }
 
+// 月亮
 func NewMoonImage(size int) *ebiten.Image {
 	moon := ebiten.NewImage(size, size)
 	hs := float32(size / 2)
@@ -111,4 +117,85 @@ func NewMoonImage(size int) *ebiten.Image {
 	op.Blend = ebiten.BlendSourceOut
 	cover.DrawImage(moon, op)
 	return cover
+}
+
+// 火星
+func NewMarsImage(size int) *ebiten.Image {
+	img := ebiten.NewImage(size, size)
+	ft, _ := asset.GetDefaultFontFace(float64(size))
+	text.Draw(img, "火", ft, 0, size, color.White)
+	return img
+}
+
+// 木星
+func NewJupiterImage(size int) *ebiten.Image {
+	img := ebiten.NewImage(size, size)
+	ft, _ := asset.GetDefaultFontFace(float64(size))
+	text.Draw(img, "木", ft, 0, size, color.White)
+	return img
+}
+
+// 土星
+func NewSaturnImage(size int) *ebiten.Image {
+	img := ebiten.NewImage(size, size)
+	ft, _ := asset.GetDefaultFontFace(float64(size))
+	text.Draw(img, "土", ft, 0, size, color.White)
+	return img
+}
+
+// 水星
+func NewMercuryImage(size int) *ebiten.Image {
+	img := ebiten.NewImage(size, size)
+	ft, _ := asset.GetDefaultFontFace(float64(size))
+	text.Draw(img, "水", ft, 0, size, color.White)
+	return img
+}
+
+// 金星
+func NewVenusImage(size int) *ebiten.Image {
+	img := ebiten.NewImage(size, size)
+	ft, _ := asset.GetDefaultFontFace(float64(size))
+	text.Draw(img, "金", ft, 0, size, color.White)
+	return img
+}
+
+func NewTextImage(txt string, size int) *ebiten.Image {
+	img := ebiten.NewImage(size, size)
+	ft, _ := asset.GetDefaultFontFace(float64(size))
+	text.Draw(img, txt, ft, 0, size, color.White)
+	return img
+}
+
+func NewCampImage(size int) *ebiten.Image {
+	img := ebiten.NewImage(size, size)
+	c := color.White
+	u := float32(size) / 8
+	u9 := u * 7
+	sm := float32(size - 1)
+	hf := float32(size) / 2
+	vector.StrokeLine(img, u, sm, float32(size)-u, float32(size-1), 1, c, true)  //地基
+	vector.StrokeLine(img, u, sm, u, u9, 1, c, true)                             //右底
+	vector.StrokeLine(img, float32(size)-u, sm, float32(size)-u, u9, 1, c, true) //左底
+	vector.StrokeLine(img, float32(1), sm, hf, float32(size)/6, 1, c, true)      //左外墙
+	vector.StrokeLine(img, sm, sm, hf, float32(size)/6, 1, c, true)              //右外墙
+	vector.StrokeLine(img, hf, float32(1), hf, float32(size)/6, 1, c, true)      //外尖
+	vector.StrokeLine(img, float32(1), sm, float32(1), u9, 1, c, true)           //左钉
+	vector.StrokeLine(img, sm, sm, sm, u9, 1, c, true)                           //右钉
+	vector.StrokeLine(img, u*2, sm, hf, float32(size)/2, 1, c, true)             //左门
+	vector.StrokeLine(img, sm-u*2, sm, hf, float32(size)/2, 1, c, true)          //右门
+	vector.StrokeLine(img, hf, float32(size)/3, hf, float32(size)/2, 1, c, true) //门尖
+	return img
+}
+
+func NewArmyImage(name string, size, action int) *ebiten.Image {
+	img := ebiten.NewImage(size, size)
+	ft, _ := asset.GetDefaultFontFace(float64(size))
+	text.Draw(img, name, ft, 0, size*7/8, color.White)
+	switch action {
+	case 1:
+		vector.StrokeLine(img, 1, float32(size)*3/4, float32(size), float32(size)/4, 1, color.White, true) //横兵
+	default:
+		vector.StrokeLine(img, float32(size)/5, float32(1), float32(size)/5, float32(size), 1, color.White, true) //立兵
+	}
+	return img
 }
