@@ -52,6 +52,5 @@ func (b *TextButton) Draw(dst *ebiten.Image) {
 	if !b.Visible {
 		return
 	}
-	//text.Draw(dst, b.Text, uiFont, b.textX, b.textY, color.White)
 	text.Draw(dst, b.Text, uiFont, b.textX, b.textY, b.TextColor)
 }

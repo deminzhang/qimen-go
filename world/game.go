@@ -4,6 +4,7 @@ import (
 	"github.com/6tail/lunar-go/calendar"
 	"github.com/deminzhang/qimen-go/gui"
 	"github.com/deminzhang/qimen-go/qimen"
+	"github.com/deminzhang/qimen-go/util"
 	"github.com/hajimehoshi/ebiten/v2"
 	"time"
 )
@@ -62,10 +63,6 @@ func (g *game) Layout(w, h int) (int, int) {
 		g.uiQM.W = w - g.uiQM.X
 		g.uiQM.H = h - g.uiQM.Y
 	}
-	if g.char8 != nil {
-		g.char8.W = w - g.char8.X
-		g.char8.H = h - g.char8.Y
-	}
 	return w, h
 }
 
@@ -81,6 +78,9 @@ func NewGame() *game {
 		char8:     NewChar8Pan(830, 174),
 		qmGame:    pan,
 	}
-	gui.SetBorderDebug(true)
+	args := util.Args2Map()
+	if _, ok := args["debug"]; ok {
+		gui.SetBorderDebug(true)
+	}
 	return g
 }

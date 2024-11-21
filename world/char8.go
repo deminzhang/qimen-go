@@ -16,6 +16,9 @@ import (
 // 年干8 月干12 日元12 时干12
 // 年支4 月支40 日支12 时支12
 const (
+	char8UIWidth  = 560
+	char8UIHeight = 700
+
 	HpGanYear  = 80
 	HpZhiYear  = 40
 	HpGanMonth = 120
@@ -37,15 +40,15 @@ type Char8Pan struct {
 	gui.BaseUI
 	Flow         *Body4  //流气
 	Player       *Player //玩家
-	BodyShow     bool
-	OverviewShow bool
+	BodyShow     bool    //身象
+	OverviewShow bool    //总览
 
 	count int
 }
 
 func NewChar8Pan(x, y int) *Char8Pan {
 	p := &Char8Pan{
-		BaseUI:       gui.BaseUI{X: x, Y: y, Visible: true, W: ScreenWidth, H: ScreenHeight},
+		BaseUI:       gui.BaseUI{X: x, Y: y, Visible: true, W: char8UIWidth, H: char8UIHeight},
 		BodyShow:     false,
 		OverviewShow: false,
 	}
@@ -435,7 +438,7 @@ func (g *Char8Pan) Draw(dst *ebiten.Image) {
 		text.Draw(dst, p.Time.Feet, ft14, int(sx+28+32), int(sy), ColorGanZhi(p.Time.Feet))
 	}
 	//横象 年长 月同 日夫妻 时子孙 干动支静 干为军支为营 干为官支为民
-	if !g.OverviewShow { //流气
+	if !g.OverviewShow {
 		sx, sy := float32(cx+3), float32(cy+200)
 		g.DrawCharHP(dst, sx+96, sy, g.Flow.Year, "流年")
 		g.DrawCharHP(dst, sx+96*2, sy, g.Flow.Month, "流月")

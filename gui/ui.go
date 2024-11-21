@@ -90,10 +90,11 @@ func SetBorderDebug(v bool) {
 
 type BaseUI struct {
 	X, Y, W, H  int
+	Depth       int  //update draw depth
 	Visible     bool //`default:"true"` disable draw
 	Disabled    bool //disable update
 	EnableFocus bool //enable focus
-	Depth       int  //update draw depth
+	AutoSize    bool //auto resize by children
 	children    []IUIPanel
 	parent      IUIPanel
 	BGColor     *color.RGBA
@@ -130,6 +131,7 @@ func (u *BaseUI) GetWorldXY() (int, int) {
 func (u *BaseUI) GetDepth() int {
 	return u.Depth
 }
+
 func (u *BaseUI) GetBDColor() *color.RGBA {
 	return u.BDColor
 }
@@ -140,7 +142,26 @@ func (u *BaseUI) SetParent(p IUIPanel) {
 	u.parent = p
 }
 
+func (u *BaseUI) AutoResize() {
+	cw, ch := 0, 0
+	for _, c := range u.children {
+		x, y := c.GetXY()
+		w, h := c.GetWH()
+		if x+w > cw {
+			cw = x + w
+		}
+		if y+h > ch {
+			ch = y + h
+		}
+	}
+	u.W = cw
+	u.H = ch
+}
+
 func (u *BaseUI) Update() {
+	if u.AutoSize {
+		u.AutoResize()
+	}
 	for _, p := range u.children {
 		if !p.IsDisabled() && p.IsVisible() {
 			p.Update()

@@ -109,9 +109,9 @@ func NewUIQiMen() *UIQiMen {
 	p.opDayPan = gui.NewOptionBox(px0+72, py0, "日家")
 	p.opMonthPan = gui.NewOptionBox(px0+72*2, py0, "月家")
 	p.opYearPan = gui.NewOptionBox(px0+72*3, py0, "年家")
+	p.cbAuto = gui.NewCheckBox(px0+72*4, py0, "自动")
 	py0 += 18
 	p.opDay2Pan = gui.NewOptionBox(px0+72, py0, "_日家2")
-	p.cbAuto = gui.NewCheckBox(px0+72*4, py0, "自动")
 
 	p.AddChildren(p.panelSDate, p.panelOpCb)
 	p.inputSYear.MaxChars = 5

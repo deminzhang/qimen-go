@@ -10,15 +10,13 @@ type Panel struct {
 	BaseUI
 }
 
-func NewPanel(x, y, w, h int, c *color.RGBA) *Panel {
+func NewPanel(x, y, w, h int, bgColor *color.RGBA) *Panel {
 	return &Panel{
 		BaseUI: BaseUI{Visible: true, X: x, Y: y, W: w, H: h,
-			BGColor: c},
+			BGColor:  bgColor,
+			AutoSize: true,
+		},
 	}
-}
-
-// TODO Resize by children
-func (p *Panel) AutoResize() {
 }
 
 func (p *Panel) Draw(dst *ebiten.Image) {

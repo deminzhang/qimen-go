@@ -8,7 +8,7 @@ import (
 
 const (
 	TPSRate      = 30
-	screenWidth  = 1280
+	screenWidth  = 1394
 	screenHeight = 1000
 )
 
