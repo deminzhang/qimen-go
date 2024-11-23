@@ -31,7 +31,8 @@ func NewUIMsgBox(text, btnText1, btnText2 string, btnClick1, btnClick2 func(b *g
 	u.textMain = gui.NewTextBox(8, 8, 200, 60)
 	u.btnConfirm = gui.NewButton(40, 70, 48, 16, "confirm")
 	u.btnCancel = gui.NewButton(130, 70, 48, 16, "cancel")
-	u.AddChildren(u.panelBG, u.textMain, u.btnConfirm, u.btnCancel)
+	u.AddChildren(u.panelBG)
+	u.panelBG.AddChildren(u.textMain, u.btnConfirm, u.btnCancel)
 
 	u.textMain.Text = text
 	u.btnConfirm.Text = btnText1

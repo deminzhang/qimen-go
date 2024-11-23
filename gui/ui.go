@@ -206,7 +206,6 @@ func (u *BaseUI) Draw(screen *ebiten.Image) {
 	if u.BGColor != nil {
 		vector.DrawFilledRect(screen, 1, 1, float32(u.W-1), float32(u.H-1), u.BGColor, false)
 	}
-
 	for _, p := range u.children {
 		if p.IsVisible() {
 			img := p.GetImage()

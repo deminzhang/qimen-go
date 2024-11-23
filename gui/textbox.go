@@ -59,38 +59,38 @@ func (t *TextBox) AppendLine(line string) {
 
 func (t *TextBox) Update() {
 	t.BaseUI.Update()
-	x, y := t.GetWorldXY()
+	wx, wy := t.GetWorldXY()
 	w, h := t.contentSize()
-	if h > t.H && !t.DisableVScroll {
+	if h > t.H && !t.DisableVScroll { // 竖向滚动条
 		if t.vScrollBar == nil {
 			t.vScrollBar = NewVScrollBar()
 		}
-		t.vScrollBar.X = x + t.W - t.vScrollBar.ScrollBarWidth
-		t.vScrollBar.Y = y
-		t.vScrollBar.Height = t.H
+		t.vScrollBar.X = t.W - t.vScrollBar.W
+		t.vScrollBar.Y = 0
+		t.vScrollBar.H = t.H
 		if t.hScrollBar != nil {
-			t.vScrollBar.Height -= t.hScrollBar.ScrollBarHeight
+			t.vScrollBar.H -= t.hScrollBar.H
 		}
 
-		t.vScrollBar.Update(h)
+		t.vScrollBar.Update(wx, wy, h)
 
 		t.offsetY = t.vScrollBar.ContentOffset()
 	} else {
 		t.vScrollBar = nil
 		t.offsetY = 0
 	}
-	if w > t.W && !t.DisableHScroll {
+	if w > t.W && !t.DisableHScroll { // 横向滚动条
 		if t.hScrollBar == nil {
 			t.hScrollBar = NewHScrollBar()
 		}
-		t.hScrollBar.X = x
-		t.hScrollBar.Y = y + t.H - t.hScrollBar.ScrollBarHeight
-		t.hScrollBar.Width = t.W
+		t.hScrollBar.X = 0
+		t.hScrollBar.Y = t.H - t.hScrollBar.H
+		t.hScrollBar.W = t.W
 		if t.vScrollBar != nil {
-			t.hScrollBar.Width -= t.vScrollBar.ScrollBarWidth
+			t.hScrollBar.W -= t.vScrollBar.W
 		}
 
-		t.hScrollBar.Update(w)
+		t.hScrollBar.Update(wx, wy, w)
 
 		t.offsetX = t.hScrollBar.ContentOffset()
 	} else {
@@ -114,10 +114,10 @@ func (t *TextBox) contentSize() (int, int) {
 func (t *TextBox) viewSize() (int, int) {
 	vsb, hsb := 0, 0
 	if t.vScrollBar != nil {
-		vsb = t.vScrollBar.ScrollBarWidth
+		vsb = t.vScrollBar.W
 	}
 	if t.hScrollBar != nil {
-		hsb = t.hScrollBar.ScrollBarHeight
+		hsb = t.hScrollBar.H
 	}
 	return t.W - vsb - t.textBoxPadding, t.H - hsb
 }
@@ -160,7 +160,6 @@ func (t *TextBox) Draw(dst *ebiten.Image) {
 		text.Draw(t.contentBuf, line, uiFont, x, y, t.TextColor)
 	}
 	op := ebiten.DrawImageOptions{}
-	//op.GeoM.Translate(float64(t.Rect.Min.X), float64(t.Rect.Min.Y))
 	dst.DrawImage(t.contentBuf, &op)
 
 	if t.vScrollBar != nil {
