@@ -23,12 +23,12 @@ type IUIPanel interface {
 	GetParent() IUIPanel
 	SetParent(p IUIPanel)
 	GetImage() *ebiten.Image
-	GetDrawOp() *ebiten.DrawImageOptions
 }
 
 // var uis = make(map[IUIPanel]struct{})
 var uis []IUIPanel
 var frameClick bool
+var frameHover bool
 var uiBorderDebug bool
 
 func ActiveUI(ui IUIPanel) {
@@ -55,26 +55,25 @@ func CloseUI(ui IUIPanel) {
 func Update() {
 	frameClick = false
 	for _, u := range uis {
-		if !u.IsDisabled() && u.IsVisible() {
+		if u.IsVisible() {
 			u.Update()
 		}
 	}
 }
 
 func Draw(screen *ebiten.Image) {
-	op := ebiten.DrawImageOptions{}
 	for _, u := range uis {
 		if u.IsVisible() {
-			w, h := u.GetWH()
-			if w == 0 || h == 0 {
+			img := u.GetImage()
+			if img == nil {
 				continue
 			}
-			img := ebiten.NewImage(w, h)
 			x, y := u.GetXY()
-			op.GeoM.Reset()
+			op := ebiten.DrawImageOptions{}
 			op.GeoM.Translate(float64(x), float64(y))
 			u.Draw(img)
 			if uiBorderDebug {
+				w, h := u.GetWH()
 				vector.StrokeRect(img, 1, 1, float32(w-1), float32(h-1), 1, color.Gray{Y: 128}, true)
 			}
 			screen.DrawImage(img, &op)
@@ -87,6 +86,12 @@ func IsFrameClick() bool {
 func SetFrameClick() {
 	frameClick = true
 }
+func IsFrameHover() bool {
+	return frameHover
+}
+func SetFrameHover() {
+	frameHover = true
+}
 func SetBorderDebug(v bool) {
 	uiBorderDebug = v
 }
@@ -97,7 +102,7 @@ type BaseUI struct {
 	Visible     bool //`default:"true"` disable draw
 	Disabled    bool //disable update
 	EnableFocus bool //enable focus
-	AutoSize    bool //auto resize by children
+	autoSize    bool //auto resize by children
 	children    []IUIPanel
 	parent      IUIPanel
 	BGColor     *color.RGBA
@@ -147,7 +152,7 @@ func (u *BaseUI) SetParent(p IUIPanel) {
 	u.parent = p
 }
 
-func (u *BaseUI) AutoResize() {
+func (u *BaseUI) resizeByChildren() {
 	cw, ch := 0, 0
 	for _, c := range u.children {
 		x, y := c.GetXY()
@@ -164,15 +169,28 @@ func (u *BaseUI) AutoResize() {
 }
 
 func (u *BaseUI) GetImage() *ebiten.Image {
+	w, h := u.GetWH()
+	if w == 0 || h == 0 {
+		return nil
+	}
+	if u.Image != nil {
+		dx, dy := u.Image.Bounds().Dx(), u.Image.Bounds().Dy()
+		if w != dx || h != dy {
+			u.Image.Deallocate()
+			u.Image = nil
+		}
+	}
+	if u.Image == nil {
+		u.Image = ebiten.NewImage(w, h)
+	} else {
+		u.Image.Clear()
+	}
 	return u.Image
-}
-func (u *BaseUI) GetDrawOp() *ebiten.DrawImageOptions {
-	return &u.DrawOp
 }
 
 func (u *BaseUI) Update() {
-	if u.AutoSize {
-		u.AutoResize()
+	if u.autoSize {
+		u.resizeByChildren()
 	}
 	for _, p := range u.children {
 		if !p.IsDisabled() && p.IsVisible() {
@@ -188,24 +206,28 @@ func (u *BaseUI) Draw(screen *ebiten.Image) {
 	if u.BGColor != nil {
 		vector.DrawFilledRect(screen, 1, 1, float32(u.W-1), float32(u.H-1), u.BGColor, false)
 	}
-	op := ebiten.DrawImageOptions{}
+
 	for _, p := range u.children {
 		if p.IsVisible() {
-			w, h := p.GetWH()
-			if w == 0 || h == 0 {
+			img := p.GetImage()
+			if img == nil {
 				continue
 			}
-			img := ebiten.NewImage(w, h)
 			x, y := p.GetXY()
-			op.GeoM.Reset()
+			op := ebiten.DrawImageOptions{}
 			op.GeoM.Translate(float64(x), float64(y))
 			p.Draw(img)
 			if p.GetBDColor() != nil {
+				w, h := p.GetWH()
 				vector.StrokeRect(img, 1, 1, float32(w-1), float32(h-1), 1,
 					p.GetBDColor(), false)
 			}
 			screen.DrawImage(img, &op)
 		}
+	}
+
+	if uiBorderDebug {
+		vector.StrokeRect(screen, 1, 1, float32(u.W-1), float32(u.H-1), 1, color.Gray{Y: 128}, true)
 	}
 }
 

@@ -48,6 +48,7 @@ func (c *CheckBox) width() int {
 }
 
 func (c *CheckBox) Update() {
+	c.BaseUI.Update()
 	c.W = c.width()
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		mx, my := ebiten.CursorPosition()

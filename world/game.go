@@ -33,8 +33,8 @@ func (g *game) Update() error {
 	g.qiMen.Update()
 	//g.char8.Update()
 	//g.astrolabe.Update()
-	g.stars.SetPos(g.astrolabe.GetSolarPos())
-	g.stars.Update()
+	//g.stars.SetPos(g.astrolabe.GetSolarPos())
+	//g.stars.Update()
 	//if g.autoMinute && !g.astrolabe.DataQuerying() {
 	if g.autoMinute {
 		if g.count%10 == 0 {
@@ -75,8 +75,8 @@ func NewGame() *game {
 	solar := calendar.NewSolarFromDate(time.Now())
 	pan := u.Apply(solar)
 	g := &game{
-		uiQM:      u,
-		stars:     NewStarEffect(screenWidth/2, 217),
+		uiQM: u,
+		//stars:     NewStarEffect(screenWidth/2, 217),
 		qiMen:     NewQiMenShow(500, 500),
 		astrolabe: NewAstrolabe(1650, 450),
 		//char8:     NewChar8Pan(830, 174),

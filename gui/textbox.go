@@ -58,6 +58,7 @@ func (t *TextBox) AppendLine(line string) {
 }
 
 func (t *TextBox) Update() {
+	t.BaseUI.Update()
 	x, y := t.GetWorldXY()
 	w, h := t.contentSize()
 	if h > t.H && !t.DisableVScroll {

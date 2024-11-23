@@ -64,6 +64,7 @@ func (o *OptionBox) width() int {
 }
 
 func (o *OptionBox) Update() {
+	o.BaseUI.Update()
 	o.W = o.width()
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		mx, my := ebiten.CursorPosition()

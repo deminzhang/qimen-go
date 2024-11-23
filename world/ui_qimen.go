@@ -32,9 +32,9 @@ type UIQiMen struct {
 
 	opHideGan0, opHideGan1 *gui.OptionBox
 
-	btnCalc             *gui.TextButton
-	btnNow              *gui.TextButton
-	btnPreJu, btnNextJu *gui.TextButton
+	btnCalc             *gui.Button
+	btnNow              *gui.Button
+	btnPreJu, btnNextJu *gui.Button
 
 	opHourPan, opDayPan, opMonthPan, opYearPan *gui.OptionBox
 	opDay2Pan                                  *gui.OptionBox

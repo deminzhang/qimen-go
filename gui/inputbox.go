@@ -80,6 +80,7 @@ func (i *InputBox) SetText(v interface{}) {
 }
 
 func (i *InputBox) Update() {
+	i.BaseUI.Update()
 	if !i.Selectable {
 		return
 	}
