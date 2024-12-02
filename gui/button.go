@@ -11,7 +11,6 @@ import (
 
 type Button struct {
 	BaseUI
-	//Rect         image.Rectangle
 	Text           string
 	textX, textY   int
 	AutoSizeByText bool
@@ -111,4 +110,10 @@ func (b *Button) SetOnHover(f func(b *Button)) {
 }
 func (b *Button) SetOnHout(f func(b *Button)) {
 	b.onHout = f
+}
+
+func (b *Button) Click() {
+	if b.onClick != nil {
+		b.onClick(b)
+	}
 }

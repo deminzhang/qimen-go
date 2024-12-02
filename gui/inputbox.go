@@ -346,7 +346,7 @@ func (i *InputBox) Draw(dst *ebiten.Image) {
 				s1 := string(r[:left])
 				s2 := string(r[:right])
 				wl, wr := getFontSelectWidth(uiFont, s, len(s1), len(s2))
-				vector.DrawFilledRect(dst, float32(x+wl), float32(i.Y+4),
+				vector.DrawFilledRect(dst, float32(x+wl), float32(4),
 					float32(wr-wl), float32(i.H-8), textSelectColor, false)
 			}
 			if i.cursorCounter%10 < 5 {
