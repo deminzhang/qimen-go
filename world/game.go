@@ -25,6 +25,7 @@ type game struct {
 	char8      *Char8Pan
 	qmGame     *qimen.QMGame
 	autoMinute bool
+	Debug      bool
 }
 
 func (g *game) Update() error {
@@ -32,8 +33,8 @@ func (g *game) Update() error {
 	g.count %= 60
 	//g.stars.Update()
 	g.qiMen.Update()
-	//g.char8.Update()
-	//g.astrolabe.Update()
+	g.char8.Update()
+	g.astrolabe.Update()
 	//g.stars.SetPos(g.astrolabe.GetSolarPos())
 	//if g.autoMinute && !g.astrolabe.DataQuerying() {
 	if g.autoMinute {
@@ -48,7 +49,7 @@ func (g *game) Update() error {
 }
 
 func (g *game) Draw(screen *ebiten.Image) {
-	//g.astrolabe.Draw(screen)
+	g.astrolabe.Draw(screen)
 	//g.stars.Draw(screen)
 	g.qiMen.Draw(screen)
 	//g.char8.Draw(screen)
@@ -71,20 +72,21 @@ func (g *game) Layout(w, h int) (int, int) {
 }
 
 func NewGame() *game {
-	UIShowChat()
+	//UIShowChat()
 	u := UIShowQiMen()
 	solar := calendar.NewSolarFromDate(time.Now())
 	pan := u.Apply(solar)
 	g := &game{
 		uiQM:      u,
 		stars:     NewStarEffect(screenWidth/2, 217),
-		qiMen:     NewQiMenShow(500, 500),
+		qiMen:     NewQiMenShow(450, 500),
 		astrolabe: NewAstrolabe(1650, 450),
-		//char8:     NewChar8Pan(830, 174),
-		qmGame: pan,
+		char8:     NewChar8Pan(880, 174),
+		qmGame:    pan,
+		Debug:     false,
 	}
-	args := util.Args2Map()
-	if _, ok := args["debug"]; ok {
+	if _, ok := util.Args2Map()["debug"]; ok {
+		g.Debug = true
 		gui.SetBorderDebug(true)
 	}
 	return g

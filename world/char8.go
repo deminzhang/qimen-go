@@ -16,8 +16,8 @@ import (
 // 年干8 月干12 日元12 时干12
 // 年支4 月支40 日支12 时支12
 const (
-	char8UIWidth  = 560
-	char8UIHeight = 700
+	char8UIWidth  = 490
+	char8UIHeight = 600
 
 	HpGanYear  = 80
 	HpZhiYear  = 40
@@ -72,8 +72,8 @@ func NewChar8Pan(x, y int) *Char8Pan {
 		p.OverviewShow = c.Checked()
 	})
 	//cbShowBody.SetChecked(false)
-	btnMarry := gui.NewTextButton(350, 418, "耦合", &colorPink, &colorGray)
-	btnSplit := gui.NewTextButton(350, 518, "解耦", &colorGreen, &colorGray)
+	btnMarry := gui.NewTextButton(350, 418, "择偶", &colorPink, &colorGray)
+	btnSplit := gui.NewTextButton(350, 518, "和离", &colorGreen, &colorGray)
 	btnMarry.SetOnClick(func(b *gui.Button) {
 		mate := ThisGame.char8.Player.Mate
 		if mate == nil {

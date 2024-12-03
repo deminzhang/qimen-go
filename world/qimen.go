@@ -72,7 +72,9 @@ func (q *QMShow) Draw(dst *ebiten.Image) {
 	q.drawHead(dst)
 	q.draw12Gong(dst)
 	q.draw9Gong(dst)
-	q.drawBattle(dst)
+	if _, ok := util.Args2Map()["debug"]; ok {
+		q.drawBattle(dst)
+	}
 }
 func (q *QMShow) drawHead(dst *ebiten.Image) {
 	pan := ThisGame.qmGame
