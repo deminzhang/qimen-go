@@ -8,8 +8,8 @@ import (
 
 const (
 	TPSRate      = 30
-	screenWidth  = 1549
-	screenHeight = 768
+	screenWidth  = 1394
+	screenHeight = 1000
 )
 
 var (
@@ -22,6 +22,7 @@ var (
 	colorYellow           = color.RGBA{0xff, 0xff, 0x00, 0xff}
 	colorPurple           = color.RGBA{0xff, 0x00, 0xff, 0xff}
 	colorGray             = color.RGBA{0x80, 0x80, 0x80, 0xff}
+	colorPink             = color.RGBA{0xff, 0x80, 0x80, 0xff}
 	colorGongSplit        = color.RGBA{0x00, 0x00, 0x00, 0xff}
 	colorPowerCircle      = color.RGBA{0x60, 0x60, 0xFF, 0xFF}
 	colorGroundGateCircle = color.RGBA{0x80, 0x80, 0x00, 0xff}
@@ -34,6 +35,9 @@ var (
 	colorCross            = color.RGBA{0x60, 0x60, 0x60, 0x20}
 	colorRedShift         = color.RGBA{0xff, 0xaa, 0x00, 0xff}
 	colorBlueShift        = color.RGBA{0x00, 0xff, 0x77, 0xff}
+	colorGray5            = color.RGBA{R: 0x50, G: 0x50, B: 0x50, A: 0xff}
+	colorSun              = color.RGBA{R: 0xff, G: 0xff, A: 0xff}
+	colorMoon             = color.RGBA{R: 0xff, G: 0xff, B: 0xcc, A: 0xcc}
 	colorTomb             = colorDarkRed //奇门入墓
 	colorJiXing           = colorPurple  //奇门击刑
 	colorMengPo           = colorRed     //奇门门迫

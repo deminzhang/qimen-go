@@ -1,16 +1,10 @@
 package util
 
 import (
-	"math"
+	"os"
 	"slices"
+	"strings"
 )
-
-func CalRadiansPos[T Numeric](cx, cy, r, angleDegrees T) (x, y T) {
-	rad := float64(angleDegrees) * math.Pi / 180
-	x = T(float64(cx) + float64(r)*math.Cos(rad))
-	y = T(float64(cy) + float64(r)*math.Sin(rad))
-	return
-}
 
 func Contains(all []string, zhi ...string) bool {
 	for _, z := range zhi {
@@ -26,4 +20,21 @@ func If[T any](b bool, t, f T) T {
 		return t
 	}
 	return f
+}
+
+// Args2Map os.Args除[0]外,以=分切成kv对,无=的v为"true"
+func Args2Map() map[string]string {
+	m := make(map[string]string)
+	for i, s := range os.Args {
+		if i == 0 {
+			continue
+		}
+		ss := strings.Split(s, "=")
+		if len(ss) > 1 {
+			m[ss[0]] = ss[1]
+		} else {
+			m[ss[0]] = "true"
+		}
+	}
+	return m
 }

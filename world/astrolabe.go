@@ -3,8 +3,8 @@ package world
 import (
 	"fmt"
 	"github.com/6tail/lunar-go/calendar"
+	"github.com/deminzhang/qimen-go/graphic"
 	"github.com/deminzhang/qimen-go/qimen"
-	"github.com/deminzhang/qimen-go/ui"
 	"github.com/deminzhang/qimen-go/util"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
@@ -54,7 +54,8 @@ type Astrolabe struct {
 	sync.RWMutex
 	X, Y           float32
 	solarX, solarY float32
-	observer       int //观察者
+	degreesS       float32 //太阳角度
+	observer       int     //观察者
 
 	solar    calendar.Solar
 	timezone string
@@ -164,8 +165,8 @@ func NewAstrolabe(x, y float32) *Astrolabe {
 		timezone:  tz,
 		tzOffset:  offset,
 		Ephemeris: make(map[string]*ObserveData),
-		Sun:       ui.NewSunImage(16),
-		Moon:      ui.NewMoonImage(16),
+		Sun:       graphic.NewSunImage(16),
+		Moon:      graphic.NewMoonImage(16),
 	}
 	for i := 1; i <= 12; i++ { //固定宫位
 		degrees := float64(i)*30 - 90
@@ -206,6 +207,7 @@ func (a *Astrolabe) Update() {
 	degreesSO := 360 - degreesS
 	solarY, solarX := util.CalRadiansPos(a.Y, a.X, Bodies[a.observer].DrawR(), degreesS)
 	a.solarX, a.solarY = solarX, solarY
+	a.degreesS = degreesS
 
 	//计算月球位置 暂以农历近似
 	lDay := ThisGame.qmGame.Lunar.GetDay()
@@ -306,10 +308,9 @@ func (a *Astrolabe) calGongLocation() {
 		y, x := util.CalRadiansPos(cy, cx, float32(r), degrees+15)
 		a.ConstellationLoc[i-1] = gongLocation{lx1, ly1, lx2, ly2, int(x), int(y)}
 	}
-	//TODO 校正角度
 	for i := 1; i <= 28; i++ {
-		xiu := qimen.Xiu28[i-1]
-		degrees := a.tzRA0 + qimen.XiuAngle[xiu] + 200
+		xiu := qimen.Xiu28[i]
+		degrees := a.tzRA0 + qimen.XiuAngle[xiu]
 		r := float64(outCircleR0 - outCircleW)
 		ly1, lx1 := util.CalRadiansPos(cy, cx, float32(r-outCircleW/2), degrees)
 		ly2, lx2 := util.CalRadiansPos(cy, cx, float32(r+outCircleW/2), degrees)
@@ -354,10 +355,10 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 		text.Draw(dst, fmt.Sprintf("%d", i+1), ft, l.x-4, l.y+4, colorJiang)        //宫位
 	}
 	//画28星宿
-	for i := 0; i < 28; i++ {
-		l := a.XiuLoc[i]
-		vector.StrokeLine(dst, l.lx1, l.ly1, l.lx2, l.ly2, 1, colorGongSplit, true)     //星宿
-		text.Draw(dst, fmt.Sprintf("%s", qimen.Xiu28[i]), ft, l.x-4, l.y+4, colorJiang) //星宿
+	for i := 1; i <= 28; i++ {
+		l := a.XiuLoc[i-1]
+		vector.StrokeLine(dst, l.lx1, l.ly1, l.lx2, l.ly2, 1, colorGongSplit, true) //星宿
+		text.Draw(dst, qimen.Xiu28[i], ft, l.x-4, l.y+4, colorJiang)                //星宿
 	}
 	//画星体
 	for _, id := range Draws {
@@ -396,7 +397,7 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 
 				text.Draw(dst, ob.nameCN, ft, int(ob.sphereX), int(ob.sphereY), ob.color)
 			} else {
-				mx, my := util.CalRadiansPos(obj.drawX, obj.drawY, ob.DrawR(), float32(rand.Intn(360)))
+				my, mx := util.CalRadiansPos(obj.drawY, obj.drawX, ob.DrawR(), float32(rand.Intn(360)))
 				vector.DrawFilledCircle(dst, mx, my, 1, obj.color, true) //satellite
 			}
 		}

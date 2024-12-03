@@ -1,12 +1,11 @@
-package ui_test
+package gui_test
 
 import (
-	. "github.com/deminzhang/qimen-go/ui"
+	. "github.com/deminzhang/qimen-go/gui"
 	"github.com/hajimehoshi/ebiten/v2"
 	"image/color"
 	_ "image/png"
 
-	"image"
 	"log"
 	"testing"
 )
@@ -26,11 +25,8 @@ type Game struct {
 
 func NewGame() *Game {
 	g := &Game{}
-	g.button1 = NewButton(image.Rect(16, 16, 144, 48), "Button 1")
-	g.button2 = &Button{
-		Rect: image.Rect(160, 16, 288, 48),
-		Text: "Button 2",
-	}
+	g.button1 = NewButton(16, 16, 144, 48, "Button 1")
+	g.button2 = NewButton(160, 16, 288, 48, "Button 2")
 	g.checkBox = &CheckBox{
 		BaseUI: BaseUI{
 			X: 16,
@@ -38,9 +34,7 @@ func NewGame() *Game {
 		},
 		Text: "Check Box!",
 	}
-	g.textBoxLog = &TextBox{
-		Rect: image.Rect(16, 96, 624, 464),
-	}
+	g.textBoxLog = NewTextBox(16, 96, 608, 368)
 
 	g.button1.SetOnClick(func(b *Button) {
 		g.textBoxLog.AppendLine("Button 1 Pressed")

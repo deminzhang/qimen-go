@@ -1,16 +1,22 @@
 package world
 
 import (
+	"fmt"
 	"github.com/6tail/lunar-go/calendar"
+	"github.com/deminzhang/qimen-go/gui"
 	"github.com/deminzhang/qimen-go/qimen"
-	"github.com/deminzhang/qimen-go/ui"
+	"github.com/deminzhang/qimen-go/util"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"time"
 )
 
+var (
+	ScreenWidth  = screenWidth
+	ScreenHeight = screenHeight
+)
+
 type game struct {
-	world      *ebiten.Image
-	camera     cameraX
 	count      int
 	uiQM       *UIQiMen
 	stars      *StarEffect
@@ -19,90 +25,69 @@ type game struct {
 	char8      *Char8Pan
 	qmGame     *qimen.QMGame
 	autoMinute bool
-}
-
-type cameraX struct {
-	Camera
-}
-
-func (c *cameraX) Update() {
-	if ebiten.IsKeyPressed(ebiten.KeyA) || ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
-		c.Position[0] += 1
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyD) || ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
-		c.Position[0] -= 1
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyW) || ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
-		c.Position[1] += 1
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyS) || ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
-		c.Position[1] -= 1
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyQ) {
-		if c.ZoomFactor > -2400 {
-			c.ZoomFactor -= 1
-		}
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyE) {
-		if c.ZoomFactor < 2400 {
-			c.ZoomFactor += 1
-		}
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyR) {
-		c.Rotation += 1
-	}
-	if ebiten.IsKeyPressed(ebiten.KeySpace) {
-		c.Reset()
-	}
+	Debug      bool
 }
 
 func (g *game) Update() error {
 	g.count++
 	g.count %= 60
-	g.camera.Update()
+	//g.stars.Update()
 	g.qiMen.Update()
 	g.char8.Update()
 	g.astrolabe.Update()
 	//g.stars.SetPos(g.astrolabe.GetSolarPos())
-	//g.stars.Update()
-	if g.autoMinute && !g.astrolabe.DataQuerying() {
+	//if g.autoMinute && !g.astrolabe.DataQuerying() {
+	if g.autoMinute {
 		if g.count%10 == 0 {
-			g.qmGame = g.uiQM.NextApply()
+			//g.qmGame = g.uiQM.NextHour()
+			g.qmGame = g.uiQM.NextMinute()
 		}
 	}
 
-	ui.Update()
+	gui.Update()
 	return nil
 }
 
 func (g *game) Draw(screen *ebiten.Image) {
-	g.char8.Draw(g.world)
-	g.astrolabe.Draw(g.world)
-	//g.stars.Draw(g.world)
-	g.qiMen.DrawHead(screen)
-	g.qiMen.Draw(g.world)
-	g.camera.Render(g.world, screen)
-	ui.Draw(screen)
+	g.astrolabe.Draw(screen)
+	//g.stars.Draw(screen)
+	g.qiMen.Draw(screen)
+	//g.char8.Draw(screen)
+	gui.Draw(screen)
+	msg := fmt.Sprintf(`FPS: %0.2f, TPS: %0.2f`, ebiten.ActualFPS(), ebiten.ActualTPS())
+	ebitenutil.DebugPrint(screen, msg)
 }
 
-func (g *game) Layout(outsideWidth, outsideHeight int) (int, int) {
-	g.world = ebiten.NewImage(outsideWidth, outsideHeight)
-	return outsideWidth, outsideHeight
-	//return screenWidth, screenHeight
+func (g *game) Layout(w, h int) (int, int) {
+	ScreenWidth = w
+	ScreenHeight = h
+	if g.qiMen != nil {
+		g.qiMen.Y = float32(h / 2)
+	}
+	if g.uiQM != nil {
+		g.uiQM.W = w - g.uiQM.X
+		g.uiQM.H = h - g.uiQM.Y
+	}
+	return w, h
 }
 
 func NewGame() *game {
+	//UIShowChat()
 	u := UIShowQiMen()
 	solar := calendar.NewSolarFromDate(time.Now())
 	pan := u.Apply(solar)
 	g := &game{
-		world:     ebiten.NewImage(screenWidth, screenHeight),
 		uiQM:      u,
 		stars:     NewStarEffect(screenWidth/2, 217),
-		qiMen:     NewQiMenShow(260, 450),
-		astrolabe: NewAstrolabe(770+500, 450),
-		char8:     NewChar8Pan(522, 174),
+		qiMen:     NewQiMenShow(450, 500),
+		astrolabe: NewAstrolabe(1650, 450),
+		char8:     NewChar8Pan(880, 174),
 		qmGame:    pan,
+		Debug:     false,
+	}
+	if _, ok := util.Args2Map()["debug"]; ok {
+		g.Debug = true
+		gui.SetBorderDebug(true)
 	}
 	return g
 }

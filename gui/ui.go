@@ -1,9 +1,11 @@
-package ui
+package gui
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"golang.org/x/image/font"
 	"image"
+	"image/color"
 	"sort"
 )
 
@@ -14,13 +16,20 @@ type IUIPanel interface {
 	IsDisabled() bool
 	IsVisible() bool
 	GetXY() (int, int)
+	GetWH() (int, int)
+	GetWorldXY() (int, int)
 	GetDepth() int
+	GetBDColor() *color.RGBA
 	GetParent() IUIPanel
 	SetParent(p IUIPanel)
+	GetImage() *ebiten.Image
 }
 
 // var uis = make(map[IUIPanel]struct{})
 var uis []IUIPanel
+var frameClick bool
+var frameHover bool
+var uiBorderDebug bool
 
 func ActiveUI(ui IUIPanel) {
 	uis = append(uis, ui)
@@ -44,8 +53,9 @@ func CloseUI(ui IUIPanel) {
 	}
 }
 func Update() {
+	frameClick = false
 	for _, u := range uis {
-		if !u.IsDisabled() && u.IsVisible() {
+		if u.IsVisible() {
 			u.Update()
 		}
 	}
@@ -54,19 +64,51 @@ func Update() {
 func Draw(screen *ebiten.Image) {
 	for _, u := range uis {
 		if u.IsVisible() {
-			u.Draw(screen)
+			img := u.GetImage()
+			if img == nil {
+				continue
+			}
+			x, y := u.GetXY()
+			op := ebiten.DrawImageOptions{}
+			op.GeoM.Translate(float64(x), float64(y))
+			u.Draw(img)
+			if uiBorderDebug {
+				w, h := u.GetWH()
+				vector.StrokeRect(img, 1, 1, float32(w-1), float32(h-1), 1, color.Gray{Y: 128}, true)
+			}
+			screen.DrawImage(img, &op)
 		}
 	}
 }
+func IsFrameClick() bool {
+	return frameClick
+}
+func SetFrameClick() {
+	frameClick = true
+}
+func IsFrameHover() bool {
+	return frameHover
+}
+func SetFrameHover() {
+	frameHover = true
+}
+func SetBorderDebug(v bool) {
+	uiBorderDebug = v
+}
 
 type BaseUI struct {
-	X, Y        int
+	X, Y, W, H  int
+	Depth       int  //update draw depth
 	Visible     bool //`default:"true"` disable draw
 	Disabled    bool //disable update
 	EnableFocus bool //enable focus
-	Depth       int  //update draw depth
+	autoSize    bool //auto resize by children
 	children    []IUIPanel
 	parent      IUIPanel
+	BGColor     *color.RGBA
+	BDColor     *color.RGBA
+	Image       *ebiten.Image
+	DrawOp      ebiten.DrawImageOptions
 }
 
 func (u *BaseUI) IsDisabled() bool {
@@ -75,11 +117,33 @@ func (u *BaseUI) IsDisabled() bool {
 func (u *BaseUI) IsVisible() bool {
 	return u.Visible
 }
+
+// GetWH 获取宽高
+func (u *BaseUI) GetWH() (int, int) {
+	return u.W, u.H
+}
+
+// GetXY 获取相对坐标
 func (u *BaseUI) GetXY() (int, int) {
 	return u.X, u.Y
 }
+
+// GetWorldXY 获取绝对坐标
+func (u *BaseUI) GetWorldXY() (int, int) {
+	x, y := u.X, u.Y
+	if u.parent != nil {
+		x2, y2 := u.parent.GetWorldXY()
+		x += x2
+		y += y2
+	}
+	return x, y
+}
 func (u *BaseUI) GetDepth() int {
 	return u.Depth
+}
+
+func (u *BaseUI) GetBDColor() *color.RGBA {
+	return u.BDColor
 }
 func (u *BaseUI) GetParent() IUIPanel {
 	return u.parent
@@ -88,7 +152,46 @@ func (u *BaseUI) SetParent(p IUIPanel) {
 	u.parent = p
 }
 
+func (u *BaseUI) resizeByChildren() {
+	cw, ch := 0, 0
+	for _, c := range u.children {
+		x, y := c.GetXY()
+		w, h := c.GetWH()
+		if x+w > cw {
+			cw = x + w
+		}
+		if y+h > ch {
+			ch = y + h
+		}
+	}
+	u.W = cw
+	u.H = ch
+}
+
+func (u *BaseUI) GetImage() *ebiten.Image {
+	w, h := u.GetWH()
+	if w == 0 || h == 0 {
+		return nil
+	}
+	if u.Image != nil {
+		dx, dy := u.Image.Bounds().Dx(), u.Image.Bounds().Dy()
+		if w != dx || h != dy {
+			u.Image.Deallocate()
+			u.Image = nil
+		}
+	}
+	if u.Image == nil {
+		u.Image = ebiten.NewImage(w, h)
+	} else {
+		u.Image.Clear()
+	}
+	return u.Image
+}
+
 func (u *BaseUI) Update() {
+	if u.autoSize {
+		u.resizeByChildren()
+	}
 	for _, p := range u.children {
 		if !p.IsDisabled() && p.IsVisible() {
 			p.Update()
@@ -97,10 +200,33 @@ func (u *BaseUI) Update() {
 }
 
 func (u *BaseUI) Draw(screen *ebiten.Image) {
+	if !u.Visible {
+		return
+	}
+	if u.BGColor != nil {
+		vector.DrawFilledRect(screen, 1, 1, float32(u.W-1), float32(u.H-1), u.BGColor, false)
+	}
 	for _, p := range u.children {
 		if p.IsVisible() {
-			p.Draw(screen)
+			img := p.GetImage()
+			if img == nil {
+				continue
+			}
+			x, y := p.GetXY()
+			op := ebiten.DrawImageOptions{}
+			op.GeoM.Translate(float64(x), float64(y))
+			p.Draw(img)
+			if p.GetBDColor() != nil {
+				w, h := p.GetWH()
+				vector.StrokeRect(img, 1, 1, float32(w-1), float32(h-1), 1,
+					p.GetBDColor(), false)
+			}
+			screen.DrawImage(img, &op)
 		}
+	}
+
+	if uiBorderDebug {
+		vector.StrokeRect(screen, 1, 1, float32(u.W-1), float32(u.H-1), 1, color.Gray{Y: 128}, true)
 	}
 }
 
@@ -109,10 +235,12 @@ func (u *BaseUI) AddChild(c IUIPanel) {
 	sort.Slice(u.children, func(a, b int) bool {
 		return u.children[a].GetDepth() > u.children[b].GetDepth()
 	})
+	c.SetParent(u)
 }
 func (u *BaseUI) AddChildren(cs ...IUIPanel) {
 	for _, c := range cs {
 		u.children = append(u.children, c)
+		c.SetParent(u)
 	}
 	sort.Slice(u.children, func(a, b int) bool {
 		return u.children[a].GetDepth() > u.children[b].GetDepth()
@@ -122,6 +250,7 @@ func (u *BaseUI) AddChildren(cs ...IUIPanel) {
 func (u *BaseUI) RemoveChild(c IUIPanel) {
 	for i, child := range u.children {
 		if c == child {
+			c.SetParent(nil)
 			if i == 0 {
 				u.children = u.children[1:]
 			} else {

@@ -1,4 +1,4 @@
-package ui
+package gui
 
 import (
 	"fmt"
@@ -20,7 +20,6 @@ var textSelectColor = color.RGBA{B: 200, A: 128}
 
 type InputBox struct {
 	BaseUI
-	Rect         image.Rectangle
 	textRune     []rune
 	DefaultText  string //无Text时默认灰文本
 	MaxChars     int    //最大长度
@@ -46,10 +45,9 @@ type InputBox struct {
 	onPressEnter func(i *InputBox)
 }
 
-func NewInputBox(rect image.Rectangle) *InputBox {
+func NewInputBox(x, y, w, h int) *InputBox {
 	return &InputBox{
-		BaseUI:     BaseUI{Visible: true, EnableFocus: true},
-		Rect:       rect,
+		BaseUI:     BaseUI{X: x, Y: y, W: w, H: h, Visible: true, EnableFocus: true},
 		Editable:   true,
 		Selectable: true,
 		//default resource
@@ -82,17 +80,19 @@ func (i *InputBox) SetText(v interface{}) {
 }
 
 func (i *InputBox) Update() {
+	i.BaseUI.Update()
 	if !i.Selectable {
 		return
 	}
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		x, y := ebiten.CursorPosition()
-		if i.Rect.Min.X <= x && x < i.Rect.Max.X && i.Rect.Min.Y <= y && y < i.Rect.Max.Y {
+		mx, my := ebiten.CursorPosition()
+		x, y := i.GetWorldXY()
+		if x <= mx && mx < x+i.W && y <= my && my < y+i.H {
 			if i.Focused() {
 				pos := len(i.textRune)
 				for ii := 0; ii < pos; ii++ {
 					w := getFontWidth(uiFont, string(i.textRune[:ii]))
-					if x < i.Rect.Min.X+i.textPadding+w {
+					if mx < x+i.textPadding+w {
 						pos = ii
 						break
 					}
@@ -112,15 +112,16 @@ func (i *InputBox) Update() {
 		}
 
 		//} else if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-	} else if inpututil.MouseButtonPressDuration(ebiten.MouseButtonLeft) >= 2 {
+	} else if inpututil.MouseButtonPressDuration(ebiten.MouseButtonLeft) >= 2 { //拖动选中
 		//drag cursorPos
-		x, y := ebiten.CursorPosition()
-		if i.Rect.Min.X <= x && x < i.Rect.Max.X && i.Rect.Min.Y <= y && y < i.Rect.Max.Y {
+		mx, my := ebiten.CursorPosition()
+		x, y := i.GetWorldXY()
+		if x <= mx && mx < x+i.W && y <= my && my < y+i.H {
 			if i.Focused() {
 				pos := len(i.textRune)
 				for ii := 0; ii < pos; ii++ {
 					w := getFontWidth(uiFont, string(i.textRune[:ii]))
-					if x < i.Rect.Min.X+i.textPadding+w {
+					if mx < x+i.textPadding+w {
 						pos = ii
 						break
 					}
@@ -134,11 +135,16 @@ func (i *InputBox) Update() {
 		}
 	}
 	if i.Focused() {
-		if i.MaxChars <= 0 || i.MaxChars > len(i.textRune) {
-			sRune := ebiten.AppendInputChars(i.inputRunes[:0])
-			l := len(sRune)
-			if l > 0 {
-				left, right := i.cursorSelected()
+		sRune := ebiten.AppendInputChars(i.inputRunes[:0])
+		l := len(sRune)
+		if l > 0 {
+			left, right := i.cursorSelected()
+			if left != right { //删选中区
+				i.textRune = []rune(string(i.textRune[:left]) + string(i.textRune[right:]))
+				i.cursorPos = left
+				right = left
+			}
+			if i.MaxChars <= 0 || i.MaxChars > len(i.textRune) {
 				sRune = append(sRune, i.textRune[right:]...)
 				i.textRune = append(i.textRune[:left], sRune...)
 				if left == right {
@@ -221,8 +227,9 @@ func (i *InputBox) Update() {
 			}
 		}
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
-			x, y := ebiten.CursorPosition()
-			if i.Rect.Min.X <= x && x < i.Rect.Max.X && i.Rect.Min.Y <= y && y < i.Rect.Max.Y {
+			mx, my := ebiten.CursorPosition()
+			x, y := i.GetWorldXY()
+			if x <= mx && mx < x+i.W && y <= my && my < y+i.H {
 				clipboard.WriteAll(string(i.textRune))
 			}
 		}
@@ -310,11 +317,11 @@ func (i *InputBox) Draw(dst *ebiten.Image) {
 	if !i.Visible {
 		return
 	}
-	drawNinePatches(dst, i.UIImage, i.Rect, i.ImageRect)
+	drawNinePatches(dst, i.UIImage, image.Rect(0, 0, i.W, i.H), i.ImageRect)
 
 	//drawText
-	x := i.Rect.Min.X + i.textPadding //居左  //居中 + (i.Rect.Dx()-w)/2
-	y := i.Rect.Max.Y - (i.Rect.Dy()-uiFontMHeight)/2
+	x := i.textPadding //居左  //居中 + (i.Rect.Dx()-w)/2
+	y := i.H - (i.H-uiFontMHeight)/2
 
 	if len(i.textRune) == 0 && i.DefaultText != "" && !i.Focused() {
 		text.Draw(dst, i.DefaultText, uiFont, x, y, color.Gray{Y: 128})
@@ -339,15 +346,14 @@ func (i *InputBox) Draw(dst *ebiten.Image) {
 				s1 := string(r[:left])
 				s2 := string(r[:right])
 				wl, wr := getFontSelectWidth(uiFont, s, len(s1), len(s2))
-				vector.DrawFilledRect(dst, float32(x+wl), float32(i.Rect.Min.Y+4),
-					float32(wr-wl), float32(i.Rect.Dy()-8), textSelectColor, false)
+				vector.DrawFilledRect(dst, float32(x+wl), float32(4),
+					float32(wr-wl), float32(i.H-8), textSelectColor, false)
 			}
 			if i.cursorCounter%10 < 5 {
 				w := getFontWidth(uiFont, string(r[:i.cursorPos]))
 				//太矮 text.Draw(dst, "|", uiFont, x+w, y, color.Black)
-				//太窄 ebitenutil.DrawLine(dst, float64(x+w), float64(i.Rect.Min.Y+4), float64(x+w), float64(i.Rect.Min.Y+i.Rect.Dy()-4), color.Black)
-				vector.DrawFilledRect(dst, float32(x+w), float32(i.Rect.Min.Y+4),
-					float32(2), float32(i.Rect.Dy()-8), color.Black, false)
+				//太窄 ebitenutil.DrawLine(dst, float64(x+w), float64(4), float64(x+w), float64(i.H-4), color.Black)
+				vector.DrawFilledRect(dst, float32(x+w), 4, 2, float32(i.H-8), color.Black, false)
 			}
 		}
 	}
