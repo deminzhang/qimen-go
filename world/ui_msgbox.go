@@ -27,7 +27,7 @@ func NewUIMsgBox(text, btnText1, btnText2 string, btnClick1, btnClick2 func(b *g
 		X: ScreenWidth/2 - msgBoxUIWidth/2, Y: ScreenHeight/2 - msgBoxUIHeight,
 		W: msgBoxUIWidth, H: msgBoxUIHeight,
 	}}
-	u.panelBG = gui.NewPanel(0, 0, msgBoxUIWidth, msgBoxUIHeight, &colorGray)
+	u.panelBG = gui.NewPanel(0, 0, msgBoxUIWidth, msgBoxUIHeight, colorGray)
 	u.textMain = gui.NewTextBox(8, 8, 200, 60)
 	u.btnConfirm = gui.NewButton(40, 70, 48, 16, "confirm")
 	u.btnCancel = gui.NewButton(130, 70, 48, 16, "cancel")

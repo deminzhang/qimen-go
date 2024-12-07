@@ -34,7 +34,7 @@ func NewUISelect(solar *calendar.Solar, gender int, onOK func(*calendar.Solar, i
 	}}
 	px0, py0 := 0, 0
 	h := 32
-	p.panelBG = gui.NewPanel(0, 0, selectUIWidth, selectUIHeight, &colorGray)
+	p.panelBG = gui.NewPanel(0, 0, selectUIWidth, selectUIHeight, colorGray)
 	p.btnX = gui.NewButton(px0+72*4+32, py0, 32, h, "X")
 	py0 += 32
 	px0 += 8

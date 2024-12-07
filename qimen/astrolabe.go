@@ -52,3 +52,36 @@ var XiuAngle = map[string]float32{
 	"壁": 10.59,  //(戌宫10.59度-戌宫22.81度) 跨12.22度(古宿跨8.90度)
 	"奎": 22.81,  //(戌宫22.81度-酉宫4.33度) 跨11.52度(古宿跨17.60度)
 }
+
+// 水星：公转周期约为87.97个地球日。
+// 金星：公转周期约为224.7个地球日。
+// 地球：公转周期约为365.26天。
+// 火星：公转周期约为686.98个地球日。
+// 木星：公转周期约为11.86年。
+// 土星：公转周期约为29.46年。
+// 天王星：公转周期约为84.81年。
+// 海王星：公转周期约为164.8年。
+// 冥王星：公转周期约为248年。
+// Jupiter0 := calendar.NewSolar(1983, 5, 27, 0, 0, 0)
+// JupiterPeriod := 11.86 * 365.25 * 24 * 60
+// degreesJ := degreesS + float32(360*float64(pan.Solar.SubtractMinute(Jupiter0))/JupiterPeriod)
+// 星体公转周期
+const (
+	MercuryPeriod = 87.97 * 24 * 60
+	VenusPeriod   = 224.7 * 24 * 60
+	EarthPeriod   = 365.25 * 24 * 60
+	MarsPeriod    = 686.98 * 24 * 60
+	JupiterPeriod = 11.76 * EarthPeriod
+	//JupiterPeriod = 11.95 * EarthPeriod
+	SaturnPeriod = 29.46 * EarthPeriod
+)
+
+// 星体公转起始时间 TODO
+const (
+	Mercury0 = "1983-05-27 00:00:00"
+	Venus0   = "1983-05-27 00:00:00"
+	Earth0   = "1983-05-27 00:00:00"
+	Mars0    = "1983-05-27 00:00:00"
+	Jupiter0 = "1983-09-30 00:00:00"
+	Saturn0  = "1983-05-27 00:00:00"
+)

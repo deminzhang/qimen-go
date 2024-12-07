@@ -40,7 +40,7 @@ func NewButton(x, y, w, h int, text string) *Button {
 }
 
 // NewTextButton 按text长度自动调整大小无背景UI
-func NewTextButton(x, y int, text string, textColor, bgColor *color.RGBA) *Button {
+func NewTextButton(x, y int, text string, textColor, bgColor color.Color) *Button {
 	return &Button{BaseUI: BaseUI{Visible: true, X: x, Y: y, W: 1, H: 1, BDColor: bgColor},
 		Text:           text,
 		TextColor:      textColor,

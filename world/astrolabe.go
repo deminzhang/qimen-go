@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/6tail/lunar-go/calendar"
 	"github.com/deminzhang/qimen-go/graphic"
+	"github.com/deminzhang/qimen-go/gui"
 	"github.com/deminzhang/qimen-go/qimen"
 	"github.com/deminzhang/qimen-go/util"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -52,6 +53,7 @@ const (
 
 type Astrolabe struct {
 	sync.RWMutex
+	gui.Dragger
 	X, Y           float32
 	solarX, solarY float32
 	degreesS       float32 //太阳角度
@@ -91,7 +93,8 @@ type CelestialBody struct {
 
 	color            color.RGBA //RedShift红移/BlueShift蓝移
 	drawR            float32    //星盘半径
-	drawX, drawY     float32    //星盘坐标
+	drawX, drawY     float32    //星盘坐标 NASA
+	drawX2, drawY2   float32    //星盘坐标 本地
 	sphereX, sphereY float32    //天球坐标
 }
 
@@ -193,8 +196,14 @@ func (a *Astrolabe) SetPos(x, y float32) {
 	a.X, a.Y = x, y
 }
 func (a *Astrolabe) Update() {
+	a.Dragger.Update()
+	x, y := ebiten.CursorPosition()
+	ox, oy := a.Dragger.Offset()
+	a.X += float32(ox)
+	a.Y += float32(oy)
+
 	sCal := ThisGame.qmGame.Solar
-	if a.solar == *sCal {
+	if a.solar == *sCal && (ox == 0 && oy == 0) {
 		return
 	}
 	a.solar = *sCal
@@ -205,17 +214,17 @@ func (a *Astrolabe) Update() {
 	//计算太阳位置 以时间计角度
 	degreesS := 360 - (float32(hour)+float32(minute)/60)*15 //本地时区太阳角度 0~360 0时0度
 	degreesSO := 360 - degreesS
-	solarY, solarX := util.CalRadiansPos(a.Y, a.X, Bodies[a.observer].DrawR(), degreesS)
+	solarY, solarX := util.CalRadiansPos(cy, cx, Bodies[a.observer].DrawR(), degreesS)
 	a.solarX, a.solarY = solarX, solarY
 	a.degreesS = degreesS
 
 	//计算月球位置 暂以农历近似
 	lDay := ThisGame.qmGame.Lunar.GetDay()
 	mDays := ThisGame.qmGame.LunarMonthDays
-	degreesM := -(float32(hour)+float32(minute)/60)*15 + float32(lDay-1)/float32(mDays)*360
 	{
+		degreesM := -(float32(hour)+float32(minute)/60)*15 + float32(lDay-1)/float32(mDays)*360
 		moon := Bodies[301]
-		moonY, moonX := util.CalRadiansPos(a.Y, a.X, moon.DrawR(), degreesM)
+		moonY, moonX := util.CalRadiansPos(cy, cx, moon.DrawR(), degreesM)
 		moon.drawX, moon.drawY = moonX, moonY
 		v1 := (&util.Vec2[float32]{X: moon.drawX - cx, Y: moon.drawY - cy}).ScaledToLength(sphereR)
 		moon.sphereX = cx + v1.X
@@ -226,13 +235,14 @@ func (a *Astrolabe) Update() {
 	for _, id := range Draws {
 		body := Bodies[id]
 		if id == a.observer {
-			body.drawX, body.drawY = a.X, a.Y
+			body.drawX, body.drawY = cx, cy
 			body.color = colorBlueShift
 			for _, sid := range body.satellite {
 				bd := Bodies[sid]
 				oe := a.GetEphemeris(sid, sCal)
 				if oe == nil {
 					a.solar = calendar.Solar{}
+					bd.color = colorBlueShift
 					continue
 				}
 				bd.gravity = G * bd.mass * m / math.Pow(oe.Delta*AU, 2)
@@ -250,14 +260,15 @@ func (a *Astrolabe) Update() {
 			a.solar = calendar.Solar{}
 			continue
 		}
-		if id == 10 {
+		switch id {
+		case 10:
 			body.drawX, body.drawY = a.solarX, a.solarY
 			v1 := (&util.Vec2[float32]{X: body.drawX - cx, Y: body.drawY - cy}).ScaledToLength(sphereR)
 			body.sphereX = cx + v1.X
 			body.sphereY = cy + v1.Y
 
 			a.tzRA0 = degreesS - oe.RARadius()
-		} else {
+		default:
 			ost := 180 - oe.STO - oe.SOT
 			var degrees float32
 			switch oe.SOTR {
@@ -270,6 +281,15 @@ func (a *Astrolabe) Update() {
 			v1 := (&util.Vec2[float32]{X: body.drawX - cx, Y: body.drawY - cy}).ScaledToLength(sphereR)
 			body.sphereX = cx + v1.X
 			body.sphereY = cy + v1.Y
+			switch id {
+			case 599:
+				date0, _ := time.Parse(time.DateTime, qimen.Jupiter0)
+				solar0 := calendar.NewSolarFromDate(date0)
+				period := qimen.JupiterPeriod
+				degreesJ := degreesS + float32(360*float64(a.solar.SubtractMinute(solar0))/period)
+				y, x := util.CalRadiansPos(solarY, solarX, body.DrawR()+4, degreesJ)
+				body.drawY2, body.drawX2 = y, x
+			}
 		}
 		body.gravity = G * body.mass * m / math.Pow(oe.Delta*AU, 2)
 		a.updateGravityRange(id, body.gravity)
@@ -382,6 +402,9 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 			dst.DrawImage(a.Sun, op)
 		} else {
 			vector.DrawFilledCircle(dst, obj.drawX, obj.drawY, 2, obj.color, true) //planet
+			if obj.drawX2 > 0 && obj.drawY2 > 0 {
+				vector.StrokeCircle(dst, obj.drawX2, obj.drawY2, 3, 1, obj.color, true) //planet2
+			}
 		}
 
 		for _, sid := range obj.satellite {

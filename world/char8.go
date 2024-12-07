@@ -43,6 +43,8 @@ type Char8Pan struct {
 	BodyShow     bool    //身象
 	OverviewShow bool    //总览
 
+	EnergyEffect map[string]*Line
+
 	count int
 }
 
@@ -51,8 +53,9 @@ func NewChar8Pan(x, y int) *Char8Pan {
 		BaseUI:       gui.BaseUI{X: x, Y: y, Visible: true, W: char8UIWidth, H: char8UIHeight},
 		BodyShow:     false,
 		OverviewShow: false,
+		EnergyEffect: make(map[string]*Line),
 	}
-	btnBirth := gui.NewTextButton(350, 386, "命造", &colorYellow, &colorGray)
+	btnBirth := gui.NewTextButton(350, 386, "命造", colorYellow, colorGray)
 	btnBirth.SetOnClick(func(b *gui.Button) {
 		oldBirthTime := ThisGame.char8.Player.Birth
 		var oldBirthSolar *calendar.Solar
@@ -67,13 +70,19 @@ func NewChar8Pan(x, y int) *Char8Pan {
 	cbShowBody.SetOnCheckChanged(func(c *gui.CheckBox) {
 		p.BodyShow = c.Checked()
 	})
+	cbShowBody.Visible = false
 	cbShowOverview := gui.NewCheckBox(0, 0, "总览")
 	cbShowOverview.SetOnCheckChanged(func(c *gui.CheckBox) {
 		p.OverviewShow = c.Checked()
+		cbShowBody.Visible = c.Checked()
+		if !c.Checked() {
+			cbShowBody.SetChecked(false)
+			p.BodyShow = false
+		}
 	})
 	//cbShowBody.SetChecked(false)
-	btnMarry := gui.NewTextButton(350, 418, "择偶", &colorPink, &colorGray)
-	btnSplit := gui.NewTextButton(350, 518, "和离", &colorGreen, &colorGray)
+	btnMarry := gui.NewTextButton(350, 418, "择偶", colorPink, colorGray)
+	btnSplit := gui.NewTextButton(350, 518, "和离", colorGreen, colorGray)
 	btnMarry.SetOnClick(func(b *gui.Button) {
 		mate := ThisGame.char8.Player.Mate
 		if mate == nil {
@@ -216,6 +225,9 @@ func (g *Char8Pan) Update() {
 		}
 	}
 
+	for _, line := range g.EnergyEffect {
+		line.Update()
+	}
 	if g.count%1 == 0 {
 		g.UpdateHp(p)
 	}
@@ -269,7 +281,7 @@ func (g *Char8Pan) Draw(dst *ebiten.Image) {
 	//八字总览
 	if g.OverviewShow {
 		sx, sy := cx, cy
-		vector.StrokeRect(dst, float32(sx), float32(sy), util.If[float32](g.BodyShow, 400, 480),
+		vector.StrokeRect(dst, float32(sx), float32(sy), util.If[float32](g.OverviewShow && g.BodyShow, 400, 480),
 			384, 1, colorWhite, true)
 		sx += 4
 		sy += 64
@@ -331,7 +343,7 @@ func (g *Char8Pan) Draw(dst *ebiten.Image) {
 		text.Draw(dst, LunarUtil.SHI_SHEN[soul+g.Flow.Month.Gan], ft14, sx, sy-32, colorWhite)
 		DrawFlow(dst, sx, sy, soul, g.Flow.Month)
 		text.Draw(dst, strings.Join(p.ShenShaFM, "\n"), ft12, sx, sy+160+48, colorWhite)
-		if !g.BodyShow {
+		if g.OverviewShow && !g.BodyShow {
 			sx += 48
 			text.Draw(dst, "流日", ft14, sx, sy-48, colorWhite)
 			text.Draw(dst, LunarUtil.SHI_SHEN[soul+g.Flow.Day.Gan], ft14, sx, sy-32, colorWhite)
@@ -372,7 +384,7 @@ func (g *Char8Pan) Draw(dst *ebiten.Image) {
 	//1、月干克时干，疤痕在身体中间的偏左侧部位；
 	//2、年干克时干，疤痕在身体的左侧明显部位；
 	//3、日干克时干，疤痕在身体的右侧明显部位。
-	if g.BodyShow {
+	if g.OverviewShow && g.BodyShow {
 		sx, sy := float32(cx+408), float32(cy)
 		mx := int(sx + 28)
 		w := float32(74)
@@ -472,6 +484,34 @@ func (g *Char8Pan) Draw(dst *ebiten.Image) {
 			vector.StrokeLine(dst, mx, my, mx, ffy, .5, colorGray, true) //流月线
 			vector.StrokeLine(dst, dx, dy, dx, ffy, .5, colorGray, true) //流日线
 			vector.StrokeLine(dst, tx, ty, tx, ffy, .5, colorGray, true) //流时线
+			if _, b := g.EnergyEffect["运月线"]; !b {
+				e := NewLine(fx, fy, mx, my, 10)
+				e.Init(10)
+				g.EnergyEffect["运月线"] = &e
+			}
+			if _, b := g.EnergyEffect["流年线"]; !b {
+				e := NewLine(yx, ffy, yx, yy, 10)
+				e.Init(10)
+				g.EnergyEffect["流年线"] = &e
+			}
+			if _, b := g.EnergyEffect["流月线"]; !b {
+				e := NewLine(mx, ffy, mx, my, 10)
+				e.Init(10)
+				g.EnergyEffect["流月线"] = &e
+			}
+			if _, b := g.EnergyEffect["流日线"]; !b {
+				e := NewLine(dx, ffy, dx, dy, 10)
+				e.Init(10)
+				g.EnergyEffect["流日线"] = &e
+			}
+			if _, b := g.EnergyEffect["流时线"]; !b {
+				e := NewLine(tx, ffy, tx, ty, 10)
+				e.Init(10)
+				g.EnergyEffect["流时线"] = &e
+			}
+			for _, line := range g.EnergyEffect {
+				line.Draw(dst)
+			}
 		}
 		if p.Mate != nil { //配偶
 			sy += 102
@@ -490,20 +530,20 @@ func (g *Char8Pan) DrawCharHP(dst *ebiten.Image, sx, sy float32, body *CharBody,
 	vector.StrokeRect(dst, sx, sy, 96, 80, 1, colorWhite, true)
 	text.Draw(dst, body.Gan, ft28, int(sx), int(sy), ColorGanZhi(body.Gan))
 	text.Draw(dst, title, ft14, int(sx+28), int(sy-10), colorWhite)
-	DrawProBar(dst, sx+28, sy-8, 64, 8, ColorGanZhi(body.Gan), body.HPHead, body.HPMHead)
+	DrawProBar(dst, sx+28, sy-8, 64, 8, ColorGanZhi(body.Gan), body.HPHead, body.HPMHead, !body.FlowEnergy)
 	sy += 26
 	text.Draw(dst, body.Zhi, ft28, int(sx), int(sy), ColorGanZhi(body.Zhi))
 	text.Draw(dst, body.Body, ft14, int(sx), int(sy+16), ColorGanZhi(body.Body))
-	DrawProBar(dst, sx+28, sy+16-8, 64, 8, ColorGanZhi(body.Zhi), body.HPBody, body.HPMBody) //横HP
+	DrawProBar(dst, sx+28, sy+16-8, 64, 8, ColorGanZhi(body.Zhi), body.HPBody, body.HPMBody, !body.FlowEnergy) //横HP
 	//DrawProBarV(dst, sx+28, sy-16, 8, 64, ColorGanZhi(body.Zhi), body.HPBody, body.HPMBody) //纵HP
 	if body.Legs != "" {
 		text.Draw(dst, body.Legs, ft14, int(sx), int(sy+32), ColorGanZhi(body.Legs))
-		DrawProBar(dst, sx+28, sy+32-8, 64, 8, ColorGanZhi(body.Legs), body.HPLegs, body.HPMLegs)
+		DrawProBar(dst, sx+28, sy+32-8, 64, 8, ColorGanZhi(body.Legs), body.HPLegs, body.HPMLegs, !body.FlowEnergy)
 		//DrawProBarV(dst, sx+28+24, sy-16, 8, 64, ColorGanZhi(body.Legs), body.HPLegs, body.HPMLegs)
 	}
 	if body.Feet != "" {
 		text.Draw(dst, body.Feet, ft14, int(sx), int(sy+48), ColorGanZhi(body.Feet))
-		DrawProBar(dst, sx+28, sy+48-8, 64, 8, ColorGanZhi(body.Feet), body.HPFeet, body.HPMFeet)
+		DrawProBar(dst, sx+28, sy+48-8, 64, 8, ColorGanZhi(body.Feet), body.HPFeet, body.HPMFeet, !body.FlowEnergy)
 		//DrawProBarV(dst, sx+28+48, sy-16, 8, 64, ColorGanZhi(body.Feet), body.HPFeet, body.HPMFeet)
 	}
 }

@@ -19,7 +19,7 @@ type IUIPanel interface {
 	GetWH() (int, int)
 	GetWorldXY() (int, int)
 	GetDepth() int
-	GetBDColor() *color.RGBA
+	GetBDColor() color.Color
 	GetParent() IUIPanel
 	SetParent(p IUIPanel)
 	GetImage() *ebiten.Image
@@ -105,8 +105,8 @@ type BaseUI struct {
 	autoSize    bool //auto resize by children
 	children    []IUIPanel
 	parent      IUIPanel
-	BGColor     *color.RGBA
-	BDColor     *color.RGBA
+	BGColor     color.Color
+	BDColor     color.Color
 	Image       *ebiten.Image
 	DrawOp      ebiten.DrawImageOptions
 }
@@ -142,7 +142,7 @@ func (u *BaseUI) GetDepth() int {
 	return u.Depth
 }
 
-func (u *BaseUI) GetBDColor() *color.RGBA {
+func (u *BaseUI) GetBDColor() color.Color {
 	return u.BDColor
 }
 func (u *BaseUI) GetParent() IUIPanel {
@@ -204,7 +204,9 @@ func (u *BaseUI) Draw(screen *ebiten.Image) {
 		return
 	}
 	if u.BGColor != nil {
-		vector.DrawFilledRect(screen, 1, 1, float32(u.W-1), float32(u.H-1), u.BGColor, false)
+		if _, _, _, a := u.BGColor.RGBA(); a > 0 {
+			vector.DrawFilledRect(screen, 1, 1, float32(u.W-1), float32(u.H-1), u.BGColor, false)
+		}
 	}
 	for _, p := range u.children {
 		if p.IsVisible() {
@@ -216,10 +218,11 @@ func (u *BaseUI) Draw(screen *ebiten.Image) {
 			op := ebiten.DrawImageOptions{}
 			op.GeoM.Translate(float64(x), float64(y))
 			p.Draw(img)
-			if p.GetBDColor() != nil {
+			bdc := p.GetBDColor()
+			if bdc != nil {
 				w, h := p.GetWH()
 				vector.StrokeRect(img, 1, 1, float32(w-1), float32(h-1), 1,
-					p.GetBDColor(), false)
+					bdc, false)
 			}
 			screen.DrawImage(img, &op)
 		}

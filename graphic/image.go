@@ -93,6 +93,14 @@ func NewBaGuaImage(gua string, size int) *ebiten.Image {
 	return bg
 }
 
+func NewFlagImage(size int) *ebiten.Image {
+	img := ebiten.NewImage(size, size)
+	vector.StrokeLine(img, 4, 0, float32(4), float32(size), 1, color.White, true)
+	vector.StrokeLine(img, 4, 0, float32(size), float32(size)/2, 1, color.White, true)
+	vector.StrokeLine(img, 4, float32(size)/2, float32(size), float32(size)/2, 1, color.White, true)
+	return img
+}
+
 // 太阳
 func NewSunImage(size int) *ebiten.Image {
 	sun := ebiten.NewImage(size, size)
