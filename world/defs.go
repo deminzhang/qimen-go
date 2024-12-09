@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	TPSRate      = 30
-	screenWidth  = 1394
-	screenHeight = 1000
+	TPSRate          = 30
+	initScreenWidth  = 1394
+	initScreenHeight = 1000
 )
 
 var (

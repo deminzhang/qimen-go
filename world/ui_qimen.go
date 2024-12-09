@@ -386,7 +386,3 @@ func (p *UIQiMen) NextMinute() *qimen.QMGame {
 	}
 	return p.Apply(s)
 }
-
-func (p *UIQiMen) AutoTick() bool {
-	return p.cbAuto.Checked()
-}

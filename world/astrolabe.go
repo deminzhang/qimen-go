@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/6tail/lunar-go/calendar"
 	"github.com/deminzhang/qimen-go/graphic"
-	"github.com/deminzhang/qimen-go/gui"
 	"github.com/deminzhang/qimen-go/qimen"
 	"github.com/deminzhang/qimen-go/util"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -53,8 +52,8 @@ const (
 
 type Astrolabe struct {
 	sync.RWMutex
-	gui.Dragger
 	X, Y           float32
+	dirty          bool
 	solarX, solarY float32
 	degreesS       float32 //太阳角度
 	observer       int     //观察者
@@ -71,8 +70,9 @@ type Astrolabe struct {
 	AstrolabeLoc     [12]gongLocation //宫位
 	XiuLoc           [28]gongLocation //星宿宫位
 
-	Sun  *ebiten.Image
-	Moon *ebiten.Image
+	Earth *Sprite
+	Sun   *Sprite
+	Moon  *Sprite
 }
 type gongLocation struct {
 	lx1, ly1, lx2, ly2 float32 //分割线
@@ -168,16 +168,6 @@ func NewAstrolabe(x, y float32) *Astrolabe {
 		timezone:  tz,
 		tzOffset:  offset,
 		Ephemeris: make(map[string]*ObserveData),
-		Sun:       graphic.NewSunImage(16),
-		Moon:      graphic.NewMoonImage(16),
-	}
-	for i := 1; i <= 12; i++ { //固定宫位
-		degrees := float64(i)*30 - 90
-		r := float64(outCircleR0 - outCircleW*2)
-		ly1, lx1 := util.CalRadiansPos(float64(y), float64(x), r-outCircleW/2, degrees)
-		ly2, lx2 := util.CalRadiansPos(float64(y), float64(x), r+outCircleW/2, degrees)
-		y, x := util.CalRadiansPos(float64(y), float64(x), r, degrees-15)
-		a.AstrolabeLoc[i-1] = gongLocation{float32(lx1), float32(ly1), float32(lx2), float32(ly2), int(x), int(y)}
 	}
 	var bds []*CelestialBody
 	err := db.Table(CelestialBodyTable).Find(&bds)
@@ -196,13 +186,8 @@ func (a *Astrolabe) SetPos(x, y float32) {
 	a.X, a.Y = x, y
 }
 func (a *Astrolabe) Update() {
-	a.Dragger.Update()
-	ox, oy := a.Dragger.Offset()
-	a.X += float32(ox)
-	a.Y += float32(oy)
-
 	sCal := ThisGame.qmGame.Solar
-	if a.solar == *sCal && (ox == 0 && oy == 0) {
+	if a.solar == *sCal && !a.dirty {
 		return
 	}
 	a.solar = *sCal
@@ -210,17 +195,29 @@ func (a *Astrolabe) Update() {
 	minute := sCal.GetMinute()
 
 	cx, cy := a.X, a.Y
+	if a.Earth == nil {
+		a.Earth = NewSprite(graphic.NewEarthImage(16), colorBlue)
+		a.Earth.onMove = func(sx, sy, dx, dy int) {
+			a.X += float32(dx)
+			a.Y += float32(dy)
+			a.dirty = true
+		}
+		ThisGame.AddSprite(a.Earth)
+	}
+	a.Earth.MoveTo(int(cx-8), int(cy-8))
 	//计算太阳位置 以时间计角度
 	degreesS := 360 - (float32(hour)+float32(minute)/60)*15 //本地时区太阳角度 0~360 0时0度
 	degreesSO := 360 - degreesS
 	solarY, solarX := util.CalRadiansPos(cy, cx, Bodies[a.observer].DrawR(), degreesS)
 	a.solarX, a.solarY = solarX, solarY
 	a.degreesS = degreesS
-
-	//计算月球位置 暂以农历近似
-	lDay := ThisGame.qmGame.Lunar.GetDay()
-	mDays := ThisGame.qmGame.LunarMonthDays
-	{
+	if a.Sun == nil {
+		a.Sun = NewSprite(graphic.NewSunImage(16), colorYellow)
+	}
+	a.Sun.MoveTo(int(solarX-8), int(solarY-8))
+	{ //计算月球位置 暂以农历近似
+		lDay := ThisGame.qmGame.Lunar.GetDay()
+		mDays := ThisGame.qmGame.LunarMonthDays
 		degreesM := -(float32(hour)+float32(minute)/60)*15 + float32(lDay-1)/float32(mDays)*360
 		moon := Bodies[301]
 		moonY, moonX := util.CalRadiansPos(cy, cx, moon.DrawR(), degreesM)
@@ -228,6 +225,10 @@ func (a *Astrolabe) Update() {
 		v1 := (&util.Vec2[float32]{X: moon.drawX - cx, Y: moon.drawY - cy}).ScaledToLength(sphereR)
 		moon.sphereX = cx + v1.X
 		moon.sphereY = cy + v1.Y
+		if a.Moon == nil {
+			a.Moon = NewSprite(graphic.NewMoonImage(16), colorWhite)
+		}
+		a.Moon.MoveTo(int(moonX-8), int(moonY-8))
 	}
 
 	m := Bodies[a.observer].mass
@@ -299,6 +300,7 @@ func (a *Astrolabe) Update() {
 		}
 	}
 	a.calGongLocation()
+	a.dirty = false
 	return
 }
 func (a *Astrolabe) updateGravityRange(tid int, gravity float64) {
@@ -319,6 +321,14 @@ func (a *Astrolabe) updateGravityRange(tid int, gravity float64) {
 }
 func (a *Astrolabe) calGongLocation() {
 	cx, cy := a.X, a.Y
+	for i := 1; i <= 12; i++ { //固定宫位
+		degrees := float64(i)*30 - 90
+		r := float64(outCircleR0 - outCircleW*2)
+		ly1, lx1 := util.CalRadiansPos(float64(cy), float64(cx), r-outCircleW/2, degrees)
+		ly2, lx2 := util.CalRadiansPos(float64(cy), float64(cx), r+outCircleW/2, degrees)
+		y, x := util.CalRadiansPos(float64(cy), float64(cx), r, degrees-15)
+		a.AstrolabeLoc[i-1] = gongLocation{float32(lx1), float32(ly1), float32(lx2), float32(ly2), int(x), int(y)}
+	}
 	for i := 1; i <= 12; i++ {
 		degrees := a.tzRA0 + float32(i-1)*30
 		r := float64(outCircleR0)
@@ -385,6 +395,7 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 		vector.StrokeCircle(dst, sX, sY, obj.DrawR(), 1, colorOrbits, true) //planet Orbit
 		if a.observer == obj.Id {
 			//地球观察者
+			a.Earth.Draw(dst)
 		} else {
 			if obj.sphereX == 0 && obj.sphereY == 0 {
 				continue //查询中
@@ -395,10 +406,7 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 			text.Draw(dst, obj.nameCN, ft, int(obj.sphereX), int(obj.sphereY), obj.color)
 		}
 		if obj.Id == 10 { //日
-			op := &ebiten.DrawImageOptions{}
-			op.GeoM.Translate(float64(obj.drawX-8), float64(obj.drawY-8))
-			op.ColorScale.ScaleWithColor(colorYellow)
-			dst.DrawImage(a.Sun, op)
+			a.Sun.Draw(dst)
 		} else {
 			vector.DrawFilledCircle(dst, obj.drawX, obj.drawY, 2, obj.color, true) //planet
 			if obj.drawX2 > 0 && obj.drawY2 > 0 {
@@ -412,10 +420,7 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 				vector.StrokeCircle(dst, obj.drawX, obj.drawY, ob.DrawR(), 1, colorOrbits, true) //satellite Orbit
 				vector.StrokeLine(dst, cx, cy, ob.sphereX, ob.sphereY, 1, colorOrbits, true)     // sphere line
 				//vector.DrawFilledCircle(dst, ob.drawX, ob.drawY, 1, ob.color, true)              //moon
-				op := &ebiten.DrawImageOptions{}
-				op.GeoM.Translate(float64(ob.drawX-8), float64(ob.drawY-8))
-				op.ColorScale.ScaleWithColor(colorWhite)
-				dst.DrawImage(a.Moon, op)
+				a.Moon.Draw(dst)
 
 				text.Draw(dst, ob.nameCN, ft, int(ob.sphereX), int(ob.sphereY), ob.color)
 			} else {
@@ -433,7 +438,7 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 	}
 }
 func (a *Astrolabe) DrawGravity(dst *ebiten.Image) {
-	cx, cy := a.X, a.Y-440
+	cx, cy := a.X+60, a.Y-440
 	for _, id := range Draws {
 		obj := Bodies[id]
 		if obj.gravity > 0 {

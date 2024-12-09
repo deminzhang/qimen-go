@@ -36,7 +36,7 @@ func setWindow() {
 	}
 	ebiten.SetWindowIcon([]image.Image{icon32, icon16})
 	ebiten.SetTPS(TPSRate)
-	ebiten.SetWindowSize(screenWidth, screenHeight)
+	ebiten.SetWindowSize(ScreenWidth, ScreenHeight)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	ebiten.SetWindowTitle("众妙之门")
 }

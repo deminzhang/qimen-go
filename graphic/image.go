@@ -101,6 +101,14 @@ func NewFlagImage(size int) *ebiten.Image {
 	return img
 }
 
+// 地球
+func NewEarthImage(size int) *ebiten.Image {
+	e := ebiten.NewImage(size, size)
+	hs := float32(size / 2)
+	vector.DrawFilledCircle(e, hs, hs, float32(size/4), color.White, true)
+	return e
+}
+
 // 太阳
 func NewSunImage(size int) *ebiten.Image {
 	sun := ebiten.NewImage(size, size)

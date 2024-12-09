@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	ScreenWidth  = screenWidth
-	ScreenHeight = screenHeight
+	ScreenWidth  = initScreenWidth
+	ScreenHeight = initScreenHeight
 	Debug        = false
 )
 
@@ -29,9 +29,7 @@ type game struct {
 	showChar8     bool
 	showAstrolabe bool
 
-	touchIDs []ebiten.TouchID
-	strokes  map[*Stroke]struct{}
-	sprites  []*Sprite
+	StrokeManager
 }
 
 func (g *game) Update() error {
@@ -52,6 +50,7 @@ func (g *game) Update() error {
 			g.qmGame = g.uiQM.NextMinute()
 		}
 	}
+	g.StrokeManager.Update()
 
 	gui.Update()
 	return nil
@@ -93,7 +92,7 @@ func NewGame() *game {
 	pan := u.Apply(solar)
 	g := &game{
 		uiQM:          u,
-		stars:         NewStarEffect(screenWidth/2, 217),
+		stars:         NewStarEffect(float32(ScreenWidth/2), 217),
 		qiMen:         NewQiMenShow(450, 500),
 		astrolabe:     NewAstrolabe(1650, 450),
 		char8:         NewChar8Pan(880, 174),
@@ -101,7 +100,9 @@ func NewGame() *game {
 		showChar8:     true,
 		showAstrolabe: true,
 
-		strokes: map[*Stroke]struct{}{},
+		StrokeManager: StrokeManager{
+			strokes: make(map[*Stroke]struct{}),
+		},
 	}
 
 	return g

@@ -10,12 +10,14 @@ import (
 type Sprite struct {
 	image      *ebiten.Image
 	alphaImage *image.Alpha
+	colorScale color.Color
 	x          int
 	y          int
 	dragged    bool
+	onMove     func(sx, sy, dx, dy int)
 }
 
-func NewSprite(img *ebiten.Image) *Sprite {
+func NewSprite(img *ebiten.Image, c color.Color) *Sprite {
 	w, h := img.Bounds().Dx(), img.Bounds().Dy()
 	alphaImage := image.NewAlpha(image.Rect(0, 0, w, h))
 	for j := 0; j < h; j++ {
@@ -28,6 +30,7 @@ func NewSprite(img *ebiten.Image) *Sprite {
 	return &Sprite{
 		image:      img,
 		alphaImage: alphaImage,
+		colorScale: c,
 	}
 }
 
@@ -44,29 +47,38 @@ func (s *Sprite) In(x, y int) bool {
 
 // MoveTo moves the sprite to the position (x, y).
 func (s *Sprite) MoveTo(x, y int) {
-	w, h := s.image.Bounds().Dx(), s.image.Bounds().Dy()
-
 	s.x = x
 	s.y = y
-	if s.x < 0 {
-		s.x = 0
-	}
-	if s.x > screenWidth-w {
-		s.x = screenWidth - w
-	}
-	if s.y < 0 {
-		s.y = 0
-	}
-	if s.y > screenHeight-h {
-		s.y = screenHeight - h
+	//w, h := s.image.Bounds().Dx(), s.image.Bounds().Dy()
+	//if s.x < 0 {
+	//	s.x = 0
+	//}
+	//if s.x > ScreenWidth-w {
+	//	s.x = ScreenWidth - w
+	//}
+	//if s.y < 0 {
+	//	s.y = 0
+	//}
+	//if s.y > ScreenHeight-h {
+	//	s.y = ScreenHeight - h
+	//}
+}
+
+func (s *Sprite) onMoveTo(sx, sy, dx, dy int) {
+	s.MoveTo(sx+dx, sy+dy)
+	if s.onMove != nil {
+		s.onMove(sx, sy, dx, dy)
 	}
 }
 
 // Draw draws the sprite.
-func (s *Sprite) Draw(screen *ebiten.Image, alpha float32) {
+func (s *Sprite) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(float64(s.x), float64(s.y))
-	op.ColorScale.ScaleAlpha(alpha)
+	op.ColorScale.ScaleWithColor(s.colorScale)
+	if s.dragged {
+		op.ColorScale.ScaleAlpha(0.5)
+	}
 	screen.DrawImage(s.image, op)
 }
 
@@ -135,9 +147,78 @@ func (s *Stroke) Update() {
 	x, y := s.source.Position()
 	x -= s.offsetX
 	y -= s.offsetY
-	s.sprite.MoveTo(x, y)
+	//s.sprite.MoveTo(x, y)
+	s.sprite.onMoveTo(s.sprite.x, s.sprite.y, x-s.sprite.x, y-s.sprite.y)
 }
 
 func (s *Stroke) Sprite() *Sprite {
 	return s.sprite
+}
+
+type StrokeManager struct {
+	touchIDs []ebiten.TouchID
+	strokes  map[*Stroke]struct{}
+	sprites  []*Sprite
+}
+
+func (g *StrokeManager) spriteAt(x, y int) *Sprite {
+	// As the sprites are ordered from back to front,
+	// search the clicked/touched sprite in reverse order.
+	for i := len(g.sprites) - 1; i >= 0; i-- {
+		s := g.sprites[i]
+		if s.In(x, y) {
+			return s
+		}
+	}
+	return nil
+}
+
+func (g *StrokeManager) moveSpriteToFront(sprite *Sprite) {
+	index := -1
+	for i, ss := range g.sprites {
+		if ss == sprite {
+			index = i
+			break
+		}
+	}
+	g.sprites = append(g.sprites[:index], g.sprites[index+1:]...)
+	g.sprites = append(g.sprites, sprite)
+}
+
+func (g *StrokeManager) AddSprite(sprite *Sprite) {
+	g.sprites = append(g.sprites, sprite)
+}
+func (g *StrokeManager) RemoveSprite(sprite *Sprite) {
+	for i, s := range g.sprites {
+		if s == sprite {
+			g.sprites = append(g.sprites[:i], g.sprites[i+1:]...)
+			break
+		}
+	}
+}
+
+func (g *StrokeManager) Update() error {
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		if sp := g.spriteAt(ebiten.CursorPosition()); sp != nil {
+			s := NewStroke(&MouseStrokeSource{}, sp)
+			g.strokes[s] = struct{}{}
+			g.moveSpriteToFront(sp)
+		}
+	}
+	g.touchIDs = inpututil.AppendJustPressedTouchIDs(g.touchIDs[:0])
+	for _, id := range g.touchIDs {
+		if sp := g.spriteAt(ebiten.TouchPosition(id)); sp != nil {
+			s := NewStroke(&TouchStrokeSource{id}, sp)
+			g.strokes[s] = struct{}{}
+			g.moveSpriteToFront(sp)
+		}
+	}
+
+	for s := range g.strokes {
+		s.Update()
+		if !s.sprite.dragged {
+			delete(g.strokes, s)
+		}
+	}
+	return nil
 }
