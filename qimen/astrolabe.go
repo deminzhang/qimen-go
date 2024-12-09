@@ -71,9 +71,8 @@ const (
 	VenusPeriod   = 224.7 * 24 * 60
 	EarthPeriod   = 365.25 * 24 * 60
 	MarsPeriod    = 686.98 * 24 * 60
-	JupiterPeriod = 11.76 * EarthPeriod
-	//JupiterPeriod = 11.95 * EarthPeriod
-	SaturnPeriod = 29.46 * EarthPeriod
+	JupiterPeriod = 11.86 * EarthPeriod
+	SaturnPeriod  = 29.46 * EarthPeriod
 )
 
 // 星体公转起始时间 TODO
@@ -82,6 +81,6 @@ const (
 	Venus0   = "1983-05-27 00:00:00"
 	Earth0   = "1983-05-27 00:00:00"
 	Mars0    = "1983-05-27 00:00:00"
-	Jupiter0 = "1983-09-30 00:00:00"
+	Jupiter0 = "1981-03-27 07:41:00"
 	Saturn0  = "1983-05-27 00:00:00"
 )

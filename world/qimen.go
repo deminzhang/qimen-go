@@ -423,13 +423,13 @@ func (q *QMShow) drawBattle(dst *ebiten.Image) {
 		op.ColorScale.ScaleWithColor(colorWhite)
 		dst.DrawImage(q.Camp, &op)
 
-		op.GeoM.Reset()
-		op.ColorScale.Reset()
-		y, x = q.GetOutCampBornPos(i)
-		op = ebiten.DrawImageOptions{}
-		op.GeoM.Translate(float64(x-16), float64(y-16))
-		op.ColorScale.ScaleWithColor(colorWhite)
-		dst.DrawImage(q.Army, &op)
+		//op.GeoM.Reset()
+		//op.ColorScale.Reset()
+		//y, x = q.GetOutCampBornPos(i)
+		//op = ebiten.DrawImageOptions{}
+		//op.GeoM.Translate(float64(x-16), float64(y-16))
+		//op.ColorScale.ScaleWithColor(colorWhite)
+		//dst.DrawImage(q.Army, &op)
 	}
 }
 

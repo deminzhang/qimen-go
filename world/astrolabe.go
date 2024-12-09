@@ -197,7 +197,6 @@ func (a *Astrolabe) SetPos(x, y float32) {
 }
 func (a *Astrolabe) Update() {
 	a.Dragger.Update()
-	x, y := ebiten.CursorPosition()
 	ox, oy := a.Dragger.Offset()
 	a.X += float32(ox)
 	a.Y += float32(oy)
@@ -281,15 +280,15 @@ func (a *Astrolabe) Update() {
 			v1 := (&util.Vec2[float32]{X: body.drawX - cx, Y: body.drawY - cy}).ScaledToLength(sphereR)
 			body.sphereX = cx + v1.X
 			body.sphereY = cy + v1.Y
-			switch id {
-			case 599:
-				date0, _ := time.Parse(time.DateTime, qimen.Jupiter0)
-				solar0 := calendar.NewSolarFromDate(date0)
-				period := qimen.JupiterPeriod
-				degreesJ := degreesS + float32(360*float64(a.solar.SubtractMinute(solar0))/period)
-				y, x := util.CalRadiansPos(solarY, solarX, body.DrawR()+4, degreesJ)
-				body.drawY2, body.drawX2 = y, x
-			}
+			//switch id {
+			//case 599:
+			//	date0, _ := time.Parse(time.DateTime, qimen.Jupiter0)
+			//	solar0 := calendar.NewSolarFromDate(date0)
+			//	period := qimen.JupiterPeriod
+			//	degreesJ := degreesSO + float32(360*float64(a.solar.SubtractMinute(solar0))/period)
+			//	y, x := util.CalRadiansPos(solarY, solarX, body.DrawR()+4, degreesJ)
+			//	body.drawY2, body.drawX2 = y, x
+			//}
 		}
 		body.gravity = G * body.mass * m / math.Pow(oe.Delta*AU, 2)
 		a.updateGravityRange(id, body.gravity)

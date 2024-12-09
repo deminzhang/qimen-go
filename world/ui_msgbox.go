@@ -11,10 +11,10 @@ const (
 
 type UIMsgBox struct {
 	gui.BaseUI
-	panelBG    *gui.Panel
-	textMain   *gui.TextBox
-	btnConfirm *gui.Button
-	btnCancel  *gui.Button
+	//panelBG    *gui.Panel
+	//textMain   *gui.TextBox
+	//btnConfirm *gui.Button
+	//btnCancel  *gui.Button
 }
 
 func UIShowMsgBox(text, btnText1, btnText2 string, btnClick1, btnClick2 func(b *gui.Button)) {
@@ -27,24 +27,24 @@ func NewUIMsgBox(text, btnText1, btnText2 string, btnClick1, btnClick2 func(b *g
 		X: ScreenWidth/2 - msgBoxUIWidth/2, Y: ScreenHeight/2 - msgBoxUIHeight,
 		W: msgBoxUIWidth, H: msgBoxUIHeight,
 	}}
-	u.panelBG = gui.NewPanel(0, 0, msgBoxUIWidth, msgBoxUIHeight, colorGray)
-	u.textMain = gui.NewTextBox(8, 8, 200, 60)
-	u.btnConfirm = gui.NewButton(40, 70, 48, 16, "confirm")
-	u.btnCancel = gui.NewButton(130, 70, 48, 16, "cancel")
-	u.AddChildren(u.panelBG)
-	u.panelBG.AddChildren(u.textMain, u.btnConfirm, u.btnCancel)
+	panelBG := gui.NewPanel(0, 0, msgBoxUIWidth, msgBoxUIHeight, colorGray)
+	textMain := gui.NewTextBox(8, 8, 200, 60)
+	btnConfirm := gui.NewButton(40, 70, 48, 16, "confirm")
+	btnCancel := gui.NewButton(130, 70, 48, 16, "cancel")
+	u.AddChildren(panelBG)
+	panelBG.AddChildren(textMain, btnConfirm, btnCancel)
 
-	u.textMain.Text = text
-	u.btnConfirm.Text = btnText1
-	u.btnCancel.Text = btnText2
-	u.btnConfirm.SetOnClick(func(b *gui.Button) {
+	textMain.Text = text
+	btnConfirm.Text = btnText1
+	btnCancel.Text = btnText2
+	btnConfirm.SetOnClick(func(b *gui.Button) {
 		if btnClick1 != nil {
 			btnClick1(b)
 		}
 		gui.CloseUI(u)
 	})
-	u.btnCancel.SetOnClick(btnClick2)
-	u.btnCancel.SetOnClick(func(b *gui.Button) {
+	btnCancel.SetOnClick(btnClick2)
+	btnCancel.SetOnClick(func(b *gui.Button) {
 		if btnClick2 != nil {
 			btnClick2(b)
 		}
