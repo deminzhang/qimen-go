@@ -66,19 +66,14 @@ type Astrolabe struct {
 	dataQuerying int
 	Ephemeris    map[string]*ObserveData
 
-	ConstellationLoc [12]gongLocation //星座位
-	AstrolabeLoc     [12]gongLocation //宫位
-	XiuLoc           [28]gongLocation //星宿宫位
+	ConstellationLoc [12]SegmentPos //星座位
+	AstrolabeLoc     [12]SegmentPos //宫位
+	XiuLoc           [28]SegmentPos //星宿宫位
 
 	Earth *Sprite
 	Sun   *Sprite
 	Moon  *Sprite
 }
-type gongLocation struct {
-	lx1, ly1, lx2, ly2 float32 //分割线
-	x, y               int     //文字坐标
-}
-
 type CelestialBody struct {
 	Id          int `gorm:"primarykey" xorm:"pk"`
 	name        string
@@ -160,14 +155,15 @@ var Draws = []int{
 	10, 199, 299, 399, 499, 599, 699, // 799, 899, 999,
 }
 
-func NewAstrolabe(x, y float32) *Astrolabe {
+func NewAstrolabe(x, y int) *Astrolabe {
 	tz, offset := time.Now().Local().Zone()
 	a := &Astrolabe{
-		X: x, Y: y,
+		X: float32(x), Y: float32(y),
 		observer:  399,
 		timezone:  tz,
 		tzOffset:  offset,
 		Ephemeris: make(map[string]*ObserveData),
+		dirty:     true,
 	}
 	var bds []*CelestialBody
 	err := db.Table(CelestialBodyTable).Find(&bds)
@@ -184,13 +180,20 @@ func NewAstrolabe(x, y float32) *Astrolabe {
 }
 func (a *Astrolabe) SetPos(x, y float32) {
 	a.X, a.Y = x, y
+	a.dirty = true
 }
 func (a *Astrolabe) Update() {
-	sCal := ThisGame.qmGame.Solar
-	if a.solar == *sCal && !a.dirty {
+	pan := ThisGame.qmGame
+	sCal := pan.Solar
+	if a.solar != *sCal {
+		a.solar = *sCal
+		a.dirty = true
+	}
+	if !a.dirty {
 		return
 	}
-	a.solar = *sCal
+	a.dirty = false
+
 	hour := sCal.GetHour()
 	minute := sCal.GetMinute()
 
@@ -241,7 +244,7 @@ func (a *Astrolabe) Update() {
 				bd := Bodies[sid]
 				oe := a.GetEphemeris(sid, sCal)
 				if oe == nil {
-					a.solar = calendar.Solar{}
+					a.dirty = true
 					bd.color = colorBlueShift
 					continue
 				}
@@ -257,7 +260,7 @@ func (a *Astrolabe) Update() {
 		}
 		oe := a.GetEphemeris(id, sCal)
 		if oe == nil {
-			a.solar = calendar.Solar{}
+			a.dirty = true
 			continue
 		}
 		switch id {
@@ -300,7 +303,6 @@ func (a *Astrolabe) Update() {
 		}
 	}
 	a.calGongLocation()
-	a.dirty = false
 	return
 }
 func (a *Astrolabe) updateGravityRange(tid int, gravity float64) {
@@ -327,7 +329,7 @@ func (a *Astrolabe) calGongLocation() {
 		ly1, lx1 := util.CalRadiansPos(float64(cy), float64(cx), r-outCircleW/2, degrees)
 		ly2, lx2 := util.CalRadiansPos(float64(cy), float64(cx), r+outCircleW/2, degrees)
 		y, x := util.CalRadiansPos(float64(cy), float64(cx), r, degrees-15)
-		a.AstrolabeLoc[i-1] = gongLocation{float32(lx1), float32(ly1), float32(lx2), float32(ly2), int(x), int(y)}
+		a.AstrolabeLoc[i-1] = SegmentPos{float32(lx1), float32(ly1), float32(lx2), float32(ly2), int(x), int(y)}
 	}
 	for i := 1; i <= 12; i++ {
 		degrees := a.tzRA0 + float32(i-1)*30
@@ -335,7 +337,7 @@ func (a *Astrolabe) calGongLocation() {
 		ly1, lx1 := util.CalRadiansPos(cy, cx, float32(r-outCircleW/2), degrees)
 		ly2, lx2 := util.CalRadiansPos(cy, cx, float32(r+outCircleW/2), degrees)
 		y, x := util.CalRadiansPos(cy, cx, float32(r), degrees+15)
-		a.ConstellationLoc[i-1] = gongLocation{lx1, ly1, lx2, ly2, int(x), int(y)}
+		a.ConstellationLoc[i-1] = SegmentPos{lx1, ly1, lx2, ly2, int(x), int(y)}
 	}
 	for i := 1; i <= 28; i++ {
 		xiu := qimen.Xiu28[i]
@@ -344,7 +346,7 @@ func (a *Astrolabe) calGongLocation() {
 		ly1, lx1 := util.CalRadiansPos(cy, cx, float32(r-outCircleW/2), degrees)
 		ly2, lx2 := util.CalRadiansPos(cy, cx, float32(r+outCircleW/2), degrees)
 		y, x := util.CalRadiansPos(cy, cx, float32(r), degrees+6.4285)
-		a.XiuLoc[i-1] = gongLocation{lx1, ly1, lx2, ly2, int(x), int(y)}
+		a.XiuLoc[i-1] = SegmentPos{lx1, ly1, lx2, ly2, int(x), int(y)}
 	}
 }
 func (a *Astrolabe) DataQuerying() bool {
@@ -377,17 +379,18 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 	//画12宫
 	for i := 0; i < 12; i++ {
 		l := a.ConstellationLoc[i]
-		vector.StrokeLine(dst, l.lx1, l.ly1, l.lx2, l.ly2, 1, colorGongSplit, true)                  //星宫
-		text.Draw(dst, fmt.Sprintf("%s", qimen.ConstellationShort[i]), ft, l.x-6, l.y+6, colorJiang) //星座
+		vector.StrokeLine(dst, l.Lx1, l.Ly1, l.Lx2, l.Ly2, 1, colorGongSplit, true) //星宫
+		//text.Draw(dst, qimen.ConstellationSymbol[i], ft, l.X-6, l.Y+6, colorJiang)  //星座符号 需要字体支持
+		text.Draw(dst, qimen.ConstellationShort[i], ft, l.X-6, l.Y+6, colorJiang) //星座
 		l = a.AstrolabeLoc[i]
-		vector.StrokeLine(dst, l.lx1, l.ly1, l.lx2, l.ly2, 1, colorGongSplit, true) //宫
-		text.Draw(dst, fmt.Sprintf("%d", i+1), ft, l.x-4, l.y+4, colorJiang)        //宫位
+		vector.StrokeLine(dst, l.Lx1, l.Ly1, l.Lx2, l.Ly2, 1, colorGongSplit, true) //宫
+		text.Draw(dst, fmt.Sprintf("%d", i+1), ft, l.X-4, l.Y+4, colorJiang)        //宫位
 	}
 	//画28星宿
 	for i := 1; i <= 28; i++ {
 		l := a.XiuLoc[i-1]
-		vector.StrokeLine(dst, l.lx1, l.ly1, l.lx2, l.ly2, 1, colorGongSplit, true) //星宿
-		text.Draw(dst, qimen.Xiu28[i], ft, l.x-4, l.y+4, colorJiang)                //星宿
+		vector.StrokeLine(dst, l.Lx1, l.Ly1, l.Lx2, l.Ly2, 1, colorGongSplit, true) //星宿
+		text.Draw(dst, qimen.Xiu28[i], ft, l.X-4, l.Y+4, colorJiang)                //星宿
 	}
 	//画星体
 	for _, id := range Draws {
@@ -395,7 +398,9 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 		vector.StrokeCircle(dst, sX, sY, obj.DrawR(), 1, colorOrbits, true) //planet Orbit
 		if a.observer == obj.Id {
 			//地球观察者
-			a.Earth.Draw(dst)
+			if a.Earth != nil {
+				a.Earth.Draw(dst)
+			}
 		} else {
 			if obj.sphereX == 0 && obj.sphereY == 0 {
 				continue //查询中
@@ -403,10 +408,13 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 			vector.StrokeLine(dst, cx, cy, obj.sphereX, obj.sphereY, 1, colorOrbits, true) // sphere line
 			//vector.DrawFilledCircle(dst, obj.sphereX, obj.sphereY, 2, obj.color, true)     // sphere
 
+			text.Draw(dst, qimen.StarSymbol[obj.nameCN], ft, int(obj.sphereX-8), int(obj.sphereY-8), obj.color) //星体符号需要字体支持
 			text.Draw(dst, obj.nameCN, ft, int(obj.sphereX), int(obj.sphereY), obj.color)
 		}
 		if obj.Id == 10 { //日
-			a.Sun.Draw(dst)
+			if a.Sun != nil {
+				a.Sun.Draw(dst)
+			}
 		} else {
 			vector.DrawFilledCircle(dst, obj.drawX, obj.drawY, 2, obj.color, true) //planet
 			if obj.drawX2 > 0 && obj.drawY2 > 0 {
@@ -420,8 +428,9 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 				vector.StrokeCircle(dst, obj.drawX, obj.drawY, ob.DrawR(), 1, colorOrbits, true) //satellite Orbit
 				vector.StrokeLine(dst, cx, cy, ob.sphereX, ob.sphereY, 1, colorOrbits, true)     // sphere line
 				//vector.DrawFilledCircle(dst, ob.drawX, ob.drawY, 1, ob.color, true)              //moon
-				a.Moon.Draw(dst)
-
+				if a.Moon != nil {
+					a.Moon.Draw(dst)
+				}
 				text.Draw(dst, ob.nameCN, ft, int(ob.sphereX), int(ob.sphereY), ob.color)
 			} else {
 				my, mx := util.CalRadiansPos(obj.drawY, obj.drawX, ob.DrawR(), float32(rand.Intn(360)))

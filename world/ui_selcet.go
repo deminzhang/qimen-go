@@ -107,12 +107,6 @@ func NewUISelect(solar *calendar.Solar, gender int, onOK func(*calendar.Solar, i
 		inputSDay.SetText(s.GetDay())
 		inputSHour.SetText(s.GetHour())
 		inputSMin.SetText(s.GetMinute())
-		g := GenderFemale
-		if opMale.Selected() {
-			g = GenderMale
-		}
-		onOK(s, g)
-		gui.CloseUI(p)
 	})
 	return p
 }

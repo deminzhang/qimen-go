@@ -21,6 +21,7 @@ var (
 	colorBlue             color.Color = &color.RGBA{0x00, 0x00, 0xff, 0xff}
 	colorYellow           color.Color = &color.RGBA{0xff, 0xff, 0x00, 0xff}
 	colorPurple           color.Color = &color.RGBA{0xff, 0x00, 0xff, 0xff}
+	colorGrayB            color.Color = &color.RGBA{0xb0, 0xb0, 0xb0, 0xff}
 	colorGray             color.Color = &color.RGBA{0x80, 0x80, 0x80, 0xff}
 	colorPink             color.Color = &color.RGBA{0xff, 0x80, 0x80, 0xff}
 	colorGongSplit        color.Color = &color.RGBA{0x00, 0x00, 0x00, 0xff}
@@ -80,6 +81,11 @@ var GenderName = []string{"女", "男"}
 var GenderSoul = []string{"坤造", "乾造"}
 
 //var GenderSymbol = []string{"♀", "♂"}
+
+type SegmentPos struct {
+	Lx1, Ly1, Lx2, Ly2 float32 //分隔线
+	X, Y               int     //坐标
+}
 
 func GetHideGan(gan string, idx int) string {
 	a := LunarUtil.ZHI_HIDE_GAN[gan]

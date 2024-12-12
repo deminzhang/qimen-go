@@ -273,7 +273,7 @@ func (g *Char8Pan) Draw(dst *ebiten.Image) {
 	ft12, _ := GetFontFace(12)
 	ft14, _ := GetFontFace(14)
 	ft28, _ := GetFontFace(28)
-	//cx, cy := g.X, g.Y
+
 	cx, cy := 0, 0
 	p := g.Player
 	bz := p.Birth.GetEightChar()

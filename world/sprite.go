@@ -17,6 +17,8 @@ type Sprite struct {
 	onMove     func(sx, sy, dx, dy int)
 }
 
+// NewSprite creates a new sprite.
+// 需ebiten.Game 运行起来后用,否则可能会报错
 func NewSprite(img *ebiten.Image, c color.Color) *Sprite {
 	w, h := img.Bounds().Dx(), img.Bounds().Dy()
 	alphaImage := image.NewAlpha(image.Rect(0, 0, w, h))

@@ -71,8 +71,9 @@ func (g *game) Draw(screen *ebiten.Image) {
 func (g *game) Layout(w, h int) (int, int) {
 	ScreenWidth = w
 	ScreenHeight = h
-	if g.qiMen != nil {
+	if g.qiMen != nil && g.qiMen.Y != float32(h/2) {
 		g.qiMen.Y = float32(h / 2)
+		g.qiMen.dirty = true
 	}
 	if g.uiQM != nil {
 		g.uiQM.W = w - g.uiQM.X

@@ -4,10 +4,14 @@ package qimen
 
 var Constellation = []string{"Ari", "Tau", "Gem", "Can", "Leo", "Vir", "Lib", "Sco", "Sgr", "Cap", "Aqr", "Psc"}
 var ConstellationShort = []string{"羊", "牛", "双", "蟹", "狮", "室", "秤", "蝎", "射", "摩", "瓶", "鱼"}
+var ConstellationSymbol = []string{"♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓"} //需字体支持
 var ConstellationCN = map[string]string{
 	"Ari": "白羊座", "Tau": "金牛座", "Gem": "双子座", "Can": "巨蟹座",
 	"Leo": "狮子座", "Vir": "室女座", "Lib": "天秤座", "Sco": "天蝎座",
 	"Sgr": "射手座", "Cap": "摩羯座", "Aqr": "水瓶座", "Psc": "双鱼座",
+}
+var StarSymbol = map[string]string{ //☉☀☽☿♀♂♃♄♅♆♇♈♉♊♋♌♍♎♏♐♑♒♓ 需字体支持
+	"日": "☉", "月": "☽", "水": "水", "金": "♀", "火": "♂", "木": "ㄐ", "土": "ち", "天": "♅", "海": "Ψ",
 }
 
 // AstrolabeGong 星盘宫名
