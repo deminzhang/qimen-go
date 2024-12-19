@@ -88,10 +88,13 @@ func NewBig6(l *calendar.Lunar) *Big6Ren {
 		}
 	}
 	//起四课 TODO
-	k := &pan.Ke
-	k[0] = LunarUtil.ZHI[dayGanIdx]
+	pan.Ke[0] = LunarUtil.ZHI[dayGanIdx]
 
-	k[4] = LunarUtil.ZHI[dayZhiIdx]
+	pan.Ke[2] = pan.Ke[1]
+
+	pan.Ke[4] = LunarUtil.ZHI[dayZhiIdx]
+	
+	pan.Ke[6] = pan.Ke[5]
 
 	//定三传 TODO
 

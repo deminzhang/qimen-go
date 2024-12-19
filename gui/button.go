@@ -40,23 +40,35 @@ func NewButton(x, y, w, h int, text string) *Button {
 }
 
 // NewTextButton 按text长度自动调整大小无背景UI
-func NewTextButton(x, y int, text string, textColor, bgColor color.Color) *Button {
-	return &Button{BaseUI: BaseUI{Visible: true, X: x, Y: y, W: 1, H: 1, BDColor: bgColor},
+func NewTextButton(x, y int, text string, textColor, bdColor color.Color) *Button {
+	return &Button{BaseUI: BaseUI{Visible: true, X: x, Y: y, W: 1, H: 1, BDColor: bdColor},
 		Text:           text,
 		TextColor:      textColor,
 		AutoSizeByText: true,
 	}
 }
 
-func (b *Button) updateClick() {
-	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-		mx, my := ebiten.CursorPosition()
-		x, y := b.GetWorldXY()
-		if x <= mx && mx < x+b.W && y <= my && my < y+b.H {
-			b.mouseDown = true
-		} else {
-			b.mouseDown = false
+func (b *Button) updateMouse() {
+	mx, my := ebiten.CursorPosition()
+	x, y := b.GetWorldXY()
+	cursorIn := x <= mx && mx < x+b.W && y <= my && my < y+b.H
+	if cursorIn {
+		if !b.mouseHover {
+			b.mouseHover = true
+			if b.onHover != nil {
+				b.onHover(b)
+			}
 		}
+	} else {
+		if b.mouseHover {
+			b.mouseHover = false
+			if b.onHout != nil {
+				b.onHout(b)
+			}
+		}
+	}
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
+		b.mouseDown = cursorIn
 	} else {
 		if b.mouseDown {
 			if b.onClick != nil {
@@ -80,7 +92,7 @@ func (b *Button) Update() {
 	}
 	b.textX = (b.W - w) / 2
 	b.textY = b.H - (b.H-uiFontMHeight)/2
-	b.updateClick()
+	b.updateMouse()
 }
 
 func (b *Button) Draw(dst *ebiten.Image) {

@@ -280,6 +280,7 @@ func (q *QMShow) drawHead(dst *ebiten.Image) {
 	text.Draw(dst, "击刑", ft, px, 96+16*11, colorJiXing)
 	text.Draw(dst, "门迫", ft, px, 96+16*12, colorMengPo)
 	text.Draw(dst, "入墓", ft, px, 96+16*13, colorTomb)
+	text.Draw(dst, "刑墓", ft, px, 96+16*14, colorXingMu)
 
 }
 func (q *QMShow) drawTaiJi(dst *ebiten.Image) {
@@ -365,9 +366,17 @@ func (q *QMShow) drawGong(dst *ebiten.Image, x, y float32, g *qimen.QMPalace) {
 	//text.Draw(dst, "", ft, int(x+8+32), int(y), colorGray)           //中寄
 	guestGanTomb := qimen.ZhiGong9[qimen.QMTomb[g.GuestGan]] == g.Idx
 	jiXing := g.God == "值符" && qimen.ZhiGong9[qimen.QM6YiJiXing[pp.Xun]] == g.Idx
-	text.Draw(dst, g.GuestGan, ft, int(x+64+24), int(y), util.If(jiXing, colorJiXing,
-		util.If(guestGanTomb, colorTomb, colorWhite))) //天盘干
-	if g.GuestGan == pp.Gan {
+	guestGanCC := colorWhite
+	if jiXing {
+		guestGanCC = colorJiXing
+		if guestGanTomb {
+			guestGanCC = colorXingMu
+		}
+	} else if guestGanTomb {
+		guestGanCC = colorTomb
+	}
+	text.Draw(dst, g.GuestGan, ft, int(x+64+24), int(y), guestGanCC) //天盘干
+	if g.GuestGan == pp.Gan && pp == qm.TimePan {
 		vector.StrokeRect(dst, x+64+24, y-12, 16, 16, 1, colorDuty, true)
 	}
 	y += 32                                                                                            //地盘
@@ -382,7 +391,16 @@ func (q *QMShow) drawGong(dst *ebiten.Image, x, y float32, g *qimen.QMPalace) {
 		dst.DrawImage(q.DutyFlag, &op)
 	}
 	hostGanTomb := qimen.ZhiGong9[qimen.QMTomb[g.HostGan]] == g.Idx
-	text.Draw(dst, g.HostGan, ft, int(x+64+24), int(y), util.If(hostGanTomb, colorTomb, colorWhite)) //地盘干
+	hostGanCC := colorWhite
+	if jiXing {
+		hostGanCC = colorJiXing
+		if hostGanTomb {
+			hostGanCC = colorXingMu
+		}
+	} else if hostGanTomb {
+		hostGanCC = colorTomb
+	}
+	text.Draw(dst, g.HostGan, ft, int(x+64+24), int(y), hostGanCC) //地盘干
 	y += 20
 	if g.Idx == pp.Duty { //地符
 		text.Draw(dst, "值符", ft, int(x+24), int(y), colorGray)

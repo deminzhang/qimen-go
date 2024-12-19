@@ -100,9 +100,23 @@ func NewChar8Pan(x, y int) *Char8Pan {
 			btnSplit.Visible = true
 		})
 	})
+	btnMarry.SetOnHover(func(b *gui.Button) {
+		cx, cy := ebiten.CursorPosition()
+		UIShowTips(cx, cy, []string{"选择配偶生辰"})
+	})
+	btnMarry.SetOnHout(func(b *gui.Button) {
+		UIHideTips()
+	})
 	btnSplit.SetOnClick(func(b *gui.Button) {
 		btnSplit.Visible = false
 		ThisGame.char8.Player.Mate = nil
+	})
+	btnSplit.SetOnHover(func(b *gui.Button) {
+		cx, cy := ebiten.CursorPosition()
+		UIShowTips(cx, cy, []string{"解除配偶关系"})
+	})
+	btnSplit.SetOnHout(func(b *gui.Button) {
+		UIHideTips()
 	})
 	btnSplit.Visible = false
 
