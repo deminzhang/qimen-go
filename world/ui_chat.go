@@ -81,7 +81,7 @@ func NewUIChat() *UIChat {
 		textBoxLog.AppendLine(msg)
 	})
 	checkBoxGM.SetChecked(true)
-	btnChatSend.SetOnClick(func(b *gui.Button) {
+	btnChatSend.SetOnClick(func() {
 		i := inputBoxChat
 		if i.Text() != "" {
 			i.SetFocused(false)
@@ -99,12 +99,12 @@ func NewUIChat() *UIChat {
 			textBoxLog.AppendLine("no input msg")
 		}
 	})
-	btnChatSwitch.SetOnClick(func(b *gui.Button) {
+	btnChatSwitch.SetOnClick(func() {
 		p.showChatUI = !p.showChatUI
 		if p.showChatUI {
-			b.Text = "隐"
+			btnChatSwitch.Text = "隐"
 		} else {
-			b.Text = "令"
+			btnChatSwitch.Text = "令"
 		}
 		textBoxLog.Visible = p.showChatUI
 		inputBoxChat.Visible = p.showChatUI
@@ -113,10 +113,10 @@ func NewUIChat() *UIChat {
 		btnClear.Visible = p.showChatUI
 		btnCopy.Visible = p.showChatUI
 	})
-	btnClear.SetOnClick(func(b *gui.Button) {
+	btnClear.SetOnClick(func() {
 		textBoxLog.Text = ""
 	})
-	btnCopy.SetOnClick(func(b *gui.Button) {
+	btnCopy.SetOnClick(func() {
 		clipboard.WriteAll(textBoxLog.Text)
 	})
 

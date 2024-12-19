@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/6tail/lunar-go/calendar"
 	"github.com/deminzhang/qimen-go/gui"
+	"github.com/hajimehoshi/ebiten/v2"
 	"strconv"
 	"time"
 )
@@ -29,8 +30,9 @@ func UIShowSelectBirth(date *calendar.Solar, gender int, onOK func(*calendar.Sol
 }
 
 func NewUISelect(solar *calendar.Solar, gender int, onOK func(*calendar.Solar, int)) *UISelect {
+	ww, wh := ebiten.WindowSize()
 	p := &UISelect{BaseUI: gui.BaseUI{Visible: true,
-		X: ScreenWidth/2 - selectUIWidth/2, Y: ScreenHeight/2 - selectUIHeight/2,
+		X: ww/2 - selectUIWidth/2, Y: wh/2 - selectUIHeight/2,
 		W: selectUIWidth, H: selectUIHeight,
 	}}
 	px0, py0 := 0, 0
@@ -77,10 +79,10 @@ func NewUISelect(solar *calendar.Solar, gender int, onOK func(*calendar.Solar, i
 		opMale.Select()
 	}
 
-	btnX.SetOnClick(func(b *gui.Button) {
+	btnX.SetOnClick(func() {
 		gui.CloseUI(p)
 	})
-	btnOK.SetOnClick(func(b *gui.Button) {
+	btnOK.SetOnClick(func() {
 		defer func() {
 			s := recover()
 			if s != nil {
@@ -100,7 +102,7 @@ func NewUISelect(solar *calendar.Solar, gender int, onOK func(*calendar.Solar, i
 		onOK(s, g)
 		gui.CloseUI(p)
 	})
-	btnNow.SetOnClick(func(b *gui.Button) {
+	btnNow.SetOnClick(func() {
 		s := calendar.NewSolarFromDate(time.Now())
 		inputSYear.SetText(s.GetYear())
 		inputSMonth.SetText(s.GetMonth())

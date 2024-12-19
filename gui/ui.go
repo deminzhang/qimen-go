@@ -109,6 +109,9 @@ type BaseUI struct {
 	BDColor     color.Color
 	Image       *ebiten.Image
 	DrawOp      ebiten.DrawImageOptions
+	mouseHover  bool
+	onHover     func()
+	onHout      func()
 }
 
 func (u *BaseUI) IsDisabled() bool {
@@ -116,6 +119,13 @@ func (u *BaseUI) IsDisabled() bool {
 }
 func (u *BaseUI) IsVisible() bool {
 	return u.Visible
+}
+
+func (u *BaseUI) SetOnHover(f func()) {
+	u.onHover = f
+}
+func (u *BaseUI) SetOnHout(f func()) {
+	u.onHout = f
 }
 
 // GetWH 获取宽高
@@ -195,6 +205,25 @@ func (u *BaseUI) Update() {
 	for _, p := range u.children {
 		if !p.IsDisabled() && p.IsVisible() {
 			p.Update()
+		}
+	}
+
+	mx, my := ebiten.CursorPosition()
+	x, y := u.GetWorldXY()
+	cursorIn := x <= mx && mx < x+u.W && y <= my && my < y+u.H
+	if cursorIn {
+		if !u.mouseHover {
+			u.mouseHover = true
+			if u.onHover != nil {
+				u.onHover()
+			}
+		}
+	} else {
+		if u.mouseHover {
+			u.mouseHover = false
+			if u.onHout != nil {
+				u.onHout()
+			}
 		}
 	}
 }

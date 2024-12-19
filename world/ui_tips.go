@@ -8,14 +8,12 @@ import (
 )
 
 const (
-	tipsUIWidth  = 200
-	tipsUIHeight = 110
+	tipsUIWidth  = 100
+	tipsUIHeight = 32
 )
 
 type UITips struct {
 	gui.BaseUI
-	textMain  *gui.TextBox
-	textLines []string
 }
 
 var tipsUI *UITips
@@ -36,47 +34,63 @@ func UIHideTips() {
 
 func NewUITips(x, y int, textLines []string) *UITips {
 	if tipsUI != nil {
-		tipsUI.textLines = textLines
-		return nil
+		UIHideTips()
 	}
 	u := &UITips{BaseUI: gui.BaseUI{Visible: true,
 		X: x, Y: y,
 		W: tipsUIWidth, H: tipsUIHeight,
 	}}
-	u.SetText(textLines)
-	panelBG := gui.NewPanel(0, 0, msgBoxUIWidth, msgBoxUIHeight, color.RGBA{A: 0xcc})
-	panelBG.BDColor = colorLeader
+	
+	txt := gui.NewTextBox(0, 0, tipsUIWidth-16, tipsUIHeight-16)
+	txt.BGColor = nil
+	txt.UIImage = nil
+	txt.TextColor = colorWhite
+	txt.Text = strings.Join(textLines, "\n")
+	w, h := txt.ContentSize()
+	if w > u.W-8 {
+		u.W = w + 8
+		txt.W = w
+	}
+	if h > u.H-8 {
+		u.H = h + 8
+		txt.H = h
+	}
+	panelBG := gui.NewPanel(0, 0, txt.W, txt.H, color.RGBA{A: 0xcc})
+	panelBG.BDColor = colorYellow
+	panelBG.AddChildren(txt)
 	u.AddChildren(panelBG)
-	textMain := gui.NewTextBox(0, 0, msgBoxUIWidth-16, msgBoxUIHeight-16)
-	textMain.BGColor = nil
-	textMain.UIImage = nil
-	textMain.TextColor = colorWhite
-	panelBG.AddChildren(textMain)
-	textMain.Text = strings.Join(textLines, "\n")
-	u.textMain = textMain
+	u.relocate()
 	return u
 }
-func (u *UITips) SetText(texts []string) {
-	u.textLines = texts
-	// TODO resize by texts
-}
-func (u *UITips) Update() {
-	u.BaseUI.Update()
+func (u *UITips) relocate() {
 	x, y := ebiten.CursorPosition()
-	if x > ScreenWidth-tipsUIWidth {
-		x = ScreenWidth - tipsUIWidth
+	ww, wh := ebiten.WindowSize()
+	if x > ww-u.W {
+		if x-u.W > 0 {
+			x = x - u.W //左翻
+		} else {
+			x = ww - u.W
+		}
 	}
 	if x < 0 {
 		x = 0
 	}
-	if y > ScreenHeight-tipsUIHeight {
-		y = ScreenHeight - tipsUIHeight
+	if y > wh-u.H {
+		if y-u.H > 0 {
+			y = y - u.H //上翻
+		} else {
+			y = wh - u.H
+		}
 	}
 	if y < 0 {
 		y = 0
 	}
 	u.X = x
 	u.Y = y
+}
+
+func (u *UITips) Update() {
+	u.BaseUI.Update()
 }
 
 func (u *UITips) Draw(screen *ebiten.Image) {

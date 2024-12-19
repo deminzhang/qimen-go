@@ -20,11 +20,8 @@ type Button struct {
 	ImageRect        image.Rectangle
 	ImageRectPressed image.Rectangle
 
-	mouseDown  bool
-	onClick    func(b *Button)
-	mouseHover bool
-	onHover    func(b *Button)
-	onHout     func(b *Button)
+	mouseDown bool
+	onClick   func()
 }
 
 func NewButton(x, y, w, h int, text string) *Button {
@@ -52,28 +49,13 @@ func (b *Button) updateMouse() {
 	mx, my := ebiten.CursorPosition()
 	x, y := b.GetWorldXY()
 	cursorIn := x <= mx && mx < x+b.W && y <= my && my < y+b.H
-	if cursorIn {
-		if !b.mouseHover {
-			b.mouseHover = true
-			if b.onHover != nil {
-				b.onHover(b)
-			}
-		}
-	} else {
-		if b.mouseHover {
-			b.mouseHover = false
-			if b.onHout != nil {
-				b.onHout(b)
-			}
-		}
-	}
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		b.mouseDown = cursorIn
 	} else {
 		if b.mouseDown {
 			if b.onClick != nil {
 				if !IsFrameClick() {
-					b.onClick(b)
+					b.onClick()
 					SetFrameClick()
 				}
 			}
@@ -114,18 +96,12 @@ func (b *Button) Draw(dst *ebiten.Image) {
 	}
 }
 
-func (b *Button) SetOnClick(f func(b *Button)) {
+func (b *Button) SetOnClick(f func()) {
 	b.onClick = f
-}
-func (b *Button) SetOnHover(f func(b *Button)) {
-	b.onHover = f
-}
-func (b *Button) SetOnHout(f func(b *Button)) {
-	b.onHout = f
 }
 
 func (b *Button) Click() {
 	if b.onClick != nil {
-		b.onClick(b)
+		b.onClick()
 	}
 }

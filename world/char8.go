@@ -56,7 +56,7 @@ func NewChar8Pan(x, y int) *Char8Pan {
 		EnergyEffect: make(map[string]*Line),
 	}
 	btnBirth := gui.NewTextButton(350, 386, "命造", colorYellow, colorGray)
-	btnBirth.SetOnClick(func(b *gui.Button) {
+	btnBirth.SetOnClick(func() {
 		oldBirthTime := ThisGame.char8.Player.Birth
 		var oldBirthSolar *calendar.Solar
 		if oldBirthTime != nil {
@@ -65,6 +65,13 @@ func NewChar8Pan(x, y int) *Char8Pan {
 		UIShowSelectBirth(oldBirthSolar, ThisGame.char8.Player.Gender, func(birth *calendar.Solar, gender int) {
 			ThisGame.char8.Player.Reset(calendar.NewLunarFromSolar(birth), gender)
 		})
+	})
+	btnBirth.SetOnHover(func() {
+		cx, cy := ebiten.CursorPosition()
+		UIShowTips(cx, cy, []string{"选择生辰"})
+	})
+	btnBirth.SetOnHout(func() {
+		UIHideTips()
 	})
 	cbShowBody := gui.NewCheckBox(144, 0, "身象")
 	cbShowBody.SetOnCheckChanged(func(c *gui.CheckBox) {
@@ -83,7 +90,7 @@ func NewChar8Pan(x, y int) *Char8Pan {
 	//cbShowBody.SetChecked(false)
 	btnMarry := gui.NewTextButton(350, 418, "择偶", colorPink, colorGray)
 	btnSplit := gui.NewTextButton(350, 518, "和离", colorGreen, colorGray)
-	btnMarry.SetOnClick(func(b *gui.Button) {
+	btnMarry.SetOnClick(func() {
 		mate := ThisGame.char8.Player.Mate
 		if mate == nil {
 			mate = &Player{}
@@ -100,22 +107,22 @@ func NewChar8Pan(x, y int) *Char8Pan {
 			btnSplit.Visible = true
 		})
 	})
-	btnMarry.SetOnHover(func(b *gui.Button) {
+	btnMarry.SetOnHover(func() {
 		cx, cy := ebiten.CursorPosition()
 		UIShowTips(cx, cy, []string{"选择配偶生辰"})
 	})
-	btnMarry.SetOnHout(func(b *gui.Button) {
+	btnMarry.SetOnHout(func() {
 		UIHideTips()
 	})
-	btnSplit.SetOnClick(func(b *gui.Button) {
+	btnSplit.SetOnClick(func() {
 		btnSplit.Visible = false
 		ThisGame.char8.Player.Mate = nil
 	})
-	btnSplit.SetOnHover(func(b *gui.Button) {
+	btnSplit.SetOnHover(func() {
 		cx, cy := ebiten.CursorPosition()
 		UIShowTips(cx, cy, []string{"解除配偶关系"})
 	})
-	btnSplit.SetOnHout(func(b *gui.Button) {
+	btnSplit.SetOnHout(func() {
 		UIHideTips()
 	})
 	btnSplit.Visible = false

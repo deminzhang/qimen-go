@@ -243,7 +243,7 @@ func NewUIQiMen() *UIQiMen {
 		ThisGame.autoMinute = c.Checked()
 	})
 
-	p.btnCalc.SetOnClick(func(b *gui.Button) {
+	p.btnCalc.SetOnClick(func() {
 		defer func() {
 			s := recover()
 			if s != nil {
@@ -268,7 +268,7 @@ func NewUIQiMen() *UIQiMen {
 		solar := calendar.NewSolar(year, month, day, hour, minute, 0)
 		p.Apply(solar)
 	})
-	p.btnNow.SetOnClick(func(b *gui.Button) {
+	p.btnNow.SetOnClick(func() {
 		defer func() {
 			s := recover()
 			if s != nil {
@@ -288,7 +288,7 @@ func NewUIQiMen() *UIQiMen {
 		}
 		p.Apply(solar)
 	})
-	p.btnPreJu.SetOnClick(func(b *gui.Button) {
+	p.btnPreJu.SetOnClick(func() {
 		var solar *calendar.Solar
 		switch p.qmParams.YMDH {
 		case qimen.QMGameYear:
@@ -302,7 +302,7 @@ func NewUIQiMen() *UIQiMen {
 		}
 		p.Apply(solar)
 	})
-	p.btnNextJu.SetOnClick(func(b *gui.Button) {
+	p.btnNextJu.SetOnClick(func() {
 		var solar *calendar.Solar
 		switch p.qmParams.YMDH {
 		case qimen.QMGameYear:
