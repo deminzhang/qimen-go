@@ -95,7 +95,7 @@ func (o *OptionBox) Draw(dst *ebiten.Image) {
 	x := o.boxWidth // + o.boxPaddingLeft
 	y := (16) - (16-uiFontMHeight)/2
 	if o.Disabled {
-		text.Draw(dst, o.Text, uiFont, x, y, color.Gray16{Y: 0x8888})
+		text.Draw(dst, o.Text, uiFont, x, y, color.Gray{Y: 128})
 	} else {
 		text.Draw(dst, o.Text, uiFont, x, y, color.White)
 	}

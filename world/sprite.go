@@ -8,13 +8,15 @@ import (
 )
 
 type Sprite struct {
-	image      *ebiten.Image
-	alphaImage *image.Alpha
-	colorScale color.Color
-	x          int
-	y          int
-	dragged    bool
-	onMove     func(sx, sy, dx, dy int)
+	image       *ebiten.Image
+	alphaImage  *image.Alpha
+	colorScale  color.Color
+	x           int
+	y           int
+	DisableMove bool
+	dragged     bool
+	onMove      func(sx, sy, dx, dy int)
+	//onClick     func(x, y int) //TODO
 }
 
 // NewSprite creates a new sprite.
@@ -210,9 +212,11 @@ func (g *StrokeManager) Update() error {
 	g.touchIDs = inpututil.AppendJustPressedTouchIDs(g.touchIDs[:0])
 	for _, id := range g.touchIDs {
 		if sp := g.spriteAt(ebiten.TouchPosition(id)); sp != nil {
-			s := NewStroke(&TouchStrokeSource{id}, sp)
-			g.strokes[s] = struct{}{}
-			g.moveSpriteToFront(sp)
+			if !sp.DisableMove {
+				s := NewStroke(&TouchStrokeSource{id}, sp)
+				g.strokes[s] = struct{}{}
+				g.moveSpriteToFront(sp)
+			}
 		}
 	}
 

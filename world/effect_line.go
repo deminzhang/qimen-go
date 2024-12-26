@@ -12,10 +12,11 @@ type Line struct {
 	sx, sy, tx, ty                            float32 // start, target
 	fromX, fromY, tox, toy, brightness, scale float32 // position, brightness, scale
 	dx, dy                                    float32 // length 长度分量 delta
+	speed                                     float32 // 速度
 }
 
-func NewLine(sx, sy, tx, ty, scale float32) Line {
-	return Line{sx: sx, sy: sy, tx: tx, ty: ty, scale: scale}
+func NewLine(sx, sy, tx, ty, scale, speed float32) Line {
+	return Line{sx: sx, sy: sy, tx: tx, ty: ty, scale: scale, speed: speed}
 }
 
 func (s *Line) Init(scale float32) {
@@ -28,8 +29,8 @@ func (s *Line) Init(scale float32) {
 
 	s.fromX = s.sx
 	s.fromY = s.sy
-	s.tox = s.fromX + s.dx*.2
-	s.toy = s.fromY + s.dy*.2
+	s.tox = s.fromX + s.dx*(s.speed+.01)
+	s.toy = s.fromY + s.dy*(s.speed+.01)
 }
 
 func (s *Line) Update() {
@@ -41,14 +42,14 @@ func (s *Line) Update() {
 	}
 
 	maxDis := float32(math.Sqrt(float64((s.tx-s.sx)*(s.tx-s.sx) + (s.ty-s.sy)*(s.ty-s.sy))))
-	s.tox += s.dx * .1
-	s.toy += s.dy * .1
+	s.tox += s.dx * s.speed
+	s.toy += s.dy * s.speed
 	headDis := float32(math.Sqrt(float64((s.tox-s.sx)*(s.tox-s.sx) + (s.toy-s.sy)*(s.toy-s.sy))))
 	if headDis > maxDis { //头部到达目标点
 		s.tox = s.tx
 		s.toy = s.ty
-		s.fromX += s.dx * .1
-		s.fromY += s.dy * .1
+		s.fromX += s.dx * s.speed
+		s.fromY += s.dy * s.speed
 		ll := float32(math.Sqrt(float64((s.tox-s.fromX)*(s.tox-s.fromX) + (s.toy-s.fromY)*(s.toy-s.fromY))))
 		if ll < 1 {
 			s.Init(s.scale)

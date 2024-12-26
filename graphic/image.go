@@ -9,6 +9,17 @@ import (
 	"image/color"
 )
 
+func NewRectImage(size int) *ebiten.Image {
+	e := ebiten.NewImage(size, size)
+	vector.DrawFilledRect(e, 0, 0, float32(size), float32(size), color.White, true)
+	return e
+}
+func NewCircleImage(size int) *ebiten.Image {
+	e := ebiten.NewImage(size, size)
+	vector.DrawFilledCircle(e, float32(size/2), float32(size/2), float32(size/2), color.White, true)
+	return e
+}
+
 // 太极
 func NewTaiJiImage(size int) *ebiten.Image {
 	halfSize := float32(size / 2)
@@ -93,6 +104,17 @@ func NewBaGuaImage(gua string, size int) *ebiten.Image {
 	return bg
 }
 
+// 六十四卦
+func New64GuaImage(up, down string, size int) *ebiten.Image {
+	img := ebiten.NewImage(size, size*2+size/5)
+	img.DrawImage(NewBaGuaImage(up, size), nil)
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(0, float64(size+size/5))
+	img.DrawImage(NewBaGuaImage(down, size), op)
+	return img
+}
+
+// 旗帜
 func NewFlagImage(size int) *ebiten.Image {
 	img := ebiten.NewImage(size, size)
 	vector.StrokeLine(img, 4, 0, float32(4), float32(size), 1, color.White, true)

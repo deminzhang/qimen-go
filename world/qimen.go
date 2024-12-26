@@ -85,7 +85,7 @@ func (q *QMShow) Update() {
 	q.count++
 	q.count %= 360
 	q.Battle.Update()
-	
+
 	pan := ThisGame.qmGame
 	if pan == nil {
 		return
@@ -245,7 +245,8 @@ func (q *QMShow) drawHead(dst *ebiten.Image) {
 	pan := ThisGame.qmGame
 	lunar := pan.Lunar
 	pp := pan.ShowPan
-	ft, _ := GetFontFace(14)
+	ft14, _ := GetFontFace(14)
+	ft28, _ := GetFontFace(28)
 	px := 16
 	var cYear string
 	if lunar.GetYear() == 1 {
@@ -257,34 +258,49 @@ func (q *QMShow) drawHead(dst *ebiten.Image) {
 	}
 	text.Draw(dst, fmt.Sprintf("  %s %s %s %s",
 		cYear, lunar.GetMonthInChinese()+"月", lunar.GetDayInChinese(), lunar.GetEightChar().GetTimeZhi()+"时"),
-		ft, px, 48, colorWhite)
+		ft14, px, 48, colorWhite)
 	text.Draw(dst, fmt.Sprintf("干支  %s %s %s %s",
 		lunar.GetYearInGanZhiExact(), lunar.GetMonthInGanZhiExact(), lunar.GetDayInGanZhiExact(), lunar.GetTimeInGanZhi()),
-		ft, px, 64, colorLeader)
+		ft14, px, 64, colorLeader)
+	//中字
+	yg, yz := lunar.GetYearGanExact(), lunar.GetYearZhiExact()
+	mg, mz := lunar.GetMonthGanExact(), lunar.GetMonthZhiExact()
+	dg, dz := lunar.GetDayGanExact(), lunar.GetDayZhiExact()
+	hg, hz := lunar.GetTimeGan(), lunar.GetTimeZhi()
+	bpx := px + 380
+	text.Draw(dst, yg, ft28, bpx, 64, ColorGanZhi(yg))
+	text.Draw(dst, yz, ft28, bpx, 64+32, ColorGanZhi(yz))
+	text.Draw(dst, mg, ft28, bpx+32, 64, ColorGanZhi(mg))
+	text.Draw(dst, mz, ft28, bpx+32, 64+32, ColorGanZhi(mz))
+	text.Draw(dst, dg, ft28, bpx+64, 64, ColorGanZhi(dg))
+	text.Draw(dst, dz, ft28, bpx+64, 64+32, ColorGanZhi(dz))
+	text.Draw(dst, hg, ft28, bpx+96, 64, ColorGanZhi(hg))
+	text.Draw(dst, hz, ft28, bpx+96, 64+32, ColorGanZhi(hz))
+
 	text.Draw(dst, fmt.Sprintf("旬首  %s %s %s %s",
 		lunar.GetYearXunExact(), lunar.GetMonthXunExact(), lunar.GetDayXunExact(), lunar.GetTimeXun()),
-		ft, px, 64+16, colorWhite)
-	text.Draw(dst, "空亡", ft, px, 96, colorWhite)
-	text.Draw(dst, lunar.GetYearXunKongExact(), ft, px+44, 96, colorGray)
-	text.Draw(dst, lunar.GetMonthXunKongExact(), ft, px+74, 96, colorGray)
-	text.Draw(dst, lunar.GetDayXunKongExact(), ft, px+112, 96, colorGray)
-	text.Draw(dst, lunar.GetTimeXunKong(), ft, px+146, 96, colorRed)
-	text.Draw(dst, fmt.Sprintf("%s%s", pp.JieQi, pp.JieQiDate), ft, px, 96+16, colorWhite)
-	text.Draw(dst, fmt.Sprintf("%s%s", pp.JieQiNext, pp.JieQiDateNext), ft, px, 96+16*2, colorWhite)
-	text.Draw(dst, pp.JuText, ft, px, 96+16*3, colorWhite)
-	text.Draw(dst, pp.DutyText, ft, px, 96+16*4, colorWhite)
-	text.Draw(dst, pp.YueJiang, ft, px, 96+16*5, colorWhite)
+		ft14, px, 64+16, colorWhite)
+	text.Draw(dst, "空亡", ft14, px, 96, colorWhite)
+	text.Draw(dst, lunar.GetYearXunKongExact(), ft14, px+44, 96, colorGray)
+	text.Draw(dst, lunar.GetMonthXunKongExact(), ft14, px+74, 96, colorGray)
+	text.Draw(dst, lunar.GetDayXunKongExact(), ft14, px+112, 96, colorGray)
+	text.Draw(dst, lunar.GetTimeXunKong(), ft14, px+146, 96, colorRed)
+	text.Draw(dst, fmt.Sprintf("%s%s", pp.JieQi, pp.JieQiDate), ft14, px, 96+16, colorWhite)
+	text.Draw(dst, fmt.Sprintf("%s%s", pp.JieQiNext, pp.JieQiDateNext), ft14, px, 96+16*2, colorWhite)
+	text.Draw(dst, pp.JuText, ft14, px, 96+16*3, colorWhite)
+	text.Draw(dst, pp.DutyText, ft14, px, 96+16*4, colorWhite)
+	text.Draw(dst, pp.YueJiang, ft14, px, 96+16*5, colorWhite)
 
-	text.Draw(dst, fmt.Sprintf("月相 %s", lunar.GetYueXiang()), ft, px, 96+16*6, colorWhite)
-	text.Draw(dst, fmt.Sprintf("日值 %s%s%s", lunar.GetXiu(), lunar.GetZheng(), lunar.GetAnimal()), ft, px, 96+16*7, colorWhite)
-	text.Draw(dst, fmt.Sprintf("岁大将军 %s", qimen.BigJiang[lunar.GetYearZhiExact()]), ft, px, 96+16*8, colorWhite)
-	text.Draw(dst, fmt.Sprintf("月建大将军 %s", qimen.BigJiang[lunar.GetMonthZhiExact()]), ft, px, 96+16*9, colorWhite)
+	text.Draw(dst, fmt.Sprintf("月相 %s", lunar.GetYueXiang()), ft14, px, 96+16*6, colorWhite)
+	text.Draw(dst, fmt.Sprintf("日值 %s%s%s", lunar.GetXiu(), lunar.GetZheng(), lunar.GetAnimal()), ft14, px, 96+16*7, colorWhite)
+	text.Draw(dst, fmt.Sprintf("岁大将军 %s", qimen.BigJiang[lunar.GetYearZhiExact()]), ft14, px, 96+16*8, colorWhite)
+	text.Draw(dst, fmt.Sprintf("月建大将军 %s", qimen.BigJiang[lunar.GetMonthZhiExact()]), ft14, px, 96+16*9, colorWhite)
 
-	text.Draw(dst, "符使马时", ft, px, 96+16*10, colorDuty)
-	text.Draw(dst, "击刑", ft, px, 96+16*11, colorJiXing)
-	text.Draw(dst, "门迫", ft, px, 96+16*12, colorMengPo)
-	text.Draw(dst, "入墓", ft, px, 96+16*13, colorTomb)
-	text.Draw(dst, "刑墓", ft, px, 96+16*14, colorXingMu)
+	text.Draw(dst, "符使马时", ft14, px, 96+16*10, colorDuty)
+	text.Draw(dst, "击刑", ft14, px, 96+16*11, colorJiXing)
+	text.Draw(dst, "门迫", ft14, px, 96+16*12, colorMengPo)
+	text.Draw(dst, "入墓", ft14, px, 96+16*13, colorTomb)
+	text.Draw(dst, "刑墓", ft14, px, 96+16*14, colorXingMu)
 
 }
 func (q *QMShow) drawTaiJi(dst *ebiten.Image) {
@@ -350,7 +366,7 @@ func (q *QMShow) drawGong(dst *ebiten.Image, x, y float32, g *qimen.QMPalace) {
 	y += 36                                                 //神盘
 	text.Draw(dst, empty, ft, int(x+8), int(y), colorWhite) //空亡
 	text.Draw(dst, g.God, ft, int(x+24), int(y),
-		util.If(g.God == qimen.QMGod8(1), colorDuty, colorWhite))                        //神盘
+		util.If(g.God == qimen.QMGod8(1), colorDuty, colorWhite)) //神盘
 	text.Draw(dst, horse, ft, int(x+24+64)+rand.Intn(2), int(y)+rand.Intn(2), colorDuty) //驿马
 	if g.God == "值符" {
 		text.Draw(dst, pp.Xun, ft, int(x+24), int(y+16), colorGray)

@@ -82,7 +82,7 @@ func (c *CheckBox) Draw(dst *ebiten.Image) {
 	x := checkBoxWidth //+ checkBoxPaddingLeft
 	y := checkBoxWidth - (checkBoxWidth-uiFontMHeight)/2
 	if c.Disabled {
-		text.Draw(dst, c.Text, uiFont, x, y, color.Gray16{Y: 0x8888})
+		text.Draw(dst, c.Text, uiFont, x, y, color.Gray{Y: 128})
 	} else {
 		text.Draw(dst, c.Text, uiFont, x, y, color.White)
 	}

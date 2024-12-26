@@ -3,6 +3,7 @@ package world
 import (
 	"github.com/6tail/lunar-go/LunarUtil"
 	"github.com/6tail/lunar-go/calendar"
+	"github.com/deminzhang/qimen-go/graphic"
 	"github.com/deminzhang/qimen-go/gui"
 	"github.com/deminzhang/qimen-go/qimen"
 	"github.com/deminzhang/qimen-go/util"
@@ -37,7 +38,9 @@ var HideGanVal = map[int][]int{
 }
 
 type Char8Pan struct {
-	gui.BaseUI
+	X, Y         int
+	Visible      bool
+	UI           *gui.BaseUI
 	Flow         *Body4  //流气
 	Player       *Player //玩家
 	BodyShow     bool    //身象
@@ -45,12 +48,15 @@ type Char8Pan struct {
 
 	EnergyEffect map[string]*Line
 
+	Mover *Sprite
+
 	count int
 }
 
 func NewChar8Pan(x, y int) *Char8Pan {
 	p := &Char8Pan{
-		BaseUI:       gui.BaseUI{X: x, Y: y, Visible: true, W: char8UIWidth, H: char8UIHeight},
+		X: x, Y: y,
+		UI:           &gui.BaseUI{X: x, Y: y, Visible: true, W: char8UIWidth, H: char8UIHeight},
 		BodyShow:     false,
 		OverviewShow: false,
 		EnergyEffect: make(map[string]*Line),
@@ -73,12 +79,12 @@ func NewChar8Pan(x, y int) *Char8Pan {
 	btnBirth.SetOnHout(func() {
 		UIHideTips()
 	})
-	cbShowBody := gui.NewCheckBox(144, 0, "身象")
+	cbShowBody := gui.NewCheckBox(132, 0, "身象")
 	cbShowBody.SetOnCheckChanged(func(c *gui.CheckBox) {
 		p.BodyShow = c.Checked()
 	})
 	cbShowBody.Visible = false
-	cbShowOverview := gui.NewCheckBox(0, 0, "总览")
+	cbShowOverview := gui.NewCheckBox(10, 0, "总览")
 	cbShowOverview.SetOnCheckChanged(func(c *gui.CheckBox) {
 		p.OverviewShow = c.Checked()
 		cbShowBody.Visible = c.Checked()
@@ -127,8 +133,8 @@ func NewChar8Pan(x, y int) *Char8Pan {
 	})
 	btnSplit.Visible = false
 
-	p.AddChildren(btnBirth, cbShowBody, btnMarry, btnSplit, cbShowOverview)
-	gui.ActiveUI(p)
+	p.UI.AddChildren(btnBirth, cbShowBody, btnMarry, btnSplit, cbShowOverview)
+	gui.ActiveUI(p.UI)
 	return p
 }
 
@@ -155,6 +161,19 @@ func (g *Char8Pan) Update() {
 	}
 	g.count++
 	g.count %= 60
+
+	g.UI.Visible = g.Visible
+
+	if g.Mover == nil {
+		g.Mover = NewSprite(graphic.NewRectImage(10), colorGray)
+		g.Mover.onMove = func(sx, sy, dx, dy int) {
+			g.X += dx
+			g.Y += dy
+			g.UI.X, g.UI.Y = g.X, g.Y
+		}
+		ThisGame.AddSprite(g.Mover)
+		g.Mover.MoveTo(g.X, g.Y)
+	}
 
 	cal := ThisGame.qmGame.Lunar
 	p := g.Player
@@ -252,7 +271,7 @@ func (g *Char8Pan) Update() {
 	if g.count%1 == 0 {
 		g.UpdateHp(p)
 	}
-	g.BaseUI.Update()
+	//g.BaseUI.Update()
 }
 
 func (g *Char8Pan) UpdateHp(p *Player) {
@@ -266,7 +285,7 @@ func (g *Char8Pan) UpdateHp(p *Player) {
 	//年支---时支 论合冲刑破害
 	//自身
 	p.Year.InteractiveSelf(8)
-	p.Day.InteractiveSelf(8)
+	p.Month.InteractiveSelf(8)
 	p.Day.InteractiveSelf(8)
 	p.Time.InteractiveSelf(8)
 	CharBodyInteractive(p.Year, p.Month, 6)
@@ -275,8 +294,7 @@ func (g *Char8Pan) UpdateHp(p *Player) {
 	CharBodyInteractive(p.Year, p.Day, 4)
 	CharBodyInteractive(p.Month, p.Time, 4)
 	CharBodyInteractive(p.Year, p.Time, 2)
-	//运入年月
-	CharBodyInteractive(p.FYun, p.Year, 4)
+	//运入月
 	CharBodyInteractive(p.FYun, p.Month, 4)
 	//流气
 	CharBodyInteractive(p.Year, g.Flow.Year, 4)
@@ -295,7 +313,7 @@ func (g *Char8Pan) Draw(dst *ebiten.Image) {
 	ft14, _ := GetFontFace(14)
 	ft28, _ := GetFontFace(28)
 
-	cx, cy := 0, 0
+	cx, cy := g.X, g.Y
 	p := g.Player
 	bz := p.Birth.GetEightChar()
 	soul := bz.GetDayGan()
@@ -506,27 +524,27 @@ func (g *Char8Pan) Draw(dst *ebiten.Image) {
 			vector.StrokeLine(dst, dx, dy, dx, ffy, .5, colorGray, true) //流日线
 			vector.StrokeLine(dst, tx, ty, tx, ffy, .5, colorGray, true) //流时线
 			if _, b := g.EnergyEffect["运月线"]; !b {
-				e := NewLine(fx, fy, mx, my, 10)
+				e := NewLine(fx, fy, mx, my, 10, .1)
 				e.Init(10)
 				g.EnergyEffect["运月线"] = &e
 			}
 			if _, b := g.EnergyEffect["流年线"]; !b {
-				e := NewLine(yx, ffy, yx, yy, 10)
+				e := NewLine(yx, ffy, yx, yy, 10, .1)
 				e.Init(10)
 				g.EnergyEffect["流年线"] = &e
 			}
 			if _, b := g.EnergyEffect["流月线"]; !b {
-				e := NewLine(mx, ffy, mx, my, 10)
+				e := NewLine(mx, ffy, mx, my, 10, .1)
 				e.Init(10)
 				g.EnergyEffect["流月线"] = &e
 			}
 			if _, b := g.EnergyEffect["流日线"]; !b {
-				e := NewLine(dx, ffy, dx, dy, 10)
+				e := NewLine(dx, ffy, dx, dy, 10, .1)
 				e.Init(10)
 				g.EnergyEffect["流日线"] = &e
 			}
 			if _, b := g.EnergyEffect["流时线"]; !b {
-				e := NewLine(tx, ffy, tx, ty, 10)
+				e := NewLine(tx, ffy, tx, ty, 10, .2)
 				e.Init(10)
 				g.EnergyEffect["流时线"] = &e
 			}
@@ -542,7 +560,8 @@ func (g *Char8Pan) Draw(dst *ebiten.Image) {
 			g.DrawCharHP(dst, sx+96*4, sy, p.Mate.Time, "时柱")
 		}
 	}
-	g.BaseUI.Draw(dst)
+	//g.BaseUI.Draw(dst)
+	g.Mover.Draw(dst)
 }
 
 func (g *Char8Pan) DrawCharHP(dst *ebiten.Image, sx, sy float32, body *CharBody, title string) {
@@ -619,25 +638,26 @@ func (b *CharBody) initZhiHP(maxHp int) {
 	}
 }
 
-func (b *CharBody) InteractiveSelf(speed int) {
+func (b *CharBody) InteractiveSelf(force int) {
 	//本柱 支引干透
 	//cs :=qimen.ChangSheng12[b.Gan+b.Body]
 	ss := LunarUtil.SHI_SHEN[b.Gan+b.Body]
-	Interactive[ss](&b.HPHead, &b.HPBody, b.HPMHead, b.HPMBody, speed)
+
+	Interactive[ss](&b.HPHead, &b.HPBody, b.HPMHead, b.HPMBody, force)
 	//本柱 支藏干化
 	if b.Legs != "" {
 		ss = LunarUtil.SHI_SHEN[b.Gan+b.Legs]
-		Interactive[ss](&b.HPHead, &b.HPLegs, b.HPMHead, b.HPMLegs, speed)
+		Interactive[ss](&b.HPHead, &b.HPLegs, b.HPMHead, b.HPMLegs, force)
 		ss = LunarUtil.SHI_SHEN[b.Body+b.Legs]
-		Interactive[ss](&b.HPBody, &b.HPLegs, b.HPMBody, b.HPMLegs, speed)
+		Interactive[ss](&b.HPBody, &b.HPLegs, b.HPMBody, b.HPMLegs, force)
 	}
 	if b.Feet != "" {
 		ss = LunarUtil.SHI_SHEN[b.Gan+b.Feet]
-		Interactive[ss](&b.HPHead, &b.HPFeet, b.HPMHead, b.HPMFeet, speed)
+		Interactive[ss](&b.HPHead, &b.HPFeet, b.HPMHead, b.HPMFeet, force)
 		ss = LunarUtil.SHI_SHEN[b.Body+b.Feet]
-		Interactive[ss](&b.HPBody, &b.HPFeet, b.HPMBody, b.HPMFeet, speed)
+		Interactive[ss](&b.HPBody, &b.HPFeet, b.HPMBody, b.HPMFeet, force)
 		ss = LunarUtil.SHI_SHEN[b.Feet+b.Legs]
-		Interactive[ss](&b.HPFeet, &b.HPLegs, b.HPMFeet, b.HPMLegs, speed)
+		Interactive[ss](&b.HPFeet, &b.HPLegs, b.HPMFeet, b.HPMLegs, force)
 	}
 }
 
@@ -718,7 +738,7 @@ func (p *Player) Reset(lunar *calendar.Lunar, gender int) {
 	p.resetHP()
 }
 
-func CharBodyInteractive(a, b *CharBody, speed int) {
+func CharBodyInteractive(a, b *CharBody, force int) {
 	if a == nil || b == nil {
 		return
 	}
@@ -735,44 +755,44 @@ func CharBodyInteractive(a, b *CharBody, speed int) {
 		b = &bb
 	}
 	ss := LunarUtil.SHI_SHEN[a.Gan+b.Gan] //b为a的
-	Interactive[ss](&a.HPHead, &b.HPHead, a.HPMHead, b.HPMHead, speed)
+	Interactive[ss](&a.HPHead, &b.HPHead, a.HPMHead, b.HPMHead, force)
 	//a干b支
 	ss = LunarUtil.SHI_SHEN[a.Gan+b.Body]
-	Interactive[ss](&a.HPHead, &b.HPBody, a.HPMHead, b.HPMBody, speed)
+	Interactive[ss](&a.HPHead, &b.HPBody, a.HPMHead, b.HPMBody, force)
 	if b.Legs != "" {
 		ss = LunarUtil.SHI_SHEN[a.Gan+b.Legs]
-		Interactive[ss](&a.HPHead, &b.HPLegs, a.HPMHead, b.HPMLegs, speed)
+		Interactive[ss](&a.HPHead, &b.HPLegs, a.HPMHead, b.HPMLegs, force)
 	}
 	if b.Feet != "" {
 		ss = LunarUtil.SHI_SHEN[a.Gan+b.Feet]
-		Interactive[ss](&a.HPHead, &b.HPFeet, a.HPMHead, b.HPMFeet, speed)
+		Interactive[ss](&a.HPHead, &b.HPFeet, a.HPMHead, b.HPMFeet, force)
 	}
 	a, b = b, a //交换
 	ss = LunarUtil.SHI_SHEN[a.Gan+b.Body]
-	Interactive[ss](&a.HPHead, &b.HPBody, a.HPMHead, b.HPMBody, speed)
+	Interactive[ss](&a.HPHead, &b.HPBody, a.HPMHead, b.HPMBody, force)
 	if b.Legs != "" {
 		ss = LunarUtil.SHI_SHEN[a.Gan+b.Legs]
-		Interactive[ss](&a.HPHead, &b.HPLegs, a.HPMHead, b.HPMLegs, speed)
+		Interactive[ss](&a.HPHead, &b.HPLegs, a.HPMHead, b.HPMLegs, force)
 	}
 	if b.Feet != "" {
 		ss = LunarUtil.SHI_SHEN[a.Gan+b.Feet]
-		Interactive[ss](&a.HPHead, &b.HPFeet, a.HPMHead, b.HPMFeet, speed)
+		Interactive[ss](&a.HPHead, &b.HPFeet, a.HPMHead, b.HPMFeet, force)
 	}
 	//支支 合冲刑破害
 	a, b = b, a
 	ss = LunarUtil.SHI_SHEN[a.Body+b.Body]
-	Interactive[ss](&a.HPBody, &b.HPBody, a.HPMBody, b.HPMBody, speed)
+	Interactive[ss](&a.HPBody, &b.HPBody, a.HPMBody, b.HPMBody, force)
 	if a.Legs != "" && b.Legs != "" {
 		ss = LunarUtil.SHI_SHEN[a.Legs+b.Legs]
-		Interactive[ss](&a.HPLegs, &b.HPLegs, a.HPMLegs, b.HPMLegs, speed)
+		Interactive[ss](&a.HPLegs, &b.HPLegs, a.HPMLegs, b.HPMLegs, force)
 	}
 	if a.Feet != "" && b.Feet != "" {
 		ss = LunarUtil.SHI_SHEN[a.Feet+b.Feet]
-		Interactive[ss](&a.HPFeet, &b.HPFeet, a.HPMFeet, b.HPMFeet, speed)
+		Interactive[ss](&a.HPFeet, &b.HPFeet, a.HPMFeet, b.HPMFeet, force)
 	}
 }
 
-var Interactive = map[string]func(va, vb *int, ma, mb int, speed int){
+var Interactive = map[string]func(va, vb *int, ma, mb int, force int){
 	"比肩": InteractiveBiJie,
 	"劫财": InteractiveBiJie,
 	"食神": InteractiveShi,
@@ -798,20 +818,20 @@ var Interactive = map[string]func(va, vb *int, ma, mb int, speed int){
 */
 
 // InteractiveBiJie 比劫
-func InteractiveBiJie(va, vb *int, ma, mb int, speed int) {
-	if *va < ma && *va+speed < *vb-speed {
-		*va += speed
-		*vb -= speed
+func InteractiveBiJie(va, vb *int, ma, mb int, force int) {
+	if *va < ma && *va+force < *vb-force {
+		*va += force
+		*vb -= force
 	}
-	if *vb < mb && *vb+speed < *va-speed {
-		*vb += speed
-		*va -= speed
+	if *vb < mb && *vb+force < *va-force {
+		*vb += force
+		*va -= force
 	}
 }
 
 // InteractiveShi 食神 a生b 同阴阳 生力大.
 // 水衰不生木，木衰不生火，火衰不生土，土衰不生金，金衰不生水。
-func InteractiveShi(va, vb *int, ma, mb int, speed int) {
+func InteractiveShi(va, vb *int, ma, mb int, force int) {
 	if *va < ma/2 { //不旺不生
 		return
 	}
@@ -821,19 +841,19 @@ func InteractiveShi(va, vb *int, ma, mb int, speed int) {
 	if *vb > *va/2 { //衰不生
 		return
 	}
-	if *vb+speed < *va-speed {
-		if *vb+speed < (*va-speed)/2 { //快泄
-			*va -= speed
-			*vb += speed
+	if *vb+force < *va-force {
+		if *vb+force < (*va-force)/2 { //快泄
+			*va -= force
+			*vb += force
 		} else { //慢泄
-			*va -= speed / 2
-			*vb += speed / 2
+			*va -= force / 2
+			*vb += force / 2
 		}
 	}
 }
 
 // InteractiveShang 伤官 a生b 异阴阳 生力小
-func InteractiveShang(va, vb *int, ma, mb int, speed int) {
+func InteractiveShang(va, vb *int, ma, mb int, force int) {
 	if *va < ma/2 { //不旺不生
 		return
 	}
@@ -843,54 +863,54 @@ func InteractiveShang(va, vb *int, ma, mb int, speed int) {
 	if *vb > *va/2 { //衰不生
 		return
 	}
-	if *vb+speed < *va-speed {
-		if *vb+speed < (*va-speed)/2 { //快泄
-			*va -= speed
-			*vb += speed
+	if *vb+force < *va-force {
+		if *vb+force < (*va-force)/2 { //快泄
+			*va -= force
+			*vb += force
 		} else { //慢泄
-			*va -= speed / 2
-			*vb += speed / 2
+			*va -= force / 2
+			*vb += force / 2
 		}
 	}
 }
 
 // InteractiveYin 正印:b生a
-func InteractiveYin(va, vb *int, ma, mb int, speed int) {
-	InteractiveShang(vb, va, mb, ma, speed)
+func InteractiveYin(va, vb *int, ma, mb int, force int) {
+	InteractiveShang(vb, va, mb, ma, force)
 }
 
 // InteractiveXiao 偏印:b生a
-func InteractiveXiao(va, vb *int, ma, mb int, speed int) {
-	InteractiveShi(vb, va, mb, ma, speed)
+func InteractiveXiao(va, vb *int, ma, mb int, force int) {
+	InteractiveShi(vb, va, mb, ma, force)
 }
 
 // InteractiveGuan 正官:a嫁b
-func InteractiveGuan(va, vb *int, ma, mb int, speed int) {
+func InteractiveGuan(va, vb *int, ma, mb int, force int) {
 	//if qimen.HeGan[a.Gan] == b.Gan { //合
 	//}
-	if *vb < mb && *vb+speed < *va-speed {
-		*vb += speed
-		*va -= speed
+	if *vb < mb && *vb+force < *va-force {
+		*vb += force
+		*va -= force
 	}
 }
 
 // InteractiveSha 七杀:b夺a
-func InteractiveSha(va, vb *int, ma, mb int, speed int) {
+func InteractiveSha(va, vb *int, ma, mb int, force int) {
 	//if *va > 1 { // && !a.FlowEnergy
 	//	*va--
 	//}
-	if *vb < mb && *va > speed {
-		*va -= speed
-		*vb += speed // 2
+	if *vb < mb && *va > force {
+		*va -= force
+		*vb += force // 2
 	}
 }
 
 // InteractiveZhengCai 正财:a娶b
-func InteractiveZhengCai(va, vb *int, ma, mb int, speed int) {
-	InteractiveGuan(vb, va, mb, ma, speed)
+func InteractiveZhengCai(va, vb *int, ma, mb int, force int) {
+	InteractiveGuan(vb, va, mb, ma, force)
 }
 
 // InteractivePianCai 偏财:a抢b
-func InteractivePianCai(va, vb *int, ma, mb int, speed int) {
-	InteractiveSha(vb, va, mb, ma, speed)
+func InteractivePianCai(va, vb *int, ma, mb int, force int) {
+	InteractiveSha(vb, va, mb, ma, force)
 }

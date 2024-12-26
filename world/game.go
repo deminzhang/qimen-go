@@ -18,13 +18,15 @@ var (
 )
 
 type game struct {
-	count         int
-	uiQM          *UIQiMen
-	stars         *StarEffect
-	astrolabe     *Astrolabe
-	qiMen         *QMShow
-	char8         *Char8Pan
-	qmGame        *qimen.QMGame
+	count     int
+	uiQM      *UIQiMen
+	stars     *StarEffect
+	astrolabe *Astrolabe
+	qiMen     *QMShow
+	char8     *Char8Pan
+	qmGame    *qimen.QMGame
+	meiHua    *MeiHua
+
 	autoMinute    bool
 	showChar8     bool
 	showAstrolabe bool
@@ -39,6 +41,7 @@ func (g *game) Update() error {
 	g.qiMen.Update()
 	g.char8.Visible = g.showChar8
 	g.char8.Update()
+	g.meiHua.Update()
 	if g.showAstrolabe {
 		g.astrolabe.Update()
 	}
@@ -62,22 +65,26 @@ func (g *game) Draw(screen *ebiten.Image) {
 	}
 	//g.stars.Draw(screen)
 	g.qiMen.Draw(screen)
-	//g.char8.Draw(screen)
+	g.meiHua.Draw(screen)
+	g.char8.Draw(screen)
 	gui.Draw(screen)
 	msg := fmt.Sprintf(`FPS: %0.2f, TPS: %0.2f`, ebiten.ActualFPS(), ebiten.ActualTPS())
 	ebitenutil.DebugPrint(screen, msg)
 }
 
 func (g *game) Layout(w, h int) (int, int) {
-	ScreenWidth = w
-	ScreenHeight = h
-	if g.qiMen != nil && g.qiMen.Y != float32(h/2) {
-		g.qiMen.Y = float32(h / 2)
-		g.qiMen.dirty = true
-	}
-	if g.uiQM != nil {
-		g.uiQM.W = w - g.uiQM.X
-		g.uiQM.H = h - g.uiQM.Y
+	if ScreenWidth != w || ScreenHeight != h {
+		ScreenWidth = w
+		ScreenHeight = h
+		if g.qiMen != nil && g.qiMen.Y != float32(h/2) {
+			g.qiMen.Y = float32(h / 2)
+			g.qiMen.dirty = true
+		}
+		if g.uiQM != nil {
+			g.uiQM.W = w - g.uiQM.X
+			g.uiQM.H = h - g.uiQM.Y
+		}
+		gui.OnLayout(w, h)
 	}
 	return w, h
 }
@@ -92,12 +99,14 @@ func NewGame() *game {
 	solar := calendar.NewSolarFromDate(time.Now())
 	pan := u.Apply(solar)
 	g := &game{
-		uiQM:          u,
-		stars:         NewStarEffect(float32(ScreenWidth/2), 217),
-		qiMen:         NewQiMenShow(450, 500),
-		astrolabe:     NewAstrolabe(1650, 450),
-		char8:         NewChar8Pan(880, 174),
-		qmGame:        pan,
+		uiQM:      u,
+		stars:     NewStarEffect(float32(ScreenWidth/2), 217),
+		qiMen:     NewQiMenShow(450, 500),
+		astrolabe: NewAstrolabe(1650, 450),
+		char8:     NewChar8Pan(880, 174),
+		qmGame:    pan,
+		meiHua:    NewMeiHua(880, 780, 1, 2, 3),
+
 		showChar8:     true,
 		showAstrolabe: true,
 

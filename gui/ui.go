@@ -12,6 +12,8 @@ import (
 type IUIPanel interface {
 	Update()
 	Draw(screen *ebiten.Image)
+	OnClose()
+	OnLayout(w, h int)
 
 	IsDisabled() bool
 	IsVisible() bool
@@ -40,6 +42,7 @@ func ActiveUI(ui IUIPanel) {
 func CloseUI(ui IUIPanel) {
 	for i, p := range uis {
 		if ui == p {
+			p.OnClose()
 			if i == 0 {
 				uis = uis[1:]
 			} else {
@@ -54,13 +57,18 @@ func CloseUI(ui IUIPanel) {
 }
 func Update() {
 	frameClick = false
+	frameHover = false
 	for _, u := range uis {
 		if u.IsVisible() {
 			u.Update()
 		}
 	}
 }
-
+func OnLayout(w, h int) {
+	for _, u := range uis {
+		u.OnLayout(w, h)
+	}
+}
 func Draw(screen *ebiten.Image) {
 	for _, u := range uis {
 		if u.IsVisible() {
@@ -203,7 +211,7 @@ func (u *BaseUI) Update() {
 		u.resizeByChildren()
 	}
 	for _, p := range u.children {
-		if !p.IsDisabled() && p.IsVisible() {
+		if p.IsVisible() {
 			p.Update()
 		}
 	}
@@ -215,7 +223,10 @@ func (u *BaseUI) Update() {
 		if !u.mouseHover {
 			u.mouseHover = true
 			if u.onHover != nil {
-				u.onHover()
+				if !IsFrameHover() {
+					u.onHover()
+					SetFrameHover()
+				}
 			}
 		}
 	} else {
@@ -262,13 +273,10 @@ func (u *BaseUI) Draw(screen *ebiten.Image) {
 	}
 }
 
-func (u *BaseUI) AddChild(c IUIPanel) {
-	u.children = append(u.children, c)
-	sort.Slice(u.children, func(a, b int) bool {
-		return u.children[a].GetDepth() > u.children[b].GetDepth()
-	})
-	c.SetParent(u)
-}
+func (u *BaseUI) OnClose() {}
+
+func (u *BaseUI) OnLayout(w, h int) {}
+
 func (u *BaseUI) AddChildren(cs ...IUIPanel) {
 	for _, c := range cs {
 		u.children = append(u.children, c)
