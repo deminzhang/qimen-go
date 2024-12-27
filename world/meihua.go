@@ -7,6 +7,12 @@ import (
 	"github.com/deminzhang/qimen-go/qimen"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
+	"github.com/hajimehoshi/ebiten/v2/vector"
+	"math"
+)
+
+const (
+	meiHuaGuaSize = 25
 )
 
 type MeiHua struct {
@@ -38,7 +44,8 @@ func NewMeiHua(x, y int, upIdx, downIdx, change uint) *MeiHua {
 	return mh
 }
 
-func HuGua(upIdx, downIdx uint8) (uint8, uint8) {
+// 互卦
+func huGua(upIdx, downIdx uint8) (uint8, uint8) {
 	up := qimen.Diagrams8Origin[upIdx]
 	down := qimen.Diagrams8Origin[downIdx]
 	upB := qimen.Diagrams8Bin[up]
@@ -68,7 +75,7 @@ func (m *MeiHua) Reset(upIdx, downIdx, change uint) {
 	down := qimen.Diagrams8Origin[uint8(downIdx)]
 	ori := qimen.Diagrams64FullName[uint8(upIdx*10+downIdx)]
 	//互卦
-	huUpB, huDownB := HuGua(uint8(upIdx), uint8(downIdx))
+	huUpB, huDownB := huGua(uint8(upIdx), uint8(downIdx))
 	huUp := qimen.Diagrams8FromBin[huUpB]
 	huDown := qimen.Diagrams8FromBin[huDownB]
 	pro := qimen.Diagrams64FullName[(qimen.Diagrams8IdxOrigin[huUp]*10 + qimen.Diagrams8IdxOrigin[huDown])]
@@ -113,58 +120,70 @@ func (m *MeiHua) Update() {
 		down := yz + mz + dz + hz
 		m.Reset(uint(up), uint(down), uint(down))
 	}
+	dis := int(math.Round(float64(meiHuaGuaSize) * 1.25))
 	if m.Mover == nil {
 		m.Mover = NewSprite(graphic.NewRectImage(10), colorGray)
 		m.Mover.onMove = func(sx, sy, dx, dy int) {
 			m.X += dx
 			m.Y += dy
+			if m.GuaSprite != nil {
+				m.GuaSprite[0].MoveTo(m.X+32, m.Y+64)
+				m.GuaSprite[1].MoveTo(m.X+32, m.Y+64+dis)
+				m.GuaSprite[2].MoveTo(m.X+32+64, m.Y+64)
+				m.GuaSprite[3].MoveTo(m.X+32+64, m.Y+64+dis)
+				m.GuaSprite[4].MoveTo(m.X+32+128, m.Y+64)
+				m.GuaSprite[5].MoveTo(m.X+32+128, m.Y+64+dis)
+			}
 		}
 		ThisGame.AddSprite(m.Mover)
 		m.Mover.MoveTo(m.X, m.Y)
 	}
 	if m.GuaSprite == nil {
 		cx, cy := m.X+32, m.Y+64
-		m.GuaSprite = make([]*Sprite, 3)
-		m.GuaSprite[0] = NewSprite(graphic.New64GuaImage(m.GuaUp, m.GuaDown, 20), colorWhite)
-		//ThisGame.AddSprite(m.GuaSprite[0])
+		m.GuaSprite = make([]*Sprite, 6)
+		m.GuaSprite[0] = NewSprite(graphic.NewBaGuaImage(m.GuaUp, meiHuaGuaSize), color5Xing[qimen.DiagramsWuxing[m.GuaUp]])
+		m.GuaSprite[1] = NewSprite(graphic.NewBaGuaImage(m.GuaDown, meiHuaGuaSize), color5Xing[qimen.DiagramsWuxing[m.GuaDown]])
 		m.GuaSprite[0].MoveTo(cx, cy)
-		m.GuaSprite[1] = NewSprite(graphic.New64GuaImage(m.GuaUpProcess, m.GuaDownProcess, 20), colorWhite)
-		//ThisGame.AddSprite(m.GuaSprite[1])
-		m.GuaSprite[1].MoveTo(cx+64, cy)
-		m.GuaSprite[2] = NewSprite(graphic.New64GuaImage(m.GuaUpChange, m.GuaDownChange, 20), colorWhite)
-		//ThisGame.AddSprite(m.GuaSprite[2])
-		m.GuaSprite[2].MoveTo(cx+128, cy)
+		m.GuaSprite[1].MoveTo(cx, cy+dis)
+		m.GuaSprite[2] = NewSprite(graphic.NewBaGuaImage(m.GuaUpProcess, meiHuaGuaSize), color5Xing[qimen.DiagramsWuxing[m.GuaUpProcess]])
+		m.GuaSprite[3] = NewSprite(graphic.NewBaGuaImage(m.GuaDownProcess, meiHuaGuaSize), color5Xing[qimen.DiagramsWuxing[m.GuaDownProcess]])
+		m.GuaSprite[2].MoveTo(cx+64, cy)
+		m.GuaSprite[3].MoveTo(cx+64, cy+dis)
+		m.GuaSprite[4] = NewSprite(graphic.NewBaGuaImage(m.GuaUpChange, meiHuaGuaSize), color5Xing[qimen.DiagramsWuxing[m.GuaUpChange]])
+		m.GuaSprite[5] = NewSprite(graphic.NewBaGuaImage(m.GuaDownChange, meiHuaGuaSize), color5Xing[qimen.DiagramsWuxing[m.GuaDownChange]])
+		m.GuaSprite[4].MoveTo(cx+128, cy)
+		m.GuaSprite[5].MoveTo(cx+128, cy+dis)
 	}
 }
 
 func (m *MeiHua) Draw(dst *ebiten.Image) {
+	vector.StrokeRect(dst, float32(m.X), float32(m.Y), 240, 140, .5, colorGray, true)
 	m.Mover.Draw(dst)
-	ft12, _ := asset.GetDefaultFontFace(12)
-	text.Draw(dst, "梅花起时", ft12, m.X+32, m.Y+16, colorWhite)
+	ft14, _ := asset.GetDefaultFontFace(14)
+	text.Draw(dst, fmt.Sprintf("梅花 上%d下%d变%d", m.GuaUpIdx, m.GuaDownIdx, m.YaoChangeIdx), ft14, m.X+32, m.Y+16, colorWhite)
 	cx, cy := m.X+32, m.Y+32
-	text.Draw(dst, "本卦", ft12, cx, cy, colorWhite)
-	text.Draw(dst, "互卦", ft12, cx+64, cy, colorWhite)
-	text.Draw(dst, "变卦", ft12, cx+128, cy, colorWhite)
+	text.Draw(dst, "本卦", ft14, cx, cy, colorWhite)
+	text.Draw(dst, "互卦", ft14, cx+64, cy, colorWhite)
+	text.Draw(dst, "变卦", ft14, cx+128, cy, colorWhite)
 	cy += 16
-	text.Draw(dst, m.GuaOrigin, ft12, cx, cy, colorWhite)
-	text.Draw(dst, m.GuaProcess, ft12, cx+64, cy, colorWhite)
-	text.Draw(dst, m.GuaChange, ft12, cx+128, cy, colorWhite)
+	text.Draw(dst, m.GuaOrigin, ft14, cx, cy, colorWhite)
+	text.Draw(dst, m.GuaProcess, ft14, cx+64, cy, colorWhite)
+	text.Draw(dst, m.GuaChange, ft14, cx+128, cy, colorWhite)
 	cx += 24
 	cy += 32
-	text.Draw(dst, qimen.DiagramsWuxing[m.GuaUp], ft12, cx, cy, colorWhite)
-	text.Draw(dst, qimen.DiagramsWuxing[m.GuaDown], ft12, cx, cy+20, colorWhite)
-	text.Draw(dst, qimen.DiagramsWuxing[m.GuaUpProcess], ft12, cx+64, cy, colorWhite)
-	text.Draw(dst, qimen.DiagramsWuxing[m.GuaDownProcess], ft12, cx+64, cy+20, colorWhite)
+	dis := int(math.Round(float64(meiHuaGuaSize) * 1.25))
+	text.Draw(dst, fmt.Sprintf("%s%s", m.GuaUp, qimen.DiagramsWuxing[m.GuaUp]), ft14, cx, cy, color5Xing[qimen.DiagramsWuxing[m.GuaUp]])
+	text.Draw(dst, fmt.Sprintf("%s%s", m.GuaDown, qimen.DiagramsWuxing[m.GuaDown]), ft14, cx, cy+dis, color5Xing[qimen.DiagramsWuxing[m.GuaDown]])
+	text.Draw(dst, fmt.Sprintf("%s%s", m.GuaUpProcess, qimen.DiagramsWuxing[m.GuaUpProcess]), ft14, cx+64, cy, color5Xing[qimen.DiagramsWuxing[m.GuaUpProcess]])
+	text.Draw(dst, fmt.Sprintf("%s%s", m.GuaDownProcess, qimen.DiagramsWuxing[m.GuaDownProcess]), ft14, cx+64, cy+dis, color5Xing[qimen.DiagramsWuxing[m.GuaDownProcess]])
 	if m.YaoChangeIdx > 3 {
-		text.Draw(dst, "用", ft12, cx-40, cy, colorRed)
-		text.Draw(dst, "体", ft12, cx-40, cy+20, colorWhite)
-		text.Draw(dst, qimen.DiagramsWuxing[m.GuaUpChange], ft12, cx+128, cy, colorWhite)
-		text.Draw(dst, fmt.Sprintf("%d", m.YaoChangeIdx), ft12, cx+128, cy+20, colorWhite)
+		text.Draw(dst, "用", ft14, cx-40, cy, colorWhite)
+		text.Draw(dst, "体", ft14, cx-40, cy+dis, colorWhite)
+		text.Draw(dst, fmt.Sprintf("%s%s", m.GuaUpChange, qimen.DiagramsWuxing[m.GuaUpChange]), ft14, cx+128, cy, color5Xing[qimen.DiagramsWuxing[m.GuaUpChange]])
 	} else {
-		text.Draw(dst, "体", ft12, cx-40, cy, colorWhite)
-		text.Draw(dst, "用", ft12, cx-40, cy+20, colorRed)
-		text.Draw(dst, fmt.Sprintf("%d", m.YaoChangeIdx), ft12, cx+128, cy, colorWhite)
-		text.Draw(dst, qimen.DiagramsWuxing[m.GuaDownChange], ft12, cx+128, cy+20, colorWhite)
+		text.Draw(dst, "体", ft14, cx-40, cy, colorWhite)
+		text.Draw(dst, "用", ft14, cx-40, cy+dis, colorWhite)
+		text.Draw(dst, fmt.Sprintf("%s%s", m.GuaDownChange, qimen.DiagramsWuxing[m.GuaDownChange]), ft14, cx+128, cy+dis, color5Xing[qimen.DiagramsWuxing[m.GuaDownChange]])
 	}
 	for _, sprite := range m.GuaSprite {
 		sprite.Draw(dst)
