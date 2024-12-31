@@ -43,6 +43,7 @@ type InputBox struct {
 	ImageRect image.Rectangle
 
 	onPressEnter func(i *InputBox)
+	onLostFocus  func(i *InputBox)
 }
 
 func NewInputBox(x, y, w, h int) *InputBox {
@@ -108,6 +109,9 @@ func (i *InputBox) Update() {
 		} else {
 			if i.Focused() {
 				i.SetFocused(false)
+				if i.onLostFocus != nil {
+					i.onLostFocus(i)
+				}
 			}
 		}
 
@@ -361,6 +365,10 @@ func (i *InputBox) Draw(dst *ebiten.Image) {
 
 func (i *InputBox) SetOnPressEnter(f func(*InputBox)) {
 	i.onPressEnter = f
+}
+
+func (i *InputBox) SetOnLostFocus(f func(*InputBox)) {
+	i.onLostFocus = f
 }
 
 func (i *InputBox) AppendTextHistory(txt string) {

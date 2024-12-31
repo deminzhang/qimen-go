@@ -309,6 +309,9 @@ func (g *Char8Pan) UpdateHp(p *Player) {
 }
 
 func (g *Char8Pan) Draw(dst *ebiten.Image) {
+	if !g.Visible {
+		return
+	}
 	ft12, _ := GetFontFace(12)
 	ft14, _ := GetFontFace(14)
 	ft28, _ := GetFontFace(28)

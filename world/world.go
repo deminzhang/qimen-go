@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	ThisGame *game
+	ThisGame *Game
 )
 
 func init() {

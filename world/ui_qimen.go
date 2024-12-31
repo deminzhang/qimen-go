@@ -112,7 +112,8 @@ func NewUIQiMen() *UIQiMen {
 	p.cbAuto = gui.NewCheckBox(px0+72*4, py0, "自动")
 	py0 += 18
 	p.opDay2Pan = gui.NewOptionBox(px0+72, py0, "_日家2")
-	cbChar8Pan := gui.NewCheckBox(px0+72*4, py0, "四柱")
+	cbChar8Pan := gui.NewCheckBox(px0+72*3, py0, "四柱")
+	cbMeiHuaPan := gui.NewCheckBox(px0+72*4, py0, "梅花")
 	cbStarPan := gui.NewCheckBox(px0+72*5, py0, "星盘")
 
 	p.AddChildren(p.panelSDate, p.panelOpCb)
@@ -132,7 +133,7 @@ func NewUIQiMen() *UIQiMen {
 		p.btnPreJu, p.btnNextJu, p.cbHostingType, p.cbFlyType,
 		p.opHourPan, p.opDayPan, p.opMonthPan, p.opYearPan, p.opDay2Pan,
 		p.opStartSplit, p.opStartMaoShan, p.opStartZhiRun, p.opStartSelf, p.inputSelfJu,
-		p.cbAuto, cbChar8Pan, cbStarPan,
+		p.cbAuto, cbChar8Pan, cbStarPan, cbMeiHuaPan,
 		p.opHideGan0, p.opHideGan1)
 
 	gui.MakeOptionBoxGroup(p.opTypeRoll, p.opTypeFly, p.opTypeAmaze)
@@ -206,6 +207,12 @@ func NewUIQiMen() *UIQiMen {
 	})
 	p.opDay2Pan.Disabled = true
 	p.opDay2Pan.Visible = false
+	cbMeiHuaPan.SetChecked(true)
+	cbMeiHuaPan.SetOnCheckChanged(func(c *gui.CheckBox) {
+		if ThisGame != nil {
+			ThisGame.showMeiHua = c.Checked()
+		}
+	})
 	cbChar8Pan.SetChecked(true)
 	cbChar8Pan.SetOnCheckChanged(func(c *gui.CheckBox) {
 		if ThisGame != nil {
