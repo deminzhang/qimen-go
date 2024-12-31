@@ -13,18 +13,20 @@ import (
 )
 
 // DrawProBar draw a horizontal progress bar
-func DrawProBar[T util.Numeric](dst *ebiten.Image, x, y, width, height float32, clr color.Color, val, maxV T) {
+func DrawProBar[T util.Numeric](dst *ebiten.Image, x, y, width, height float32, clr color.Color, val, maxV T, showVal bool) {
 	if val < 0 || maxV <= 0 {
 		return
 	}
 	ft, _ := GetFontFace(10)
 	vector.DrawFilledRect(dst, x, y, width*float32(val)/float32(maxV), height, clr, true)
 	vector.StrokeRect(dst, x, y, width, height, 0.5, clr, true)
-	text.Draw(dst, fmt.Sprintf("%v/%v", val, maxV), ft, int(x+width/3), int(y+8), colorGray)
+	if showVal {
+		text.Draw(dst, fmt.Sprintf("%v/%v", val, maxV), ft, int(x+width/3), int(y+8), colorGray)
+	}
 }
 
 // DrawProBarV draw a vertical progress bar
-func DrawProBarV[T util.Numeric](dst *ebiten.Image, x, y, width, height float32, clr color.Color, val, maxV T) {
+func DrawProBarV[T util.Numeric](dst *ebiten.Image, x, y, width, height float32, clr color.Color, val, maxV T, showVal bool) {
 	if val < 0 || maxV <= 0 {
 		return
 	}
@@ -32,7 +34,9 @@ func DrawProBarV[T util.Numeric](dst *ebiten.Image, x, y, width, height float32,
 	empty := height - height*float32(val)/float32(maxV)
 	vector.DrawFilledRect(dst, x, y+empty, width, height*float32(val)/float32(maxV), clr, true)
 	vector.StrokeRect(dst, x, y, width, height, 0.5, clr, true)
-	text.Draw(dst, fmt.Sprintf("%v\n/\n%v", val, maxV), ft, int(x), int(y+8), colorGray)
+	if showVal {
+		text.Draw(dst, fmt.Sprintf("%v\n/\n%v", val, maxV), ft, int(x), int(y+8), colorGray)
+	}
 }
 
 // DrawFlow 流年流月流日流时柱

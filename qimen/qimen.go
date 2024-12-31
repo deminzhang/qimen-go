@@ -75,7 +75,8 @@ type QMGame struct {
 
 	JieQi     string //节气文本
 	TimeHorse string //时家马
-	Big6      []Gong12
+	//Big6      []Big6Gong
+	Big6 *Big6Ren
 
 	YearPan  *QMPan //年家奇门盘
 	MonthPan *QMPan //月家奇门盘
@@ -534,7 +535,7 @@ func (p *QMGame) calcGongDay2(pp *QMPan) {
 }
 
 func (p *QMGame) CalBig6() {
-	p.Big6 = CalBig6(p.YueJian, p.YueJiang, p.Lunar.GetTimeZhiIndex()+1, p.TimeHorse)
+	p.Big6 = NewBig6(p.Lunar)
 }
 
 func (p *QMGame) ShowHeadCommon() {

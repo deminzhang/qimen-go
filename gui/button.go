@@ -20,11 +20,8 @@ type Button struct {
 	ImageRect        image.Rectangle
 	ImageRectPressed image.Rectangle
 
-	mouseDown  bool
-	onClick    func(b *Button)
-	mouseHover bool
-	onHover    func(b *Button)
-	onHout     func(b *Button)
+	mouseDown bool
+	onClick   func()
 }
 
 func NewButton(x, y, w, h int, text string) *Button {
@@ -40,28 +37,25 @@ func NewButton(x, y, w, h int, text string) *Button {
 }
 
 // NewTextButton 按text长度自动调整大小无背景UI
-func NewTextButton(x, y int, text string, textColor, bgColor *color.RGBA) *Button {
-	return &Button{BaseUI: BaseUI{Visible: true, X: x, Y: y, W: 1, H: 1, BDColor: bgColor},
+func NewTextButton(x, y int, text string, textColor, bdColor color.Color) *Button {
+	return &Button{BaseUI: BaseUI{Visible: true, X: x, Y: y, W: 1, H: 1, BDColor: bdColor},
 		Text:           text,
 		TextColor:      textColor,
 		AutoSizeByText: true,
 	}
 }
 
-func (b *Button) updateClick() {
+func (b *Button) updateMouse() {
+	mx, my := ebiten.CursorPosition()
+	x, y := b.GetWorldXY()
+	cursorIn := x <= mx && mx < x+b.W && y <= my && my < y+b.H
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-		mx, my := ebiten.CursorPosition()
-		x, y := b.GetWorldXY()
-		if x <= mx && mx < x+b.W && y <= my && my < y+b.H {
-			b.mouseDown = true
-		} else {
-			b.mouseDown = false
-		}
+		b.mouseDown = cursorIn
 	} else {
 		if b.mouseDown {
 			if b.onClick != nil {
 				if !IsFrameClick() {
-					b.onClick(b)
+					b.onClick()
 					SetFrameClick()
 				}
 			}
@@ -80,7 +74,7 @@ func (b *Button) Update() {
 	}
 	b.textX = (b.W - w) / 2
 	b.textY = b.H - (b.H-uiFontMHeight)/2
-	b.updateClick()
+	b.updateMouse()
 }
 
 func (b *Button) Draw(dst *ebiten.Image) {
@@ -102,18 +96,12 @@ func (b *Button) Draw(dst *ebiten.Image) {
 	}
 }
 
-func (b *Button) SetOnClick(f func(b *Button)) {
+func (b *Button) SetOnClick(f func()) {
 	b.onClick = f
-}
-func (b *Button) SetOnHover(f func(b *Button)) {
-	b.onHover = f
-}
-func (b *Button) SetOnHout(f func(b *Button)) {
-	b.onHout = f
 }
 
 func (b *Button) Click() {
 	if b.onClick != nil {
-		b.onClick(b)
+		b.onClick()
 	}
 }

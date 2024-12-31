@@ -60,7 +60,7 @@ func (t *TextBox) AppendLine(line string) {
 func (t *TextBox) Update() {
 	t.BaseUI.Update()
 	wx, wy := t.GetWorldXY()
-	w, h := t.contentSize()
+	w, h := t.ContentSize()
 	if h > t.H && !t.DisableVScroll { // 竖向滚动条
 		if t.vScrollBar == nil {
 			t.vScrollBar = NewVScrollBar()
@@ -99,7 +99,7 @@ func (t *TextBox) Update() {
 	}
 }
 
-func (t *TextBox) contentSize() (int, int) {
+func (t *TextBox) ContentSize() (int, int) {
 	lines := strings.Split(t.Text, "\n")
 	h := len(lines) * t.lineHeight
 	w := t.W
