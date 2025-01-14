@@ -80,9 +80,13 @@ func Draw(screen *ebiten.Image) {
 			op := ebiten.DrawImageOptions{}
 			op.GeoM.Translate(float64(x), float64(y))
 			u.Draw(img)
-			if uiBorderDebug {
-				w, h := u.GetWH()
-				vector.StrokeRect(img, 1, 1, float32(w-1), float32(h-1), 1, color.Gray{Y: 128}, true)
+			w, h := u.GetWH()
+			if u.GetBDColor() != nil {
+				vector.StrokeRect(img, 1, 1, float32(w-1), float32(h-1), 1, u.GetBDColor(), false)
+			} else {
+				if uiBorderDebug {
+					vector.StrokeRect(img, 1, 1, float32(w-1), float32(h-1), 1, color.Gray{Y: 128}, true)
+				}
 			}
 			screen.DrawImage(img, &op)
 		}

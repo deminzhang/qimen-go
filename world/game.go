@@ -17,7 +17,7 @@ var (
 	Debug        = false
 )
 
-type game struct {
+type Game struct {
 	count     int
 	uiQM      *UIQiMen
 	stars     *StarEffect
@@ -28,19 +28,21 @@ type game struct {
 	meiHua    *MeiHua
 
 	autoMinute    bool
+	showMeiHua    bool
 	showChar8     bool
 	showAstrolabe bool
 
 	StrokeManager
 }
 
-func (g *game) Update() error {
+func (g *Game) Update() error {
 	g.count++
 	g.count %= 60
 	//g.stars.Update()
 	g.qiMen.Update()
 	g.char8.Visible = g.showChar8
 	g.char8.Update()
+	g.meiHua.Visible = g.showMeiHua
 	g.meiHua.Update()
 	if g.showAstrolabe {
 		g.astrolabe.Update()
@@ -59,12 +61,12 @@ func (g *game) Update() error {
 	return nil
 }
 
-func (g *game) Draw(screen *ebiten.Image) {
+func (g *Game) Draw(screen *ebiten.Image) {
+	g.qiMen.Draw(screen)
 	if g.showAstrolabe {
 		g.astrolabe.Draw(screen)
 	}
 	//g.stars.Draw(screen)
-	g.qiMen.Draw(screen)
 	g.meiHua.Draw(screen)
 	g.char8.Draw(screen)
 	gui.Draw(screen)
@@ -72,7 +74,7 @@ func (g *game) Draw(screen *ebiten.Image) {
 	ebitenutil.DebugPrint(screen, msg)
 }
 
-func (g *game) Layout(w, h int) (int, int) {
+func (g *Game) Layout(w, h int) (int, int) {
 	if ScreenWidth != w || ScreenHeight != h {
 		ScreenWidth = w
 		ScreenHeight = h
@@ -89,7 +91,7 @@ func (g *game) Layout(w, h int) (int, int) {
 	return w, h
 }
 
-func NewGame() *game {
+func NewGame() *Game {
 	if _, ok := util.Args2Map()["debug"]; ok {
 		Debug = true
 		gui.SetBorderDebug(true)
@@ -98,15 +100,16 @@ func NewGame() *game {
 	u := UIShowQiMen()
 	solar := calendar.NewSolarFromDate(time.Now())
 	pan := u.Apply(solar)
-	g := &game{
+	g := &Game{
 		uiQM:      u,
 		stars:     NewStarEffect(float32(ScreenWidth/2), 217),
 		qiMen:     NewQiMenShow(450, 500),
 		astrolabe: NewAstrolabe(1650, 450),
 		char8:     NewChar8Pan(880, 174),
 		qmGame:    pan,
-		meiHua:    NewMeiHua(880, 780, 1, 2, 3),
+		meiHua:    NewMeiHua(880, 780),
 
+		showMeiHua:    true,
 		showChar8:     true,
 		showAstrolabe: true,
 

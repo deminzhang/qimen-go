@@ -198,6 +198,8 @@ func (a *Astrolabe) Update() {
 	minute := sCal.GetMinute()
 
 	cx, cy := a.X, a.Y
+	//qm := ThisGame.qiMen
+	//cx, cy = qm.X, qm.Y
 	if a.Earth == nil {
 		a.Earth = NewSprite(graphic.NewEarthImage(16), colorBlue)
 		a.Earth.onMove = func(sx, sy, dx, dy int) {
@@ -405,10 +407,11 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 			if obj.sphereX == 0 && obj.sphereY == 0 {
 				continue //查询中
 			}
-			vector.StrokeLine(dst, cx, cy, obj.sphereX, obj.sphereY, 1, colorOrbits, true) // sphere line
-			//vector.DrawFilledCircle(dst, obj.sphereX, obj.sphereY, 2, obj.color, true)     // sphere
+			//vector.StrokeLine(dst, cx, cy, obj.sphereX, obj.sphereY, 1, colorOrbits, true) // sphere line
+			vector.StrokeLine(dst, cx, cy, obj.drawX, obj.drawY, 1, colorOrbits, true) // R line
+			vector.StrokeCircle(dst, obj.sphereX, obj.sphereY, 2, .5, obj.color, true) // sphere
 
-			text.Draw(dst, qimen.StarSymbol[obj.nameCN], ft, int(obj.sphereX-8), int(obj.sphereY-8), obj.color) //星体符号需要字体支持
+			//text.Draw(dst, qimen.StarSymbol[obj.nameCN], ft, int(obj.sphereX-8), int(obj.sphereY-8), obj.color) //星体符号需要字体支持
 			text.Draw(dst, obj.nameCN, ft, int(obj.sphereX), int(obj.sphereY), obj.color)
 		}
 		if obj.Id == 10 { //日

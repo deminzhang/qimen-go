@@ -2,27 +2,29 @@ package qimen
 
 //七政四余/星盘
 
-var Constellation = []string{"Ari", "Tau", "Gem", "Can", "Leo", "Vir", "Lib", "Sco", "Sgr", "Cap", "Aqr", "Psc"}
-var ConstellationShort = []string{"羊", "牛", "双", "蟹", "狮", "室", "秤", "蝎", "射", "摩", "瓶", "鱼"}
-var ConstellationSymbol = []string{"♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓"} //需字体支持
-var ConstellationCN = map[string]string{
-	"Ari": "白羊座", "Tau": "金牛座", "Gem": "双子座", "Can": "巨蟹座",
-	"Leo": "狮子座", "Vir": "室女座", "Lib": "天秤座", "Sco": "天蝎座",
-	"Sgr": "射手座", "Cap": "摩羯座", "Aqr": "水瓶座", "Psc": "双鱼座",
-}
-var StarSymbol = map[string]string{ //☉☀☽☿♀♂♃♄♅♆♇♈♉♊♋♌♍♎♏♐♑♒♓ 需字体支持
-	"日": "☉", "月": "☽", "水": "水", "金": "♀", "火": "♂", "木": "ㄐ", "土": "ち", "天": "♅", "海": "Ψ",
-}
+var (
+	Constellation       = []string{"Ari", "Tau", "Gem", "Can", "Leo", "Vir", "Lib", "Sco", "Sgr", "Cap", "Aqr", "Psc"}
+	ConstellationShort  = []string{"羊", "牛", "双", "蟹", "狮", "室", "秤", "蝎", "射", "摩", "瓶", "鱼"}
+	ConstellationSymbol = []string{"♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓"} //需字体支持
+	ConstellationCN     = map[string]string{
+		"Ari": "白羊座", "Tau": "金牛座", "Gem": "双子座", "Can": "巨蟹座",
+		"Leo": "狮子座", "Vir": "室女座", "Lib": "天秤座", "Sco": "天蝎座",
+		"Sgr": "射手座", "Cap": "摩羯座", "Aqr": "水瓶座", "Psc": "双鱼座",
+	}
+	StarSymbol = map[string]string{ //☉☀☽☿♀♂♃♄♅♆♇♈♉♊♋♌♍♎♏♐♑♒♓ 需字体支持
+		"日": "☉", "月": "☽", "水": "水", "金": "♀", "火": "♂", "木": "ㄐ", "土": "ち", "天": "♅", "海": "Ψ",
+	}
 
-// AstrolabeGong 星盘宫名
-var AstrolabeGong = []string{"",
-	"命宫", "财帛", "交流", "田宅", "娱乐", "健康", "夫妻", "疾厄", "迁移", "事业", "福德", "玄秘",
-}
+	// AstrolabeGong 星盘宫名
+	AstrolabeGong = []string{"",
+		"命宫", "财帛", "交流", "田宅", "娱乐", "健康", "夫妻", "疾厄", "迁移", "事业", "福德", "玄秘",
+	}
 
-// AstrolabeGong74 七政四余宫名
-var AstrolabeGong74 = []string{"",
-	"命宫", "财帛", "兄弟", "田宅", "子女", "奴仆", "夫妻", "疾厄", "迁移", "官禄", "福德", "相貌",
-}
+	// AstrolabeGong74 七政四余宫名
+	AstrolabeGong74 = []string{"",
+		"命宫", "财帛", "兄弟", "田宅", "子女", "奴仆", "夫妻", "疾厄", "迁移", "官禄", "福德", "相貌",
+	}
+)
 
 // XiuAngle 星宿角度
 // https://www.jianshu.com/p/30eacfa0c8d1

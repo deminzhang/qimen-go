@@ -237,6 +237,7 @@ func (q *QMShow) Draw(dst *ebiten.Image) {
 	q.drawHead(dst)
 	q.draw12Gong(dst)
 	q.draw9Gong(dst)
+
 	if Debug {
 		//q.drawBattle(dst)
 	}
@@ -325,7 +326,8 @@ func (q *QMShow) draw9Gong(dst *ebiten.Image) {
 			op.GeoM.Translate(-_BaGuaSize/2, -_BaGuaSize/2)
 			op.GeoM.Rotate(math.Pi * float64(q.count) / 360 * 2)
 			op.GeoM.Translate(float64(px+_BaGuaSize/2+bd), float64(py+_BaGuaSize/2+bd))
-			op.ColorScale.ScaleWithColor(colorGray5)
+			//op.ColorScale.ScaleWithColor(colorGray5)
+			op.ColorScale.ScaleWithColor(color.RGBA{R: 0x50, G: 0x50, B: 0x50, A: 0x55})
 		} else {
 			op.GeoM.Translate(float64(px+bd), float64(py+bd))
 			op.ColorScale.ScaleWithColor(colorGray2)
