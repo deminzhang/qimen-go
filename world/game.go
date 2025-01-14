@@ -62,11 +62,11 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
+	g.qiMen.Draw(screen)
 	if g.showAstrolabe {
 		g.astrolabe.Draw(screen)
 	}
 	//g.stars.Draw(screen)
-	g.qiMen.Draw(screen)
 	g.meiHua.Draw(screen)
 	g.char8.Draw(screen)
 	gui.Draw(screen)

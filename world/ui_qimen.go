@@ -18,13 +18,13 @@ var gongOffset = [][]int{{0, 0},
 type UIQiMen struct {
 	gui.BaseUI
 	//pan                                                       *qimen.QMGame
-	panelSDate                                                *gui.Panel
-	panelOpCb                                                 *gui.Panel
+	//panelSDate                                                *gui.Panel
+	//panelOpCb                                                 *gui.Panel
 	inputSYear, inputSMonth, inputSDay, inputSHour, inputSMin *gui.InputBox
 
-	opTypeRoll, opTypeFly, opTypeAmaze *gui.OptionBox
-	cbHostingType, cbFlyType           *gui.CheckBox
-	cbAuto                             *gui.CheckBox
+	//opTypeRoll, opTypeFly, opTypeAmaze *gui.OptionBox
+	cbHostingType, cbFlyType *gui.CheckBox
+	cbAuto                   *gui.CheckBox
 
 	opStartSplit, opStartMaoShan, opStartZhiRun *gui.OptionBox
 	opStartSelf                                 *gui.OptionBox
@@ -32,12 +32,12 @@ type UIQiMen struct {
 
 	opHideGan0, opHideGan1 *gui.OptionBox
 
-	btnCalc             *gui.Button
-	btnNow              *gui.Button
-	btnPreJu, btnNextJu *gui.Button
+	//btnCalc             *gui.Button
+	//btnNow              *gui.Button
+	//btnPreJu, btnNextJu *gui.Button
 
-	opHourPan, opDayPan, opMonthPan, opYearPan *gui.OptionBox
-	opDay2Pan                                  *gui.OptionBox
+	//opHourPan, opDayPan, opMonthPan, opYearPan *gui.OptionBox
+	//opDay2Pan                                  *gui.OptionBox
 
 	year, month, day, hour, minute int
 	solar                          *calendar.Solar
@@ -73,27 +73,26 @@ func NewUIQiMen() *UIQiMen {
 	}
 	px0, py0 := 0, 0
 	h := 28
-	p.panelSDate = gui.NewPanel(150, 0, 380, 32, nil)
+	panelSDate := gui.NewPanel(150, 0, 380, 32, nil)
 	p.inputSYear = gui.NewInputBox(px0, py0, 64, h)
 	p.inputSMonth = gui.NewInputBox(px0+72, py0, 64, h)
 	p.inputSDay = gui.NewInputBox(px0+72*2, py0, 64, h)
 	p.inputSHour = gui.NewInputBox(px0+72*3, py0, 64, h)
 	p.inputSMin = gui.NewInputBox(px0+72*4, py0, 64, h)
 	px0, py0 = 4, 4
-	p.panelOpCb = gui.NewPanel(630, 0, 400, 130, nil)
-	p.opTypeRoll = gui.NewOptionBox(px0, py0, qimen.QMType[0])
-	p.opTypeFly = gui.NewOptionBox(px0+72*1, py0, qimen.QMType[1])
-	p.opTypeAmaze = gui.NewOptionBox(px0+72*2, py0, qimen.QMType[2])
-	p.btnCalc = gui.NewTextButton(px0+72*4, py0, "排局", colorWhite, colorGray)
-	p.btnNow = gui.NewTextButton(px0+72*4+50, py0, "此时", colorWhite, colorGray)
+	panelOpCb := gui.NewPanel(630, 0, 400, 130, nil)
+	opTypeRoll := gui.NewOptionBox(px0, py0, qimen.QMType[0])
+	opTypeFly := gui.NewOptionBox(px0+72*1, py0, qimen.QMType[1])
+	opTypeAmaze := gui.NewOptionBox(px0+72*2, py0, qimen.QMType[2])
+	btnCalc := gui.NewTextButton(px0+72*5, py0, "排局", colorWhite, colorGray)
 
 	py0 += 18
 	p.cbHostingType = gui.NewCheckBox(px0, py0, qimen.QMHostingType[qimen.QMHostingType28])
 	p.cbFlyType = gui.NewCheckBox(px0+72*1, py0, qimen.QMFlyType[qimen.QMFlyTypeAllOrder])
-	p.btnPreJu = gui.NewTextButton(px0+72*4, py0, "上一局", colorWhite, colorGray)
+	btnPreJu := gui.NewTextButton(px0+72*5, py0, "上一局", colorWhite, colorGray)
 
 	py0 += 18
-	p.btnNextJu = gui.NewTextButton(px0+72*4, py0, "下一局", colorWhite, colorGray)
+	btnNextJu := gui.NewTextButton(px0+72*5, py0, "下一局", colorWhite, colorGray)
 
 	p.opStartSplit = gui.NewOptionBox(px0, py0, qimen.QMJuType[qimen.QMJuTypeSplit])
 	p.opStartMaoShan = gui.NewOptionBox(px0+72, py0, qimen.QMJuType[qimen.QMJuTypeMaoShan])
@@ -104,19 +103,20 @@ func NewUIQiMen() *UIQiMen {
 	py0 += 18
 	p.opHideGan0 = gui.NewOptionBox(px0, py0, qimen.QMHideGanType[qimen.QMHideGanDutyDoorHour])
 	p.opHideGan1 = gui.NewOptionBox(px0+72, py0, qimen.QMHideGanType[qimen.QMHideGanDoorHomeGan])
+	btnNow := gui.NewTextButton(px0+72*5, py0, "此时", colorWhite, colorGray)
 	py0 += 18
-	p.opHourPan = gui.NewOptionBox(px0, py0, "时家")
-	p.opDayPan = gui.NewOptionBox(px0+72, py0, "日家")
-	p.opMonthPan = gui.NewOptionBox(px0+72*2, py0, "月家")
-	p.opYearPan = gui.NewOptionBox(px0+72*3, py0, "年家")
+	opHourPan := gui.NewOptionBox(px0, py0, "时家")
+	opDayPan := gui.NewOptionBox(px0+72, py0, "日家")
+	opMonthPan := gui.NewOptionBox(px0+72*2, py0, "月家")
+	opYearPan := gui.NewOptionBox(px0+72*3, py0, "年家")
 	p.cbAuto = gui.NewCheckBox(px0+72*4, py0, "自动")
 	py0 += 18
-	p.opDay2Pan = gui.NewOptionBox(px0+72, py0, "_日家2")
+	opDay2Pan := gui.NewOptionBox(px0+72, py0, "_日家2")
 	cbChar8Pan := gui.NewCheckBox(px0+72*3, py0, "四柱")
 	cbMeiHuaPan := gui.NewCheckBox(px0+72*4, py0, "梅花")
 	cbStarPan := gui.NewCheckBox(px0+72*5, py0, "星盘")
 
-	p.AddChildren(p.panelSDate, p.panelOpCb)
+	p.AddChildren(panelSDate, panelOpCb)
 	p.inputSYear.MaxChars = 5
 	p.inputSMonth.MaxChars = 2
 	p.inputSDay.MaxChars = 2
@@ -128,25 +128,25 @@ func NewUIQiMen() *UIQiMen {
 	p.inputSHour.DefaultText = "时"
 	p.inputSMin.DefaultText = "分"
 	p.inputSelfJu.DefaultText = "手选局数"
-	p.panelSDate.AddChildren(p.inputSYear, p.inputSMonth, p.inputSDay, p.inputSHour, p.inputSMin)
-	p.panelOpCb.AddChildren(p.btnCalc, p.btnNow, p.opTypeRoll, p.opTypeFly, p.opTypeAmaze,
-		p.btnPreJu, p.btnNextJu, p.cbHostingType, p.cbFlyType,
-		p.opHourPan, p.opDayPan, p.opMonthPan, p.opYearPan, p.opDay2Pan,
+	panelSDate.AddChildren(p.inputSYear, p.inputSMonth, p.inputSDay, p.inputSHour, p.inputSMin)
+	panelOpCb.AddChildren(btnCalc, btnNow, opTypeRoll, opTypeFly, opTypeAmaze,
+		btnPreJu, btnNextJu, p.cbHostingType, p.cbFlyType,
+		opHourPan, opDayPan, opMonthPan, opYearPan, opDay2Pan,
 		p.opStartSplit, p.opStartMaoShan, p.opStartZhiRun, p.opStartSelf, p.inputSelfJu,
 		p.cbAuto, cbChar8Pan, cbStarPan, cbMeiHuaPan,
 		p.opHideGan0, p.opHideGan1)
 
-	gui.MakeOptionBoxGroup(p.opTypeRoll, p.opTypeFly, p.opTypeAmaze)
-	p.opTypeRoll.Select()
-	p.opTypeRoll.SetOnSelect(func(c *gui.OptionBox) {
+	gui.MakeOptionBoxGroup(opTypeRoll, opTypeFly, opTypeAmaze)
+	opTypeRoll.Select()
+	opTypeRoll.SetOnSelect(func(c *gui.OptionBox) {
 		p.qmParams.Type = qimen.QMTypeRotating
 		p.Apply(p.solar)
 	})
-	p.opTypeFly.SetOnSelect(func(c *gui.OptionBox) {
+	opTypeFly.SetOnSelect(func(c *gui.OptionBox) {
 		p.qmParams.Type = qimen.QMTypeFly
 		p.Apply(p.solar)
 	})
-	p.opTypeAmaze.SetOnSelect(func(c *gui.OptionBox) {
+	opTypeAmaze.SetOnSelect(func(c *gui.OptionBox) {
 		p.qmParams.Type = qimen.QMTypeAmaze
 		p.opStartSplit.Select()
 	})
@@ -183,30 +183,30 @@ func NewUIQiMen() *UIQiMen {
 		p.Apply(p.solar)
 	})
 
-	gui.MakeOptionBoxGroup(p.opHourPan, p.opDayPan, p.opMonthPan, p.opYearPan, p.opDay2Pan)
-	p.opHourPan.Select()
-	p.opHourPan.SetOnSelect(func(c *gui.OptionBox) {
+	gui.MakeOptionBoxGroup(opHourPan, opDayPan, opMonthPan, opYearPan, opDay2Pan)
+	opHourPan.Select()
+	opHourPan.SetOnSelect(func(c *gui.OptionBox) {
 		p.qmParams.YMDH = qimen.QMGameHour
 		p.Apply(p.solar)
 	})
-	p.opDayPan.SetOnSelect(func(c *gui.OptionBox) {
+	opDayPan.SetOnSelect(func(c *gui.OptionBox) {
 		p.qmParams.YMDH = qimen.QMGameDay
 		p.Apply(p.solar)
 	})
-	p.opMonthPan.SetOnSelect(func(c *gui.OptionBox) {
+	opMonthPan.SetOnSelect(func(c *gui.OptionBox) {
 		p.qmParams.YMDH = qimen.QMGameMonth
 		p.Apply(p.solar)
 	})
-	p.opYearPan.SetOnSelect(func(c *gui.OptionBox) {
+	opYearPan.SetOnSelect(func(c *gui.OptionBox) {
 		p.qmParams.YMDH = qimen.QMGameYear
 		p.Apply(p.solar)
 	})
-	p.opDay2Pan.SetOnSelect(func(c *gui.OptionBox) {
+	opDay2Pan.SetOnSelect(func(c *gui.OptionBox) {
 		p.qmParams.YMDH = qimen.QMGameDay2
 		p.Apply(p.solar)
 	})
-	p.opDay2Pan.Disabled = true
-	p.opDay2Pan.Visible = false
+	opDay2Pan.Disabled = true
+	opDay2Pan.Visible = false
 	cbMeiHuaPan.SetChecked(true)
 	cbMeiHuaPan.SetOnCheckChanged(func(c *gui.CheckBox) {
 		if ThisGame != nil {
@@ -227,7 +227,7 @@ func NewUIQiMen() *UIQiMen {
 	})
 
 	p.cbHostingType.SetChecked(false)
-	p.cbHostingType.Visible = p.opTypeRoll.Selected()
+	p.cbHostingType.Visible = opTypeRoll.Selected()
 	p.cbHostingType.SetOnCheckChanged(func(c *gui.CheckBox) {
 		if c.Checked() {
 			p.qmParams.HostingType = qimen.QMHostingType28
@@ -237,7 +237,7 @@ func NewUIQiMen() *UIQiMen {
 		p.Apply(p.solar)
 	})
 	p.cbFlyType.SetChecked(true)
-	p.cbFlyType.Visible = p.opTypeFly.Selected()
+	p.cbFlyType.Visible = opTypeFly.Selected()
 	p.cbFlyType.SetOnCheckChanged(func(c *gui.CheckBox) {
 		if c.Checked() {
 			p.qmParams.FlyType = qimen.QMFlyTypeAllOrder
@@ -250,7 +250,7 @@ func NewUIQiMen() *UIQiMen {
 		ThisGame.autoMinute = c.Checked()
 	})
 
-	p.btnCalc.SetOnClick(func() {
+	btnCalc.SetOnClick(func() {
 		defer func() {
 			s := recover()
 			if s != nil {
@@ -275,7 +275,7 @@ func NewUIQiMen() *UIQiMen {
 		solar := calendar.NewSolar(year, month, day, hour, minute, 0)
 		p.Apply(solar)
 	})
-	p.btnNow.SetOnClick(func() {
+	btnNow.SetOnClick(func() {
 		defer func() {
 			s := recover()
 			if s != nil {
@@ -295,7 +295,7 @@ func NewUIQiMen() *UIQiMen {
 		}
 		p.Apply(solar)
 	})
-	p.btnPreJu.SetOnClick(func() {
+	btnPreJu.SetOnClick(func() {
 		var solar *calendar.Solar
 		switch p.qmParams.YMDH {
 		case qimen.QMGameYear:
@@ -309,7 +309,7 @@ func NewUIQiMen() *UIQiMen {
 		}
 		p.Apply(solar)
 	})
-	p.btnNextJu.SetOnClick(func() {
+	btnNextJu.SetOnClick(func() {
 		var solar *calendar.Solar
 		switch p.qmParams.YMDH {
 		case qimen.QMGameYear:

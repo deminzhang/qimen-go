@@ -33,6 +33,17 @@ func (s *Line) Init(scale float32) {
 	s.toy = s.fromY + s.dy*(s.speed+.01)
 }
 
+func (s *Line) Move(dx, dy float32) {
+	s.sx += dx
+	s.sy += dy
+	s.tx += dx
+	s.ty += dy
+	s.fromX += dx
+	s.fromY += dy
+	s.tox += dx
+	s.toy += dy
+}
+
 func (s *Line) Update() {
 	w, h := ebiten.WindowSize()
 	ww, wh := float32(w), float32(h)

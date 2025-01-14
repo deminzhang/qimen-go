@@ -39,6 +39,20 @@ func DrawProBarV[T util.Numeric](dst *ebiten.Image, x, y, width, height float32,
 	}
 }
 
+// DrawMixProBar draw a mixed progress bar 混合进度条
+func DrawMixProBar[T util.Numeric](dst *ebiten.Image, x, y, width, height float32, clr []color.Color, val []T, maxV T) {
+	if maxV <= 0 || len(val) == 0 || 0 == len(clr) || len(clr) != len(val) {
+		return
+	}
+	from := x
+	for i := 0; i < len(val); i++ {
+		to := width * float32(val[i]) / float32(maxV)
+		vector.DrawFilledRect(dst, from, y, to, height, clr[i], true)
+		from += to
+	}
+	vector.StrokeRect(dst, x, y, width, height, .5, clr[0], true)
+}
+
 // DrawFlow 流年流月流日流时柱
 func DrawFlow(dst *ebiten.Image, sx, sy int, soul string, cb *CharBody) {
 	ft14, _ := GetFontFace(14)

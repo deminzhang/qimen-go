@@ -10,6 +10,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"image/color"
 	"strings"
 )
 
@@ -37,6 +38,34 @@ var HideGanVal = map[int][]int{
 	3: {60, 30, 10},
 }
 
+// https://www.zgjmorg.com/sm/wz/47411.html
+// 子中藏有癸水30
+// 丑中藏有己土18 辛金3 癸水9
+// 寅中藏有甲木16 丙火7 戊土7
+// 卯中藏有乙木30
+// 辰中藏有戊土18 乙木9 癸水3
+// 巳中藏有丙火16 戊土7 庚金7
+// 午中藏有丁火20 己土10
+// 未中藏有己土18 丁火9 乙木3
+// 申中藏有庚金16 壬水7 戊土7
+// 酉中藏有辛金30
+// 戌中藏有戊土18 辛金9 丁火3
+// 亥中藏有壬水16 甲木7 戊土7
+var HideGanRate = map[string][]int{
+	"子": {100},
+	"丑": {60, 30, 10},
+	"寅": {54, 23, 23},
+	"卯": {100},
+	"辰": {60, 30, 10},
+	"巳": {54, 23, 23},
+	"午": {67, 33},
+	"未": {60, 30, 10},
+	"申": {54, 23, 23},
+	"酉": {100},
+	"戌": {60, 30, 10},
+	"亥": {70, 30},
+}
+
 type Char8Pan struct {
 	X, Y         int
 	Visible      bool
@@ -56,12 +85,12 @@ type Char8Pan struct {
 func NewChar8Pan(x, y int) *Char8Pan {
 	p := &Char8Pan{
 		X: x, Y: y,
-		UI:           &gui.BaseUI{X: x, Y: y, Visible: true, W: char8UIWidth, H: char8UIHeight},
+		UI:           &gui.BaseUI{X: x, Y: y, Visible: true, W: char8UIWidth, H: char8UIHeight, BDColor: colorGray},
 		BodyShow:     false,
 		OverviewShow: false,
 		EnergyEffect: make(map[string]*Line),
 	}
-	btnBirth := gui.NewTextButton(350, 386, "命造", colorYellow, colorGray)
+	btnBirth := gui.NewTextButton(365, 386, "命", colorYellow, colorGray)
 	btnBirth.SetOnClick(func() {
 		oldBirthTime := ThisGame.char8.Player.Birth
 		var oldBirthSolar *calendar.Solar
@@ -94,8 +123,8 @@ func NewChar8Pan(x, y int) *Char8Pan {
 		}
 	})
 	//cbShowBody.SetChecked(false)
-	btnMarry := gui.NewTextButton(350, 418, "择偶", colorPink, colorGray)
-	btnSplit := gui.NewTextButton(350, 518, "和离", colorGreen, colorGray)
+	btnMarry := gui.NewTextButton(365, 412, "合", colorPink, colorGray)
+	btnSplit := gui.NewTextButton(365, 514, "离", colorGreen, colorGray)
 	btnMarry.SetOnClick(func() {
 		mate := ThisGame.char8.Player.Mate
 		if mate == nil {
@@ -170,6 +199,10 @@ func (g *Char8Pan) Update() {
 			g.X += dx
 			g.Y += dy
 			g.UI.X, g.UI.Y = g.X, g.Y
+
+			for _, line := range g.EnergyEffect {
+				line.Move(float32(dx), float32(dy))
+			}
 		}
 		ThisGame.AddSprite(g.Mover)
 		g.Mover.MoveTo(g.X, g.Y)
@@ -181,6 +214,7 @@ func (g *Char8Pan) Update() {
 	if g.Flow.Year.Gan != cal.GetYearGan() || g.Flow.Year.Zhi != cal.GetYearZhi() {
 		g.Flow.Year = NewCharBody(cal.GetYearGan(), cal.GetYearZhi(), HpGanYear, HpZhiYear, true)
 		change = true
+		p.FYun = nil
 	}
 	if g.Flow.Month.Gan != cal.GetMonthGan() || g.Flow.Month.Zhi != cal.GetMonthZhi() {
 		g.Flow.Month = NewCharBody(cal.GetMonthGan(), cal.GetMonthZhi(), HpGanMonth, HpZhiMonth, true)
@@ -213,7 +247,13 @@ func (g *Char8Pan) Update() {
 	if changeYun { //大运变化
 		change = true
 		if cal.GetYear() < p.yuns[0].GetStartYear() {
-			p.FYun = nil //未出生,穿越过去
+			//p.FYun = nil //未出生,穿越过去
+			//用出生时令起小运
+			gan := p.Birth.GetMonthGan()
+			zhi := p.Birth.GetMonthZhi()
+			p.FYun = NewCharBody(gan, zhi, HpGanMonth, HpZhiMonth, true)
+			p.YunIdx0 = 0
+			p.YunIdx = 0
 		} else {
 			for i, daYun := range p.yuns {
 				if daYun.GetStartYear() <= cal.GetYear() && cal.GetYear() <= daYun.GetEndYear() {
@@ -224,7 +264,6 @@ func (g *Char8Pan) Update() {
 								gan := string([]rune(gz)[0])
 								zhi := string([]rune(gz)[1])
 								p.FYun = NewCharBody(gan, zhi, HpGanMonth, HpZhiMonth, true)
-								p.FYun.FlowEnergy = true
 								p.YunIdx0 = j
 								p.YunIdx = i
 								break
@@ -235,7 +274,6 @@ func (g *Char8Pan) Update() {
 						gan := string([]rune(gz)[0])
 						zhi := string([]rune(gz)[1])
 						p.FYun = NewCharBody(gan, zhi, HpGanMonth, HpZhiMonth, true)
-						p.FYun.FlowEnergy = true
 						p.YunIdx0 = 0
 						p.YunIdx = i
 					}
@@ -275,6 +313,12 @@ func (g *Char8Pan) Update() {
 }
 
 func (g *Char8Pan) UpdateHp(p *Player) {
+	//环境整体
+	//env := g.Flow.Month.Zhi //总体环境气场
+	//g.Flow.Year.InteractiveSelf(8)
+	//g.Flow.Month.InteractiveSelf(8)
+	//g.Flow.Day.InteractiveSelf(8)
+	//g.Flow.Time.InteractiveSelf(8)
 	//先天后地 从年到时
 	//年干-月干 日干-时干 月干-日干 论合冲
 	//年干-年支 月干-月支 日干-日支 时干-时支 论生旺衰死
@@ -494,15 +538,15 @@ func (g *Char8Pan) Draw(dst *ebiten.Image) {
 	//横象 年长 月同 日夫妻 时子孙 干动支静 干为军支为营 干为官支为民
 	if !g.OverviewShow {
 		sx, sy := float32(cx+3), float32(cy+200)
-		g.DrawCharHP(dst, sx+96, sy, g.Flow.Year, "流年")
-		g.DrawCharHP(dst, sx+96*2, sy, g.Flow.Month, "流月")
-		g.DrawCharHP(dst, sx+96*3, sy, g.Flow.Day, "流日")
-		g.DrawCharHP(dst, sx+96*4, sy, g.Flow.Time, "流时")
+		g.DrawCharHPX(dst, sx+96, sy, g.Flow.Year, "流年")
+		g.DrawCharHPX(dst, sx+96*2, sy, g.Flow.Month, "流月")
+		g.DrawCharHPX(dst, sx+96*3, sy, g.Flow.Day, "流日")
+		g.DrawCharHPX(dst, sx+96*4, sy, g.Flow.Time, "流时")
 	}
 	{ //本命
 		sx, sy := float32(cx+3), float32(cy+410)
 		if p.FYun != nil {
-			g.DrawCharHP(dst, sx-3, sy, p.FYun, "大运")
+			g.DrawCharHPX(dst, sx-3, sy, p.FYun, "大运")
 		}
 		g.DrawCharHP(dst, sx+96, sy, p.Year, "年柱")
 		g.DrawCharHP(dst, sx+96*2, sy, p.Month, "月柱")
@@ -557,6 +601,9 @@ func (g *Char8Pan) Draw(dst *ebiten.Image) {
 		}
 		if p.Mate != nil { //配偶
 			sy += 102
+			if p.Mate.FYun != nil {
+				g.DrawCharHPX(dst, sx-3, sy, p.Mate.FYun, "大运")
+			}
 			g.DrawCharHP(dst, sx+96, sy, p.Mate.Year, "年柱")
 			g.DrawCharHP(dst, sx+96*2, sy, p.Mate.Month, "月柱")
 			g.DrawCharHP(dst, sx+96*3, sy, p.Mate.Day, GenderSoul[p.Mate.Gender]+" 配偶")
@@ -573,22 +620,47 @@ func (g *Char8Pan) DrawCharHP(dst *ebiten.Image, sx, sy float32, body *CharBody,
 	vector.StrokeRect(dst, sx, sy, 96, 80, 1, colorWhite, true)
 	text.Draw(dst, body.Gan, ft28, int(sx), int(sy), ColorGanZhi(body.Gan))
 	text.Draw(dst, title, ft14, int(sx+28), int(sy-10), colorWhite)
-	DrawProBar(dst, sx+28, sy-8, 64, 8, ColorGanZhi(body.Gan), body.HPHead, body.HPMHead, !body.FlowEnergy)
+	DrawProBar(dst, sx+28, sy-8, 64, 8, ColorGanZhi(body.Gan), body.HPHead, body.GanMax, !body.FlowEnergy)
 	sy += 26
 	text.Draw(dst, body.Zhi, ft28, int(sx), int(sy), ColorGanZhi(body.Zhi))
 	text.Draw(dst, body.Body, ft14, int(sx), int(sy+16), ColorGanZhi(body.Body))
-	DrawProBar(dst, sx+28, sy+16-8, 64, 8, ColorGanZhi(body.Zhi), body.HPBody, body.HPMBody, !body.FlowEnergy) //横HP
-	//DrawProBarV(dst, sx+28, sy-16, 8, 64, ColorGanZhi(body.Zhi), body.HPBody, body.HPMBody) //纵HP
+	DrawProBar(dst, sx+28, sy+16-8, 64, 8, ColorGanZhi(body.Zhi), body.HPBody, body.ZhiMax, !body.FlowEnergy) //横HP
+	//DrawProBarV(dst, sx+28, sy-16, 8, 64, ColorGanZhi(body.Zhi), body.HPBody, body.ZhiMax) //纵HP
 	if body.Legs != "" {
 		text.Draw(dst, body.Legs, ft14, int(sx), int(sy+32), ColorGanZhi(body.Legs))
-		DrawProBar(dst, sx+28, sy+32-8, 64, 8, ColorGanZhi(body.Legs), body.HPLegs, body.HPMLegs, !body.FlowEnergy)
+		DrawProBar(dst, sx+28, sy+32-8, 64, 8, ColorGanZhi(body.Legs), body.HPLegs, body.ZhiMax, !body.FlowEnergy)
 		//DrawProBarV(dst, sx+28+24, sy-16, 8, 64, ColorGanZhi(body.Legs), body.HPLegs, body.HPMLegs)
 	}
 	if body.Feet != "" {
 		text.Draw(dst, body.Feet, ft14, int(sx), int(sy+48), ColorGanZhi(body.Feet))
-		DrawProBar(dst, sx+28, sy+48-8, 64, 8, ColorGanZhi(body.Feet), body.HPFeet, body.HPMFeet, !body.FlowEnergy)
+		DrawProBar(dst, sx+28, sy+48-8, 64, 8, ColorGanZhi(body.Feet), body.HPFeet, body.ZhiMax, !body.FlowEnergy)
 		//DrawProBarV(dst, sx+28+48, sy-16, 8, 64, ColorGanZhi(body.Feet), body.HPFeet, body.HPMFeet)
 	}
+}
+
+func (g *Char8Pan) DrawCharHPX(dst *ebiten.Image, sx, sy float32, body *CharBody, title string) {
+	ft14, _ := GetFontFace(14)
+	ft28, _ := GetFontFace(28)
+	vector.StrokeRect(dst, sx, sy, 96, 32, 1, colorWhite, true)
+	text.Draw(dst, body.Gan, ft28, int(sx), int(sy), ColorGanZhi(body.Gan))
+	text.Draw(dst, title, ft14, int(sx+28), int(sy-10), colorWhite)
+	DrawProBar(dst, sx+28, sy-8, 64, 8, ColorGanZhi(body.Gan), body.HPHead, body.GanMax, !body.FlowEnergy)
+	sy += 26
+	text.Draw(dst, body.Zhi, ft28, int(sx), int(sy), ColorGanZhi(body.Zhi))
+	text.Draw(dst, body.Body, ft14, int(sx+28), int(sy-10), ColorGanZhi(body.Body))
+	clrs := []color.Color{ColorGanZhi(body.Body)}
+	vals := []int{body.HPBody}
+	if body.Legs != "" {
+		text.Draw(dst, body.Legs, ft14, int(sx+28+14), int(sy-10), ColorGanZhi(body.Legs))
+		clrs = append(clrs, ColorGanZhi(body.Legs))
+		vals = append(vals, body.HPLegs)
+	}
+	if body.Feet != "" {
+		text.Draw(dst, body.Feet, ft14, int(sx+28+28), int(sy-10), ColorGanZhi(body.Feet))
+		clrs = append(clrs, ColorGanZhi(body.Feet))
+		vals = append(vals, body.HPFeet)
+	}
+	DrawMixProBar(dst, sx+28, sy-6, 64, 8, clrs, vals, body.ZhiMax) //横HP
 }
 
 type CharBody struct {
@@ -598,25 +670,24 @@ type CharBody struct {
 	Legs string //中气为腿
 	Feet string //余气为足
 
-	HPHead  int //干值
-	HPBody  int //本气值
-	HPLegs  int //中气值
-	HPFeet  int //余气值
-	HPMHead int //干为值Max
-	HPMBody int //本气值Max
-	HPMLegs int //中气值Max
-	HPMFeet int //余气值Max
+	HPHead int //干值
+	HPBody int //本气值
+	HPLegs int //中气值
+	HPFeet int //余气值
+	GanMax int //干气值Max
+	ZhiMax int //支气值Max
 
 	FlowEnergy bool //流气锁值
 }
 
 func NewCharBody(gan, zhi string, ganMax, zhiMax int, flow bool) *CharBody {
 	cb := &CharBody{Gan: gan, Zhi: zhi,
-		Body:   GetHideGan(zhi, 0),
-		Legs:   GetHideGan(zhi, 1),
-		Feet:   GetHideGan(zhi, 2),
-		HPHead: ganMax, HPMHead: ganMax,
-		HPMBody: zhiMax, HPMLegs: zhiMax, HPMFeet: zhiMax,
+		Body:       GetHideGan(zhi, 0),
+		Legs:       GetHideGan(zhi, 1),
+		Feet:       GetHideGan(zhi, 2),
+		HPHead:     ganMax,
+		GanMax:     ganMax,
+		ZhiMax:     zhiMax,
 		FlowEnergy: flow,
 	}
 	cb.initZhiHP(zhiMax)
@@ -626,42 +697,31 @@ func (b *CharBody) GetGanZhi() string {
 	return b.Gan + b.Zhi
 }
 func (b *CharBody) initZhiHP(maxHp int) {
+	rate := HideGanRate[b.Zhi]
+	var sum int
+	for _, v := range rate {
+		sum += v
+	}
 	if b.Feet != "" {
-		b.HPBody = maxHp * HideGanVal[3][0] / 100
-		b.HPLegs = maxHp * HideGanVal[3][1] / 100
-		b.HPFeet = maxHp * HideGanVal[3][2] / 100
+		b.HPBody = maxHp * rate[0] / sum
+		b.HPLegs = maxHp * rate[1] / sum
+		b.HPFeet = maxHp * rate[2] / sum
 	} else if b.Legs != "" {
-		b.HPBody = maxHp * HideGanVal[2][0] / 100
-		b.HPLegs = maxHp * HideGanVal[2][1] / 100
+		b.HPBody = maxHp * rate[0] / sum
+		b.HPLegs = maxHp * rate[1] / sum
 		b.HPFeet = 0
 	} else {
-		b.HPBody = maxHp * HideGanVal[1][0] / 100
+		b.HPBody = maxHp * rate[0] / sum
 		b.HPLegs = 0
 		b.HPFeet = 0
 	}
 }
 
 func (b *CharBody) InteractiveSelf(force int) {
-	//本柱 支引干透
-	//cs :=qimen.ChangSheng12[b.Gan+b.Body]
-	ss := LunarUtil.SHI_SHEN[b.Gan+b.Body]
-
-	Interactive[ss](&b.HPHead, &b.HPBody, b.HPMHead, b.HPMBody, force)
-	//本柱 支藏干化
-	if b.Legs != "" {
-		ss = LunarUtil.SHI_SHEN[b.Gan+b.Legs]
-		Interactive[ss](&b.HPHead, &b.HPLegs, b.HPMHead, b.HPMLegs, force)
-		ss = LunarUtil.SHI_SHEN[b.Body+b.Legs]
-		Interactive[ss](&b.HPBody, &b.HPLegs, b.HPMBody, b.HPMLegs, force)
+	if b.FlowEnergy {
+		return
 	}
-	if b.Feet != "" {
-		ss = LunarUtil.SHI_SHEN[b.Gan+b.Feet]
-		Interactive[ss](&b.HPHead, &b.HPFeet, b.HPMHead, b.HPMFeet, force)
-		ss = LunarUtil.SHI_SHEN[b.Body+b.Feet]
-		Interactive[ss](&b.HPBody, &b.HPFeet, b.HPMBody, b.HPMFeet, force)
-		ss = LunarUtil.SHI_SHEN[b.Feet+b.Legs]
-		Interactive[ss](&b.HPFeet, &b.HPLegs, b.HPMFeet, b.HPMLegs, force)
-	}
+	GanZhiInteractive(b, b, force)
 }
 
 type Body4 struct {
@@ -741,14 +801,96 @@ func (p *Player) Reset(lunar *calendar.Lunar, gender int) {
 	p.resetHP()
 }
 
+func GanGanInteractive(a, b *CharBody, force int) {
+	ss := LunarUtil.SHI_SHEN[a.Gan+b.Gan] //b为a的
+	Interactive[ss](&a.HPHead, &b.HPHead, a.GanMax, b.GanMax, force)
+}
+func GanZhiInteractive(a, b *CharBody, force int) {
+	ss := LunarUtil.SHI_SHEN[a.Gan+b.Body]
+	Interactive[ss](&a.HPHead, &b.HPBody, a.GanMax, b.ZhiMax, force)
+	if b.Legs != "" {
+		ss = LunarUtil.SHI_SHEN[a.Gan+b.Legs]
+		Interactive[ss](&a.HPHead, &b.HPLegs, a.GanMax, b.ZhiMax, force)
+	}
+	if b.Feet != "" {
+		ss = LunarUtil.SHI_SHEN[a.Gan+b.Feet]
+		Interactive[ss](&a.HPHead, &b.HPFeet, a.GanMax, b.ZhiMax, force)
+	}
+
+	//本柱 支引干透
+	//grow := qimen.GanRootVal[b.Gan][b.Zhi]
+	//if grow > 0 {
+	//
+	//}
+	//cs := qimen.ChangSheng12[b.Gan][b.Zhi] //自坐
+	//switch cs {
+	//case "长生":
+	//
+	//case "沐浴":
+	//case "冠带":
+	//
+	//case "临官":
+	//
+	//case "帝旺":
+	//
+	//case "衰":
+	//case "病":
+	//case "死":
+	//case "墓":
+	//
+	//case "绝":
+	//case "胎":
+	//case "养":
+	//}
+}
+
+func ZhiZhiInteractive(a, b *CharBody, force int) {
+	ss := LunarUtil.SHI_SHEN[a.Body+b.Body]
+	Interactive[ss](&a.HPBody, &b.HPBody, a.ZhiMax, b.ZhiMax, force)
+	if a.Legs != "" && b.Legs != "" {
+		ss = LunarUtil.SHI_SHEN[a.Legs+b.Legs]
+		Interactive[ss](&a.HPLegs, &b.HPLegs, a.ZhiMax, b.ZhiMax, force)
+	}
+	if a.Feet != "" && b.Feet != "" {
+		ss = LunarUtil.SHI_SHEN[a.Feet+b.Feet]
+		Interactive[ss](&a.HPFeet, &b.HPFeet, a.ZhiMax, b.ZhiMax, force)
+	}
+	switch a.Zhi + b.Zhi {
+	case "子丑", "丑子": //合
+	case "寅亥", "亥寅": //合
+	case "卯戌", "戌卯": //合
+	case "辰酉", "酉辰": //合
+	case "巳申", "申巳": //合刑
+	case "午未", "未午": //合
+	case "子午", "午子": //冲
+	case "丑未", "未丑": //冲刑
+	case "寅申", "申寅": //冲
+	case "卯酉", "酉卯": //冲
+	case "辰戌", "戌辰": //冲
+	case "巳亥", "亥巳": //冲
+	case "子未", "未子": //害
+	case "丑午", "午丑": //害
+	case "寅巳", "巳寅": //害刑
+	case "卯辰", "辰卯": //害
+	case "申亥", "亥申": //害
+	case "酉戌", "戌酉": //害
+	case "子卯", "卯子": //刑
+	case "丑辰", "辰丑": //刑
+	case "辰辰": //刑
+	case "午午": //刑
+	case "酉酉": //刑
+	case "亥亥": //刑
+	case "丑戌", "戌丑": //刑
+	case "戌未", "未戌": //刑
+
+	}
+
+}
+
 func CharBodyInteractive(a, b *CharBody, force int) {
 	if a == nil || b == nil {
 		return
 	}
-	//干干
-	//he := qimen.HeGan[a.Gan] == b.Gan     //合
-	//if he {
-	//}
 	if a.FlowEnergy {
 		aa := *a
 		a = &aa
@@ -757,42 +899,13 @@ func CharBodyInteractive(a, b *CharBody, force int) {
 		bb := *b
 		b = &bb
 	}
-	ss := LunarUtil.SHI_SHEN[a.Gan+b.Gan] //b为a的
-	Interactive[ss](&a.HPHead, &b.HPHead, a.HPMHead, b.HPMHead, force)
-	//a干b支
-	ss = LunarUtil.SHI_SHEN[a.Gan+b.Body]
-	Interactive[ss](&a.HPHead, &b.HPBody, a.HPMHead, b.HPMBody, force)
-	if b.Legs != "" {
-		ss = LunarUtil.SHI_SHEN[a.Gan+b.Legs]
-		Interactive[ss](&a.HPHead, &b.HPLegs, a.HPMHead, b.HPMLegs, force)
-	}
-	if b.Feet != "" {
-		ss = LunarUtil.SHI_SHEN[a.Gan+b.Feet]
-		Interactive[ss](&a.HPHead, &b.HPFeet, a.HPMHead, b.HPMFeet, force)
-	}
-	a, b = b, a //交换
-	ss = LunarUtil.SHI_SHEN[a.Gan+b.Body]
-	Interactive[ss](&a.HPHead, &b.HPBody, a.HPMHead, b.HPMBody, force)
-	if b.Legs != "" {
-		ss = LunarUtil.SHI_SHEN[a.Gan+b.Legs]
-		Interactive[ss](&a.HPHead, &b.HPLegs, a.HPMHead, b.HPMLegs, force)
-	}
-	if b.Feet != "" {
-		ss = LunarUtil.SHI_SHEN[a.Gan+b.Feet]
-		Interactive[ss](&a.HPHead, &b.HPFeet, a.HPMHead, b.HPMFeet, force)
-	}
+	//干干 冲克合
+	GanGanInteractive(a, b, force)
+	//a干b支 根生引制
+	GanZhiInteractive(a, b, force)
+	GanZhiInteractive(b, a, force)
 	//支支 合冲刑破害
-	a, b = b, a
-	ss = LunarUtil.SHI_SHEN[a.Body+b.Body]
-	Interactive[ss](&a.HPBody, &b.HPBody, a.HPMBody, b.HPMBody, force)
-	if a.Legs != "" && b.Legs != "" {
-		ss = LunarUtil.SHI_SHEN[a.Legs+b.Legs]
-		Interactive[ss](&a.HPLegs, &b.HPLegs, a.HPMLegs, b.HPMLegs, force)
-	}
-	if a.Feet != "" && b.Feet != "" {
-		ss = LunarUtil.SHI_SHEN[a.Feet+b.Feet]
-		Interactive[ss](&a.HPFeet, &b.HPFeet, a.HPMFeet, b.HPMFeet, force)
-	}
+	ZhiZhiInteractive(a, b, force)
 }
 
 var Interactive = map[string]func(va, vb *int, ma, mb int, force int){

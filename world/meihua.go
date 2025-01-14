@@ -2,7 +2,6 @@ package world
 
 import (
 	"fmt"
-	"github.com/6tail/lunar-go/LunarUtil"
 	"github.com/deminzhang/qimen-go/asset"
 	"github.com/deminzhang/qimen-go/graphic"
 	"github.com/deminzhang/qimen-go/gui"
@@ -47,7 +46,7 @@ type MeiHua struct {
 
 func NewMeiHua(x, y int) *MeiHua {
 	m := &MeiHua{X: x, Y: y,
-		UI: &gui.BaseUI{X: x, Y: y, Visible: true, W: meiHuaUIWidth, H: meiHuaUIHeight},
+		UI: &gui.BaseUI{X: x, Y: y, Visible: true, W: meiHuaUIWidth, H: meiHuaUIHeight, BDColor: colorGray},
 	}
 	cbTimeStart := gui.NewCheckBox(94, 3, "时起")
 	iptNumber := gui.NewInputBox(156, 3, 40, 16)
@@ -213,7 +212,15 @@ func (m *MeiHua) Draw(dst *ebiten.Image) {
 	ft14, _ := asset.GetDefaultFontFace(14)
 	text.Draw(dst, "梅花易数", ft14, m.X+16, m.Y+16, colorWhite)
 	//text.Draw(dst, fmt.Sprintf("上%d下%d变%d", m.GuaUpIdx, m.GuaDownIdx, m.YaoChangeIdx), ft14, m.X+150, m.Y+16, colorWhite)
-	cx, cy := m.X+32, m.Y+32
+	cx, cy := m.X+26, m.Y+32
+	yz := ThisGame.qmGame.Lunar.GetYearZhiExact()
+	mz := ThisGame.qmGame.Lunar.GetMonthZhiExact()
+	dz := ThisGame.qmGame.Lunar.GetDayZhiExact()
+	tz := ThisGame.qmGame.Lunar.GetTimeZhi()
+	text.Draw(dst, fmt.Sprintf("%s年", yz), ft14, cx+184, cy-16, colorWhite)
+	text.Draw(dst, fmt.Sprintf("%s月", mz), ft14, cx+184, cy, ColorGanZhi(mz))
+	text.Draw(dst, fmt.Sprintf("%s日", dz), ft14, cx+184, cy+16, ColorGanZhi(dz))
+	text.Draw(dst, fmt.Sprintf("%s时", tz), ft14, cx+184, cy+32, ColorGanZhi(tz))
 	text.Draw(dst, "本卦", ft14, cx, cy, colorWhite)
 	text.Draw(dst, "互卦", ft14, cx+64, cy, colorWhite)
 	text.Draw(dst, "变卦", ft14, cx+128, cy, colorWhite)
@@ -224,24 +231,19 @@ func (m *MeiHua) Draw(dst *ebiten.Image) {
 	cx += 24
 	cy += 32
 	dis := int(math.Round(float64(meiHuaGuaSize) * 1.25))
-	text.Draw(dst, fmt.Sprintf("%s%s", m.GuaUp, qimen.DiagramsWuxing[m.GuaUp]), ft14, cx, cy, color5Xing[qimen.DiagramsWuxing[m.GuaUp]])
-	text.Draw(dst, fmt.Sprintf("%s%s", m.GuaDown, qimen.DiagramsWuxing[m.GuaDown]), ft14, cx, cy+dis, color5Xing[qimen.DiagramsWuxing[m.GuaDown]])
-	text.Draw(dst, fmt.Sprintf("%s%s", m.GuaUpProcess, qimen.DiagramsWuxing[m.GuaUpProcess]), ft14, cx+64, cy, color5Xing[qimen.DiagramsWuxing[m.GuaUpProcess]])
-	text.Draw(dst, fmt.Sprintf("%s%s", m.GuaDownProcess, qimen.DiagramsWuxing[m.GuaDownProcess]), ft14, cx+64, cy+dis, color5Xing[qimen.DiagramsWuxing[m.GuaDownProcess]])
+	text.Draw(dst, fmt.Sprintf("%s%s", m.GuaUp, qimen.DiagramsWuxing[m.GuaUp]), ft14, cx+8, cy, color5Xing[qimen.DiagramsWuxing[m.GuaUp]])
+	text.Draw(dst, fmt.Sprintf("%s%s", m.GuaDown, qimen.DiagramsWuxing[m.GuaDown]), ft14, cx+8, cy+dis, color5Xing[qimen.DiagramsWuxing[m.GuaDown]])
+	text.Draw(dst, fmt.Sprintf("%s%s", m.GuaUpProcess, qimen.DiagramsWuxing[m.GuaUpProcess]), ft14, cx+8+64, cy, color5Xing[qimen.DiagramsWuxing[m.GuaUpProcess]])
+	text.Draw(dst, fmt.Sprintf("%s%s", m.GuaDownProcess, qimen.DiagramsWuxing[m.GuaDownProcess]), ft14, cx+8+64, cy+dis, color5Xing[qimen.DiagramsWuxing[m.GuaDownProcess]])
 	if m.YaoChangeIdx > 3 {
 		text.Draw(dst, "用", ft14, cx-40, cy, colorWhite)
 		text.Draw(dst, "体", ft14, cx-40, cy+dis, colorWhite)
-		text.Draw(dst, fmt.Sprintf("%s%s", m.GuaUpChange, qimen.DiagramsWuxing[m.GuaUpChange]), ft14, cx+128, cy, color5Xing[qimen.DiagramsWuxing[m.GuaUpChange]])
+		text.Draw(dst, fmt.Sprintf("%s%s", m.GuaUpChange, qimen.DiagramsWuxing[m.GuaUpChange]), ft14, cx+8+128, cy, color5Xing[qimen.DiagramsWuxing[m.GuaUpChange]])
 	} else {
 		text.Draw(dst, "体", ft14, cx-40, cy, colorWhite)
 		text.Draw(dst, "用", ft14, cx-40, cy+dis, colorWhite)
-		text.Draw(dst, fmt.Sprintf("%s%s", m.GuaDownChange, qimen.DiagramsWuxing[m.GuaDownChange]), ft14, cx+128, cy+dis, color5Xing[qimen.DiagramsWuxing[m.GuaDownChange]])
+		text.Draw(dst, fmt.Sprintf("%s%s", m.GuaDownChange, qimen.DiagramsWuxing[m.GuaDownChange]), ft14, cx+8+128, cy+dis, color5Xing[qimen.DiagramsWuxing[m.GuaDownChange]])
 	}
-	cx += 156
-	mz := ThisGame.qmGame.Lunar.GetMonthZhiExact()
-	dz := ThisGame.qmGame.Lunar.GetDayZhiExact()
-	text.Draw(dst, fmt.Sprintf("%s月", mz), ft14, cx, cy, color5Xing[LunarUtil.WU_XING_ZHI[mz]])
-	text.Draw(dst, fmt.Sprintf("%s日", dz), ft14, cx, cy+dis, color5Xing[LunarUtil.WU_XING_ZHI[dz]])
 
 	for _, sprite := range m.GuaSprite {
 		sprite.Draw(dst)
