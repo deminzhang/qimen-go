@@ -237,6 +237,7 @@ func (q *QMShow) Draw(dst *ebiten.Image) {
 	q.drawHead(dst)
 	q.draw12Gong(dst)
 	q.draw9Gong(dst)
+	q.drawBig6(dst)
 
 	if Debug {
 		//q.drawBattle(dst)
@@ -482,7 +483,6 @@ func (q *QMShow) draw12Gong(dst *ebiten.Image) {
 		vector.StrokeLine(dst, loc.Lx1, loc.Ly1, loc.Lx2, loc.Ly2, .5, colorWhite, true) //星座分隔线
 		text.Draw(dst, qimen.ConstellationShort[i], ft, loc.X, loc.Y, colorLeader)       //星座
 	}
-	q.drawBig6(dst)
 }
 func (q *QMShow) drawBig6(dst *ebiten.Image) {
 	ft, _ := GetFontFace(14)

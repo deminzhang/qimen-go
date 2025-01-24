@@ -96,10 +96,7 @@ func GetHideGan(gan string, idx int) string {
 }
 
 func ColorGanZhi(gz string) color.RGBA {
-	wx := LunarUtil.WU_XING_GAN[gz]
-	if wx == "" {
-		wx = LunarUtil.WU_XING_ZHI[gz]
-	}
+	wx := qimen.GanZhiWuXing[gz]
 	return color5Xing[wx]
 }
 

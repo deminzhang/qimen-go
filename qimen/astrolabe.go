@@ -16,12 +16,12 @@ var (
 	}
 
 	// AstrolabeGong 星盘宫名
-	AstrolabeGong = []string{"",
+	AstrolabeGong = []string{
 		"命宫", "财帛", "交流", "田宅", "娱乐", "健康", "夫妻", "疾厄", "迁移", "事业", "福德", "玄秘",
 	}
 
 	// AstrolabeGong74 七政四余宫名
-	AstrolabeGong74 = []string{"",
+	AstrolabeGong74 = []string{
 		"命宫", "财帛", "兄弟", "田宅", "子女", "奴仆", "夫妻", "疾厄", "迁移", "官禄", "福德", "相貌",
 	}
 )

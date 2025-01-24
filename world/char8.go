@@ -546,7 +546,11 @@ func (g *Char8Pan) Draw(dst *ebiten.Image) {
 	{ //本命
 		sx, sy := float32(cx+3), float32(cy+410)
 		if p.FYun != nil {
-			g.DrawCharHPX(dst, sx-3, sy, p.FYun, "大运")
+			if p.YunIdx == 0 {
+				g.DrawCharHPX(dst, sx-3, sy, p.FYun, "小运")
+			} else {
+				g.DrawCharHPX(dst, sx-3, sy, p.FYun, "大运")
+			}
 		}
 		g.DrawCharHP(dst, sx+96, sy, p.Year, "年柱")
 		g.DrawCharHP(dst, sx+96*2, sy, p.Month, "月柱")
@@ -602,7 +606,11 @@ func (g *Char8Pan) Draw(dst *ebiten.Image) {
 		if p.Mate != nil { //配偶
 			sy += 102
 			if p.Mate.FYun != nil {
-				g.DrawCharHPX(dst, sx-3, sy, p.Mate.FYun, "大运")
+				if p.Mate.YunIdx == 0 {
+					g.DrawCharHPX(dst, sx-3, sy, p.Mate.FYun, "小运")
+				} else {
+					g.DrawCharHPX(dst, sx-3, sy, p.Mate.FYun, "大运")
+				}
 			}
 			g.DrawCharHP(dst, sx+96, sy, p.Mate.Year, "年柱")
 			g.DrawCharHP(dst, sx+96*2, sy, p.Mate.Month, "月柱")

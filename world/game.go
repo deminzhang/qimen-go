@@ -38,7 +38,6 @@ type Game struct {
 func (g *Game) Update() error {
 	g.count++
 	g.count %= 60
-	//g.stars.Update()
 	g.qiMen.Update()
 	g.char8.Visible = g.showChar8
 	g.char8.Update()
@@ -47,6 +46,7 @@ func (g *Game) Update() error {
 	if g.showAstrolabe {
 		g.astrolabe.Update()
 	}
+	//g.stars.Update()
 	//g.stars.SetPos(g.astrolabe.GetSolarPos())
 	//if g.autoMinute && !g.astrolabe.DataQuerying() {
 	if g.autoMinute {
@@ -62,16 +62,18 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	g.qiMen.Draw(screen)
 	if g.showAstrolabe {
 		g.astrolabe.Draw(screen)
 	}
+	g.qiMen.Draw(screen)
 	//g.stars.Draw(screen)
 	g.meiHua.Draw(screen)
 	g.char8.Draw(screen)
 	gui.Draw(screen)
-	msg := fmt.Sprintf(`FPS: %0.2f, TPS: %0.2f`, ebiten.ActualFPS(), ebiten.ActualTPS())
-	ebitenutil.DebugPrint(screen, msg)
+	if Debug {
+		msg := fmt.Sprintf(`FPS: %0.2f, TPS: %0.2f`, ebiten.ActualFPS(), ebiten.ActualTPS())
+		ebitenutil.DebugPrint(screen, msg)
+	}
 }
 
 func (g *Game) Layout(w, h int) (int, int) {

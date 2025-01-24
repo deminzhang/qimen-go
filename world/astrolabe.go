@@ -42,6 +42,9 @@ const (
 	NASADataStepSize   = "1h"           //星体数据步长 1h 1d 1m
 	ObserveDataTable   = "observe_data"
 	CelestialBodyTable = "celestial_body"
+
+	DataStartYear = 1600 //NASA数据支持开始年份
+	DataEndYear   = 2500 //NASA数据支持结束年份
 )
 
 // 建星是太阳位置,星座是太阳上升,所以星座相当建星是指定地支时
@@ -369,7 +372,7 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 	r -= w
 	vector.StrokeCircle(dst, cx, cy, r, w, colorGroundGateCircle, true) //宫位
 	//十字线
-	horizons := float32(0) //TODO 地平线调整
+	horizons := float32(0) //TODO 地平线按太阳视角调整
 	vector.StrokeLine(dst, cx-outCircleR, cy-horizons, cx+outCircleR, cy-horizons, 1, colorCross, true)
 	vector.StrokeLine(dst, cx, cy-outCircleR, cx, cy+outCircleR, 1, colorCross, true)
 	//春分点 RA0
@@ -386,7 +389,12 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 		text.Draw(dst, qimen.ConstellationShort[i], ft, l.X-6, l.Y+6, colorJiang) //星座
 		l = a.AstrolabeLoc[i]
 		vector.StrokeLine(dst, l.Lx1, l.Ly1, l.Lx2, l.Ly2, 1, colorGongSplit, true) //宫
-		text.Draw(dst, fmt.Sprintf("%d", i+1), ft, l.X-4, l.Y+4, colorJiang)        //宫位
+		//text.Draw(dst, fmt.Sprintf("%d", i+1), ft, l.X-4, l.Y+4, colorJiang)        //宫位
+		degrees := float64(i+1)*30 - 90
+		r := float64(outCircleR0 - outCircleW*2)
+		//gongName := qimen.AstrolabeGong[i] //宫名
+		gongName := qimen.AstrolabeGong74[i] //政余名
+		DrawRotateText(dst, float64(cx-4), float64(cy+4), r, degrees-10, gongName, 12, colorJiang)
 	}
 	//画28星宿
 	for i := 1; i <= 28; i++ {
@@ -469,8 +477,9 @@ func (a *Astrolabe) DrawGravity(dst *ebiten.Image) {
 	}
 }
 
+// TODO 优化为按年查询每小时正点数据，辅助插值
 func (a *Astrolabe) GetEphemeris(tid int, s *calendar.Solar) *ObserveData {
-	if s.GetYear() < 1600 || s.GetYear() >= 2500 {
+	if s.GetYear() < DataStartYear || s.GetYear() >= DataEndYear {
 		return nil
 	}
 	t := time.Date(s.GetYear(), time.Month(s.GetMonth()), s.GetDay(), s.GetHour(),
