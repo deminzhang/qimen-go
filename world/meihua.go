@@ -46,7 +46,8 @@ type MeiHua struct {
 
 func NewMeiHua(x, y int) *MeiHua {
 	m := &MeiHua{X: x, Y: y,
-		UI: &gui.BaseUI{X: x, Y: y, Visible: true, W: meiHuaUIWidth, H: meiHuaUIHeight, BDColor: colorGray},
+		Visible: true,
+		UI:      &gui.BaseUI{X: x, Y: y, Visible: true, W: meiHuaUIWidth, H: meiHuaUIHeight, BDColor: colorGray},
 	}
 	cbTimeStart := gui.NewCheckBox(94, 3, "时起")
 	iptNumber := gui.NewInputBox(156, 3, 40, 16)

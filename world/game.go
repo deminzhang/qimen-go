@@ -26,10 +26,12 @@ type Game struct {
 	char8     *Char8Pan
 	qmGame    *qimen.QMGame
 	meiHua    *MeiHua
+	big6      *Big6
 
 	autoMinute    bool
 	showMeiHua    bool
 	showChar8     bool
+	showBig6      bool
 	showAstrolabe bool
 
 	StrokeManager
@@ -43,6 +45,8 @@ func (g *Game) Update() error {
 	g.char8.Update()
 	g.meiHua.Visible = g.showMeiHua
 	g.meiHua.Update()
+	g.big6.Visible = g.showBig6
+	g.big6.Update()
 	if g.showAstrolabe {
 		g.astrolabe.Update()
 	}
@@ -68,6 +72,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.qiMen.Draw(screen)
 	//g.stars.Draw(screen)
 	g.meiHua.Draw(screen)
+	if Debug {
+		g.big6.Draw(screen)
+	}
 	g.char8.Draw(screen)
 	gui.Draw(screen)
 	if Debug {
@@ -104,14 +111,16 @@ func NewGame() *Game {
 	pan := u.Apply(solar)
 	g := &Game{
 		uiQM:      u,
+		qmGame:    pan,
 		stars:     NewStarEffect(float32(ScreenWidth/2), 217),
 		qiMen:     NewQiMenShow(450, 500),
+		meiHua:    NewMeiHua(1130, 170),
+		big6:      NewBig6(880, 170),
+		char8:     NewChar8Pan(880, 314),
 		astrolabe: NewAstrolabe(1650, 450),
-		char8:     NewChar8Pan(880, 174),
-		qmGame:    pan,
-		meiHua:    NewMeiHua(880, 780),
 
 		showMeiHua:    true,
+		showBig6:      true,
 		showChar8:     true,
 		showAstrolabe: true,
 
