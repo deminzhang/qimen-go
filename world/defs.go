@@ -106,7 +106,7 @@ func ColorNaYin(gz string) color.RGBA {
 	return color5Xing[string(wx)]
 }
 
-func ShiShenShort(dayGan, gan string) string {
-	sx := LunarUtil.SHI_SHEN[dayGan+gan]
-	return qimen.SHI_SHEN_SHORT[sx]
+func ShiShenShort(ganMaster, gan string) string {
+	sx := LunarUtil.SHI_SHEN[ganMaster+gan]
+	return qimen.ShiShenShort[sx]
 }

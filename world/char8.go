@@ -830,7 +830,7 @@ func GanZhiInteractive(a, b *CharBody, force int) {
 	//if grow > 0 {
 	//
 	//}
-	//cs := qimen.ChangSheng12[b.Gan][b.Zhi] //自坐
+	//cs := qimen.ZhangSheng12[b.Gan][b.Zhi] //自坐
 	//switch cs {
 	//case "长生":
 	//

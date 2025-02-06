@@ -14,7 +14,7 @@ import (
 var (
 	ScreenWidth  = initScreenWidth
 	ScreenHeight = initScreenHeight
-	Debug        = false
+	Dev          = false
 )
 
 type Game struct {
@@ -72,12 +72,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.qiMen.Draw(screen)
 	//g.stars.Draw(screen)
 	g.meiHua.Draw(screen)
-	if Debug {
+	if Dev {
 		g.big6.Draw(screen)
 	}
 	g.char8.Draw(screen)
 	gui.Draw(screen)
-	if Debug {
+	if Dev {
 		msg := fmt.Sprintf(`FPS: %0.2f, TPS: %0.2f`, ebiten.ActualFPS(), ebiten.ActualTPS())
 		ebitenutil.DebugPrint(screen, msg)
 	}
@@ -101,14 +101,17 @@ func (g *Game) Layout(w, h int) (int, int) {
 }
 
 func NewGame() *Game {
-	if _, ok := util.Args2Map()["debug"]; ok {
-		Debug = true
+	if _, ok := util.Args2Map()["dev"]; ok {
+		Dev = true
 		gui.SetBorderDebug(true)
 		UIShowChat()
 	}
 	u := UIShowQiMen()
 	solar := calendar.NewSolarFromDate(time.Now())
 	pan := u.Apply(solar)
+	if pan == nil {
+		panic("pan is nil")
+	}
 	g := &Game{
 		uiQM:      u,
 		qmGame:    pan,

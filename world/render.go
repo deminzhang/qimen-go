@@ -51,7 +51,6 @@ func DrawMixProBar[T util.Numeric](dst *ebiten.Image, x, y, width, height float3
 		vector.DrawFilledRect(dst, from, y, to, height, clr[i], true)
 		from += to
 	}
-	vector.StrokeRect(dst, x, y, width, height, .5, clr[0], true)
 }
 
 // DrawFlow 流年流月流日流时柱
@@ -68,8 +67,8 @@ func DrawFlow(dst *ebiten.Image, sx, sy int, soul string, cb *CharBody) {
 	text.Draw(dst, cb.Feet, ft14, sx, sy+80, ColorGanZhi(cb.Feet))
 	text.Draw(dst, ShiShenShort(soul, cb.Feet), ft14, sx+16, sy+80, colorWhite)
 	text.Draw(dst, LunarUtil.NAYIN[cb.Gan+cb.Zhi], ft14, sx, sy+96, ColorNaYin(cb.Gan+cb.Zhi))
-	text.Draw(dst, qimen.ChangSheng12[soul][cb.Zhi], ft14, sx, sy+112, ColorGanZhi(soul))
-	text.Draw(dst, qimen.ChangSheng12[cb.Gan][cb.Zhi], ft14, sx, sy+128, ColorGanZhi(cb.Gan))
+	text.Draw(dst, qimen.ZhangSheng12[soul][cb.Zhi], ft14, sx, sy+112, ColorGanZhi(soul))
+	text.Draw(dst, qimen.ZhangSheng12[cb.Gan][cb.Zhi], ft14, sx, sy+128, ColorGanZhi(cb.Gan))
 	text.Draw(dst, LunarUtil.GetXunKong(cb.Gan+cb.Zhi), ft14, sx, sy+144, colorGray)
 }
 

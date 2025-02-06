@@ -559,7 +559,7 @@ func (p *QMGame) ShowHeadCommon() {
 	d8 := Diagrams9(y9)
 	y3y9 := fmt.Sprintf("三元九运:%s%s%s%s%s", Yuan3Name[pp.Yuan3],
 		LunarUtil.NUMBER[y9], Gong9Color[y9], d8, DiagramsWuxing[d8])
-	pp.JiText = fmt.Sprintf("黄帝纪元:%4s %s", GetYearInChinese(GetHuangDiYear(p.Lunar.GetYear())), y3y9)
+	pp.JiText = fmt.Sprintf("道历:%4s %s", GetYearInChinese(GetHuangDiYear(p.Lunar.GetYear())), y3y9) //黄帝纪元
 	pp.JuText = fmt.Sprintf("%s %s %s遁%s", Yuan3Name[pp.Yuan3], juName, pp.Xun, HideJia[pp.Xun])
 	pp.DutyText = fmt.Sprintf("值符%s落%d宫 值使%s落%d宫",
 		Star0+pp.DutyStar, pp.DutyStarPos, pp.DutyDoor+Door0, pp.DutyDoorPos,
