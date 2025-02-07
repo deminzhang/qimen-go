@@ -20,7 +20,6 @@ const (
 
 type MeiHua struct {
 	X, Y         int
-	Visible      bool
 	UI           *gui.BaseUI
 	GuaUpIdx     uint8  //上卦序号
 	GuaDownIdx   uint8  //下卦序号
@@ -46,13 +45,13 @@ type MeiHua struct {
 
 func NewMeiHua(x, y int) *MeiHua {
 	m := &MeiHua{X: x, Y: y,
-		Visible: true,
-		UI:      &gui.BaseUI{X: x, Y: y, Visible: true, W: meiHuaUIWidth, H: meiHuaUIHeight, BDColor: colorGray},
+		UI: &gui.BaseUI{X: x, Y: y, Visible: true, W: meiHuaUIWidth, H: meiHuaUIHeight, BDColor: colorGray},
 	}
 	cbTimeStart := gui.NewCheckBox(94, 3, "时起")
-	iptNumber := gui.NewInputBox(156, 3, 40, 16)
+	iptNumber := gui.NewInputBox(140, 3, 48, 16)
 	cbTimeStart.SetChecked(true)
 	iptNumber.Selectable = false
+	iptNumber.DefaultText = "上下变"
 	m.StartType = "时起"
 	cbTimeStart.SetOnCheckChanged(func(c *gui.CheckBox) {
 		if c.Checked() {
@@ -65,7 +64,6 @@ func NewMeiHua(x, y int) *MeiHua {
 			iptNumber.Selectable = true
 		}
 	})
-	iptNumber.DefaultText = "上下变"
 	doSet := func(i *gui.InputBox) {
 		n, _ := strconv.Atoi(iptNumber.Text())
 		m.Reset(uint(n/100), uint(n/10%10), uint(n%10))
@@ -165,7 +163,6 @@ func (m *MeiHua) TimeReset() {
 	m.Reset(uint(up), uint(down), uint(down))
 }
 func (m *MeiHua) Update() {
-	m.UI.Visible = m.Visible
 	m.TimeReset()
 	dis := int(math.Round(float64(meiHuaGuaSize) * 1.25))
 	if m.Mover == nil {
@@ -205,14 +202,9 @@ func (m *MeiHua) Update() {
 }
 
 func (m *MeiHua) Draw(dst *ebiten.Image) {
-	if !m.Visible {
-		return
-	}
-	//vector.StrokeRect(dst, float32(m.X), float32(m.Y), meiHuaUIWidth, meiHuaUIHeight, .5, colorGray, true)
 	m.Mover.Draw(dst)
 	ft14, _ := asset.GetDefaultFontFace(14)
 	text.Draw(dst, "梅花易数", ft14, m.X+16, m.Y+16, colorWhite)
-	//text.Draw(dst, fmt.Sprintf("上%d下%d变%d", m.GuaUpIdx, m.GuaDownIdx, m.YaoChangeIdx), ft14, m.X+150, m.Y+16, colorWhite)
 	cx, cy := m.X+26, m.Y+32
 	yz := ThisGame.qmGame.Lunar.GetYearZhiExact()
 	mz := ThisGame.qmGame.Lunar.GetMonthZhiExact()

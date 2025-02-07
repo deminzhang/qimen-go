@@ -27,6 +27,21 @@ const (
 	_CnstR          = 380                   //星座盘半径
 )
 
+var (
+	gong9Offset = [][]int{{0, 0}, //中宫
+		{1, 2}, {2, 0}, {0, 1},
+		{0, 0}, {1, 1}, {2, 2},
+		{2, 1}, {0, 2}, {1, 0},
+	}
+	gong12Offset = [][]float32{
+		{0, 1.6}, {-1, 1.6}, //子,丑
+		{-1.6, 1}, {-1.6, 0}, {-1.6, -1}, //寅,卯,辰
+		{-1, -1.55}, {0, -1.55}, {1, -1.55}, //巳,午,未
+		{1.6, -1}, {1.6, 0}, {1.6, 1}, //申,酉,戌
+		{1, 1.6}, {0, 1.6}, //亥,子
+	}
+)
+
 type QMShow struct {
 	X, Y  float32
 	count int
@@ -51,7 +66,8 @@ type QMShow struct {
 	cnstLoc       [12]SegmentPos  //星座 分隔,位置
 	big6SkySeg    [12][4]float32  //月将天门盘分隔坐标
 	big6EarthSeg  [12][4]float32  //月建地户盘分隔坐标
-	zhiPos        [12][2]int      //本宫支
+	zhiCirclePos  [12][2]int      //本宫支
+	zhiRectPos    [12][2]int      //本宫支
 	jianPos       [12][2]int      //月建
 	jianZhiPos    [12][2]int      //月建支
 	jianGongPos   [12][2]int      //月建宫支
@@ -187,11 +203,14 @@ func (q *QMShow) Update() {
 	for i := 0; i < 12; i++ {
 		degrees := -float32(i) * 30
 		y, x = util.CalRadiansPos(cy, cx, _JianR-_SkyCircleWidth/2, degrees)
-		q.zhiPos[i] = [2]int{int(x - 8), int(y + 4)}
+		q.zhiCirclePos[i] = [2]int{int(x - 8), int(y + 4)}
+
+		ofz := gong12Offset[i]
+		q.zhiRectPos[i] = [2]int{int(cx + ofz[0]*_Gong9Width - 8), int(cy + ofz[1]*_Gong9Width)}
+
 		if pan.Big6 == nil {
 			continue
 		}
-
 		//月建
 		degreesJ := degrees + 30 - (30 * proJie) - float32(mD)*30/120 //分针 TODO 节进度
 		ly1, lx1 := util.CalRadiansPos(cy, cx, _JianR-_SkyCircleWidth/4, degreesJ+15)
@@ -204,11 +223,6 @@ func (q *QMShow) Update() {
 		q.jianGongPos[i] = [2]int{int(x - 8), int(y + 4)}
 		y, x = util.CalRadiansPos(cy, cx, _JianR, degreesJ+7.5)
 		q.jianZhiPos[i] = [2]int{int(x - 8), int(y + 4)}
-		//zhi := LunarUtil.ZHI[i+1]
-		//if ThisGame.qmGame.TimeHorse == zhi {
-		//	y, x = util.CalRadiansPos(cy, cx, _JianR, degreesJ+10)
-		//	q.horsePos[i] = [2]int{int(x - 8), int(y + 4)}
-		//}
 		//月将
 		degreesJJ := degrees + 30 - (30 * proQi) - float32(mD)*30/120 //分针 TODO 节进度
 		ly1, lx1 = util.CalRadiansPos(cy, cx, _JiangR-_SkyCircleWidth/5, degreesJJ+15)
@@ -223,6 +237,7 @@ func (q *QMShow) Update() {
 		q.jiangGanPos[i] = [2]int{int(x - 10), int(y + 4)}
 		y, x = util.CalRadiansPos(cy, cx, _JiangR, degreesJJ-10)
 		q.jiangZhiPos[i] = [2]int{int(x - 10), int(y + 4)}
+
 	}
 
 	//战场
@@ -235,9 +250,15 @@ func (q *QMShow) updateBattle() {
 func (q *QMShow) Draw(dst *ebiten.Image) {
 	//q.drawTaiJi(dst)
 	q.drawHead(dst)
+	//if ThisGame.showAstrolabe {
 	q.draw12Gong(dst)
-	q.draw9Gong(dst)
-	q.drawBig6(dst)
+
+	if ThisGame.showQiMen {
+		q.draw9Gong(dst)
+	}
+	if ThisGame.showBig6 {
+		q.drawBig6(dst)
+	}
 
 	if Dev {
 		//q.drawBattle(dst)
@@ -264,10 +285,6 @@ func (q *QMShow) drawHead(dst *ebiten.Image) {
 		ft14, px, py, colorWhite)
 	py += 16
 	text.Draw(dst, fmt.Sprintf("%s", pp.JiText), ft14, px, py, colorWhite)
-	py += 16
-	text.Draw(dst, fmt.Sprintf("干支  %s %s %s %s",
-		lunar.GetYearInGanZhiExact(), lunar.GetMonthInGanZhiExact(), lunar.GetDayInGanZhiExact(), lunar.GetTimeInGanZhi()),
-		ft14, px, py, colorLeader)
 	//中字
 	yg, yz := lunar.GetYearGanExact(), lunar.GetYearZhiExact()
 	mg, mz := lunar.GetMonthGanExact(), lunar.GetMonthZhiExact()
@@ -282,6 +299,10 @@ func (q *QMShow) drawHead(dst *ebiten.Image) {
 	text.Draw(dst, dz, ft28, bpx+64, py+32, ColorGanZhi(dz))
 	text.Draw(dst, hg, ft28, bpx+96, py, ColorGanZhi(hg))
 	text.Draw(dst, hz, ft28, bpx+96, py+32, ColorGanZhi(hz))
+	py += 16
+	text.Draw(dst, fmt.Sprintf("干支  %s %s %s %s",
+		lunar.GetYearInGanZhiExact(), lunar.GetMonthInGanZhiExact(), lunar.GetDayInGanZhiExact(), lunar.GetTimeInGanZhi()),
+		ft14, px, py, colorLeader)
 	py += 16
 	text.Draw(dst, fmt.Sprintf("旬首  %s %s %s %s",
 		lunar.GetYearXunExact(), lunar.GetMonthXunExact(), lunar.GetDayXunExact(), lunar.GetTimeXun()),
@@ -323,7 +344,7 @@ func (q *QMShow) draw9Gong(dst *ebiten.Image) {
 	pp := qm.ShowPan
 	//画九宫
 	for i := 1; i <= 9; i++ {
-		offX, offZ := gongOffset[i][0]*_Gong9Width-_Gong9Width/2, gongOffset[i][1]*_Gong9Width-_Gong9Width/2
+		offX, offZ := gong9Offset[i][0]*_Gong9Width-_Gong9Width/2, gong9Offset[i][1]*_Gong9Width-_Gong9Width/2
 		px, py := q.X-_Gong9Width+float32(offX), q.Y-_Gong9Width+float32(offZ)
 		g := pp.Gongs[i]
 		op := &ebiten.DrawImageOptions{}
@@ -498,16 +519,13 @@ func (q *QMShow) drawBig6(dst *ebiten.Image) {
 
 		//地支本宫位
 		zhi := LunarUtil.ZHI[i+1]
-		zhiGongTxt := zhi
 		//if slices.Contains(qimen.KongWang[pan.ShowPan.Xun], zhi) {
 		//	zhiGongTxt = fmt.Sprintf("〇%s", zhi)
 		//	//} else if slices.Contains(qimen.KongWang[pan.ShowPan.Xun], LunarUtil.ZHI[qimen.Idx12[i+6]]) {
 		//	//	zhiGongTxt = fmt.Sprintf("%s虚", LunarUtil.ZHI[i])
 		//}
-		pos := q.zhiPos[i]
-		text.Draw(dst, zhiGongTxt, ft, pos[0], pos[1], colorGray)
-
 		g := pan.Big6.Gong[i]
+
 		//月建
 		jianColor := colorJian
 		if g.IsJian {
@@ -515,10 +533,10 @@ func (q *QMShow) drawBig6(dst *ebiten.Image) {
 		} else if qimen.GroundGate4[g.Jian] {
 			jianColor = colorGate
 		}
-		pos = q.jianPos[i]
+		pos := q.jianPos[i]
 		text.Draw(dst, g.Jian, ft, pos[0], pos[1], jianColor)
 		pos = q.jianZhiPos[i]
-		text.Draw(dst, g.JianZhi, ft, pos[0], pos[1], jianColor)
+		//text.Draw(dst, g.JianZhi, ft, pos[0], pos[1], jianColor) //月建支名
 		pos = q.jianGongPos[i]
 		text.Draw(dst, zhi, ft, pos[0], pos[1], colorGrayB) //宫支
 		//月将
@@ -533,18 +551,39 @@ func (q *QMShow) drawBig6(dst *ebiten.Image) {
 		pos = q.jiangPos[i]
 		text.Draw(dst, g.JiangName, ft, pos[0], pos[1], jiangColor) //月将名
 		pos = q.jiangGanPos[i]
-		text.Draw(dst, g.JiangGan, ft, pos[0], pos[1], util.If(g.JiangGan == pan.Lunar.GetDayGan(), colorRed, colorJiang)) //月将干名
+		//text.Draw(dst, g.JiangGan, ft, pos[0], pos[1], util.If(g.JiangGan == pan.Lunar.GetDayGan(), colorRed, colorJiang)) //月将干名
 		pos = q.jiangZhiPos[i]
-		text.Draw(dst, g.JiangZhi, ft, pos[0], pos[1], jiangColor)                                       //月将支名
-		text.Draw(dst, g.Jiang12, ft, pos[0]+16, pos[1], util.If(g.Jiang12 == "贵", colorRed, colorGray)) //大六壬贵人
+		text.Draw(dst, g.JiangZhi, ft, pos[0], pos[1], jiangColor) //月将支名
+		//text.Draw(dst, g.Jiang12, ft, pos[0]+16, pos[1], util.If(g.Jiang12 == "贵", colorRed, colorGray)) //大六壬贵人
 		pos = q.jiangGongPos[i]
 		text.Draw(dst, zhi, ft, pos[0], pos[1], colorGray) //宫地盘支
-
 		//if g.IsSkyHorse {
 		//	y, x := util.CalRadiansPos(q.Y, q.X, _JiangR, degreesXX-5)
 		//	text.Draw(dst, "天马", ft, int(x-14), int(y+4), colorLeader)
-		//}s
-		//TODO 贴九宫写
+		//}
+
+		//pos = q.zhiCirclePos[i]
+		//text.Draw(dst, zhi, ft, pos[0], pos[1], colorGray) //地盘本支
+		pos = q.zhiRectPos[i]
+		//text.Draw(dst, zhi, ft, pos[0], pos[1], colorGray) //地盘本支
+		switch i {
+		case 0, 1, 11:
+			text.Draw(dst, g.JiangZhi, ft, pos[0], pos[1], colorWhite)    //天盘支
+			text.Draw(dst, g.Jiang12, ft, pos[0], pos[1]+16, colorWhite)  //贵人神将
+			text.Draw(dst, g.JiangGan, ft, pos[0], pos[1]+32, colorWhite) //天盘干
+		case 2, 3, 4:
+			text.Draw(dst, g.JiangZhi, ft, pos[0], pos[1], colorWhite)
+			text.Draw(dst, g.Jiang12, ft, pos[0]-16, pos[1], colorWhite)
+			text.Draw(dst, g.JiangGan, ft, pos[0]-32, pos[1], colorWhite)
+		case 5, 6, 7:
+			text.Draw(dst, g.JiangZhi, ft, pos[0], pos[1], colorWhite)
+			text.Draw(dst, g.Jiang12, ft, pos[0], pos[1]-16, colorWhite)
+			text.Draw(dst, g.JiangGan, ft, pos[0], pos[1]-32, colorWhite)
+		case 8, 9, 10:
+			text.Draw(dst, g.JiangZhi, ft, pos[0], pos[1], colorWhite)
+			text.Draw(dst, g.Jiang12, ft, pos[0]+16, pos[1], colorWhite)
+			text.Draw(dst, g.JiangGan, ft, pos[0]+32, pos[1], colorWhite)
+		}
 
 	}
 }
@@ -603,7 +642,7 @@ func (q *QMShow) drawBattle(dst *ebiten.Image) {
 }
 
 func (q *QMShow) GetInCampPos(i int) (float32, float32) {
-	offX, offZ := gongOffset[i][0]*_Gong9Width-_Gong9Width/2, gongOffset[i][1]*_Gong9Width-_Gong9Width/2
+	offX, offZ := gong9Offset[i][0]*_Gong9Width-_Gong9Width/2, gong9Offset[i][1]*_Gong9Width-_Gong9Width/2
 	px, py := q.X+float32(offX)-32-8, q.Y+float32(offZ)-32
 	if i == 5 {
 		return q.X - 32, q.Y - 32
@@ -612,7 +651,7 @@ func (q *QMShow) GetInCampPos(i int) (float32, float32) {
 }
 
 func (q *QMShow) GetInBornPos(i int) (float32, float32) {
-	offX, offZ := gongOffset[i][0]*_Gong9Width-_Gong9Width/2, gongOffset[i][1]*_Gong9Width-_Gong9Width/2
+	offX, offZ := gong9Offset[i][0]*_Gong9Width-_Gong9Width/2, gong9Offset[i][1]*_Gong9Width-_Gong9Width/2
 	px, py := q.X+float32(offX)-32-8, q.Y+float32(offZ)-32
 	if i == 5 {
 		return q.X, q.Y
@@ -621,7 +660,7 @@ func (q *QMShow) GetInBornPos(i int) (float32, float32) {
 }
 
 func (q *QMShow) GetInArmyPos(i int) (float32, float32) {
-	offX, offZ := gongOffset[i][0]*_Gong9Width-_Gong9Width/2, gongOffset[i][1]*_Gong9Width-_Gong9Width/2
+	offX, offZ := gong9Offset[i][0]*_Gong9Width-_Gong9Width/2, gong9Offset[i][1]*_Gong9Width-_Gong9Width/2
 	px, py := q.X+float32(offX)-32-8, q.Y+float32(offZ)-32
 	if i == 5 {
 		return q.X - 32, q.Y - 32

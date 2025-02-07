@@ -9,31 +9,74 @@ import (
 	"github.com/deminzhang/qimen-go/util"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
+	"strconv"
 )
 
-type Big6 struct {
-	X, Y    int
-	Visible bool
-	UI      *gui.BaseUI
+type Big6Show struct {
+	X, Y int
+	UI   *gui.BaseUI
 
 	Mover     *Sprite
 	GuaSprite []*Sprite
+
+	StartType   string //起局方式
+	InputGuaNum *gui.InputBox
 }
 
-func NewBig6(x, y int) *Big6 {
-	m := &Big6{X: x, Y: y,
-		Visible: true,
-		UI:      &gui.BaseUI{X: x, Y: y, Visible: true, W: meiHuaUIWidth, H: meiHuaUIHeight, BDColor: colorGray},
+func NewBig6(x, y int) *Big6Show {
+	m := &Big6Show{X: x, Y: y,
+		UI: &gui.BaseUI{X: x, Y: y, Visible: true, W: meiHuaUIWidth, H: meiHuaUIHeight, BDColor: colorGray},
 	}
+	cbTimeStart := gui.NewCheckBox(94, 3, "时起")
+	iptNumber := gui.NewInputBox(140, 3, 48, 16)
+	cbTimeStart.SetChecked(true)
+	iptNumber.Selectable = false
+	iptNumber.DefaultText = "报数"
+	m.StartType = "时起"
+	cbTimeStart.SetOnCheckChanged(func(c *gui.CheckBox) {
+		if c.Checked() {
+			m.StartType = "时起"
+			m.TimeReset()
+			iptNumber.Selectable = false
+			iptNumber.SetText(fmt.Sprintf("%s时", ThisGame.qmGame.Lunar.GetTimeZhi()))
+		} else {
+			m.StartType = ""
+			iptNumber.Selectable = true
+		}
+	})
+	doSet := func(i *gui.InputBox) {
+		n, _ := strconv.Atoi(iptNumber.Text())
+		n %= 12
+		if n <= 0 {
+			n += 12
+		}
+		m.Reset(n)
+		iptNumber.SetFocused(false)
+	}
+	iptNumber.SetOnLostFocus(doSet)
+	iptNumber.SetOnPressEnter(doSet)
+	m.InputGuaNum = iptNumber
 
-	//m.UI.AddChildren()
+	//m.UI.AddChildren(cbTimeStart, iptNumber) //TODO
 	gui.ActiveUI(m.UI)
 	return m
 }
+func (m *Big6Show) Reset(zhiIdx int) {
+	//b6 := ThisGame.qmGame.Big6
+	//b6.Reset(zhiIdx)
+}
 
-func (m *Big6) Update() {
-	m.UI.Visible = m.Visible
+func (m *Big6Show) TimeReset() {
+	if ThisGame.qmGame.Lunar == nil {
+		return
+	}
+	if m.StartType != "时起" {
+		return
+	}
+	m.Reset(ThisGame.qmGame.Lunar.GetTimeZhiIndex())
+}
 
+func (m *Big6Show) Update() {
 	if m.Mover == nil {
 		m.Mover = NewSprite(graphic.NewRectImage(10), colorGray)
 		m.Mover.onMove = func(sx, sy, dx, dy int) {
@@ -48,13 +91,10 @@ func (m *Big6) Update() {
 
 }
 
-func (m *Big6) Draw(dst *ebiten.Image) {
-	if !m.Visible {
-		return
-	}
+func (m *Big6Show) Draw(dst *ebiten.Image) {
 	m.Mover.Draw(dst)
 	ft14, _ := asset.GetDefaultFontFace(14)
-	text.Draw(dst, "大六壬Dev", ft14, m.X+16, m.Y+16, colorWhite)
+	text.Draw(dst, "大六壬", ft14, m.X+16, m.Y+16, colorWhite)
 	cx, cy := m.X+16, m.Y+32+16
 	b6 := ThisGame.qmGame.Big6
 	ke := b6.Ke4

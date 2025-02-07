@@ -188,10 +188,7 @@ func (g *Char8Pan) Update() {
 	if g.Flow == nil || g.Player == nil {
 		g.Init()
 	}
-	g.count++
-	g.count %= 60
-
-	g.UI.Visible = g.Visible
+	g.count = (g.count + 1) % 60
 
 	if g.Mover == nil {
 		g.Mover = NewSprite(graphic.NewRectImage(10), colorGray)
@@ -353,9 +350,6 @@ func (g *Char8Pan) UpdateHp(p *Player) {
 }
 
 func (g *Char8Pan) Draw(dst *ebiten.Image) {
-	if !g.Visible {
-		return
-	}
 	ft12, _ := GetFontFace(12)
 	ft14, _ := GetFontFace(14)
 	ft28, _ := GetFontFace(28)

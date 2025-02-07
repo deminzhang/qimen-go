@@ -26,27 +26,35 @@ type Game struct {
 	char8     *Char8Pan
 	qmGame    *qimen.QMGame
 	meiHua    *MeiHua
-	big6      *Big6
+	big6      *Big6Show
 
 	autoMinute    bool
 	showMeiHua    bool
-	showChar8     bool
+	showQiMen     bool
 	showBig6      bool
+	showChar8     bool
 	showAstrolabe bool
 
 	StrokeManager
 }
 
 func (g *Game) Update() error {
-	g.count++
-	g.count %= 60
+	g.count = (g.count + 1) % 60
+
 	g.qiMen.Update()
-	g.char8.Visible = g.showChar8
-	g.char8.Update()
-	g.meiHua.Visible = g.showMeiHua
-	g.meiHua.Update()
-	g.big6.Visible = g.showBig6
-	g.big6.Update()
+
+	g.char8.UI.Visible = g.showChar8
+	if g.showChar8 {
+		g.char8.Update()
+	}
+	g.meiHua.UI.Visible = g.showMeiHua
+	if g.showMeiHua {
+		g.meiHua.Update()
+	}
+	g.big6.UI.Visible = g.showBig6
+	if g.showBig6 {
+		g.big6.Update()
+	}
 	if g.showAstrolabe {
 		g.astrolabe.Update()
 	}
@@ -71,11 +79,15 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 	g.qiMen.Draw(screen)
 	//g.stars.Draw(screen)
-	g.meiHua.Draw(screen)
-	if Dev {
+	if g.showMeiHua {
+		g.meiHua.Draw(screen)
+	}
+	if g.showBig6 && Dev {
 		g.big6.Draw(screen)
 	}
-	g.char8.Draw(screen)
+	if g.showChar8 {
+		g.char8.Draw(screen)
+	}
 	gui.Draw(screen)
 	if Dev {
 		msg := fmt.Sprintf(`FPS: %0.2f, TPS: %0.2f`, ebiten.ActualFPS(), ebiten.ActualTPS())
@@ -122,6 +134,7 @@ func NewGame() *Game {
 		char8:     NewChar8Pan(880, 314),
 		astrolabe: NewAstrolabe(1650, 450),
 
+		showQiMen:     true,
 		showMeiHua:    true,
 		showBig6:      true,
 		showChar8:     true,
