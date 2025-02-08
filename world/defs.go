@@ -16,7 +16,7 @@ var (
 	colorWhite            = color.RGBA{0xff, 0xff, 0xff, 0xff}
 	colorBlack            = color.RGBA{0x00, 0x00, 0x00, 0xff}
 	colorRed              = color.RGBA{0xff, 0x00, 0x00, 0xff}
-	colorDarkRed          = color.RGBA{0x80, 0x00, 0x00, 0xff}
+	colorDarkRed          = color.RGBA{0x90, 0x00, 0x00, 0xff}
 	colorGreen            = color.RGBA{0x00, 0xff, 0x00, 0xff}
 	colorBlue             = color.RGBA{0x00, 0x00, 0xff, 0xff}
 	colorYellow           = color.RGBA{0xff, 0xff, 0x00, 0xff}
@@ -40,16 +40,16 @@ var (
 	colorGray5            = color.RGBA{R: 0x50, G: 0x50, B: 0x50, A: 0xff}
 	colorSun              = color.RGBA{R: 0xff, G: 0xff, A: 0xff}
 	colorMoon             = color.RGBA{R: 0xff, G: 0xff, B: 0xcc, A: 0xcc}
-	colorDuty             = colorGreen   //符值马时
-	colorTomb             = colorDarkRed //奇门入墓
-	colorJiXing           = colorPurple  //奇门击刑
-	colorMengPo           = colorRed     //奇门门迫
-	colorXingMu           = colorBlue    //奇门刑墓
-	colorChong            = colorPurple  //星盘冲
-	colorXing             = colorRed     //星盘刑
-	colorHe               = colorGreen   //星盘合
-	colorHe6              = colorBlue    //星盘合
-	colorGong             = colorGreen   //星盘宫
+	colorDuty             = colorGreen                         //符值马时
+	colorTomb             = color.RGBA{0xa0, 0x00, 0x00, 0xff} //奇门入墓
+	colorJiXing           = colorPurple                        //奇门击刑
+	colorMengPo           = color.RGBA{0xff, 0x20, 0x20, 0xff} //奇门门迫
+	colorXingMu           = colorBlue                          //奇门刑墓
+	colorChong            = colorPurple                        //星盘冲
+	colorXing             = colorRed                           //星盘刑
+	colorHe               = colorGreen                         //星盘合
+	colorHe6              = colorBlue                          //星盘合
+	colorGong             = colorGreen                         //星盘宫
 
 	color9Gong = []color.RGBA{
 		{0x00, 0x00, 0x00, 0x00},
@@ -96,10 +96,7 @@ func GetHideGan(gan string, idx int) string {
 }
 
 func ColorGanZhi(gz string) color.RGBA {
-	wx := LunarUtil.WU_XING_GAN[gz]
-	if wx == "" {
-		wx = LunarUtil.WU_XING_ZHI[gz]
-	}
+	wx := qimen.GanZhiWuXing[gz]
 	return color5Xing[wx]
 }
 
@@ -109,7 +106,7 @@ func ColorNaYin(gz string) color.RGBA {
 	return color5Xing[string(wx)]
 }
 
-func ShiShenShort(dayGan, gan string) string {
-	sx := LunarUtil.SHI_SHEN[dayGan+gan]
-	return qimen.SHI_SHEN_SHORT[sx]
+func ShiShenShort(ganMaster, gan string) string {
+	sx := LunarUtil.SHI_SHEN[ganMaster+gan]
+	return qimen.ShiShenShort[sx]
 }

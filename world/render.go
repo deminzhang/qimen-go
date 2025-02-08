@@ -8,6 +8,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"golang.org/x/image/font"
 	"image/color"
 	"math"
 )
@@ -50,7 +51,6 @@ func DrawMixProBar[T util.Numeric](dst *ebiten.Image, x, y, width, height float3
 		vector.DrawFilledRect(dst, from, y, to, height, clr[i], true)
 		from += to
 	}
-	vector.StrokeRect(dst, x, y, width, height, .5, clr[0], true)
 }
 
 // DrawFlow 流年流月流日流时柱
@@ -67,8 +67,8 @@ func DrawFlow(dst *ebiten.Image, sx, sy int, soul string, cb *CharBody) {
 	text.Draw(dst, cb.Feet, ft14, sx, sy+80, ColorGanZhi(cb.Feet))
 	text.Draw(dst, ShiShenShort(soul, cb.Feet), ft14, sx+16, sy+80, colorWhite)
 	text.Draw(dst, LunarUtil.NAYIN[cb.Gan+cb.Zhi], ft14, sx, sy+96, ColorNaYin(cb.Gan+cb.Zhi))
-	text.Draw(dst, qimen.ChangSheng12[soul][cb.Zhi], ft14, sx, sy+112, ColorGanZhi(soul))
-	text.Draw(dst, qimen.ChangSheng12[cb.Gan][cb.Zhi], ft14, sx, sy+128, ColorGanZhi(cb.Gan))
+	text.Draw(dst, qimen.ZhangSheng12[soul][cb.Zhi], ft14, sx, sy+112, ColorGanZhi(soul))
+	text.Draw(dst, qimen.ZhangSheng12[cb.Gan][cb.Zhi], ft14, sx, sy+128, ColorGanZhi(cb.Gan))
 	text.Draw(dst, LunarUtil.GetXunKong(cb.Gan+cb.Zhi), ft14, sx, sy+144, colorGray)
 }
 
@@ -120,4 +120,18 @@ func DrawRangeBarV(dst *ebiten.Image, x, y, height float32, name string, val, mi
 	//text.Draw(dst, fmt.Sprintf("%v", maxV), ft, int(x-8), int(y+height), colorWhite)
 	text.Draw(dst, fmt.Sprintf("%.1f%%", per*100), ft, int(x-8), int(y+height/2), clr)
 	text.Draw(dst, fmt.Sprintf("%s%v", name, val), ft, int(x), int(y+height+8), clr)
+}
+
+func DrawRotateText(dst *ebiten.Image, x, y, r, rot float64, txt string, fontSize float64, clr color.Color) {
+	ft, _ := GetFontFace(fontSize)
+	fx, fy := x, y
+	for _, t := range []rune(txt) {
+		b, _ := font.BoundString(ft, string(t))
+		w := (b.Max.X - b.Min.X).Ceil()
+		h := (b.Max.Y - b.Min.Y).Ceil()
+		rr := math.Sqrt(float64(w*w + h*h))
+		ly, lx := util.CalRadiansPos(fy, fx, r, rot)
+		text.Draw(dst, string(t), ft, int(lx), int(ly), clr)
+		rot -= math.Asin(fontSize/2/rr) * 2 * math.Pi * 2
+	}
 }

@@ -14,7 +14,7 @@ import (
 var (
 	ScreenWidth  = initScreenWidth
 	ScreenHeight = initScreenHeight
-	Debug        = false
+	Dev          = false
 )
 
 type Game struct {
@@ -26,9 +26,12 @@ type Game struct {
 	char8     *Char8Pan
 	qmGame    *qimen.QMGame
 	meiHua    *MeiHua
+	big6      *Big6Show
 
 	autoMinute    bool
 	showMeiHua    bool
+	showQiMen     bool
+	showBig6      bool
 	showChar8     bool
 	showAstrolabe bool
 
@@ -36,17 +39,26 @@ type Game struct {
 }
 
 func (g *Game) Update() error {
-	g.count++
-	g.count %= 60
-	//g.stars.Update()
+	g.count = (g.count + 1) % 60
+
 	g.qiMen.Update()
-	g.char8.Visible = g.showChar8
-	g.char8.Update()
-	g.meiHua.Visible = g.showMeiHua
-	g.meiHua.Update()
+
+	g.char8.UI.Visible = g.showChar8
+	if g.showChar8 {
+		g.char8.Update()
+	}
+	g.meiHua.UI.Visible = g.showMeiHua
+	if g.showMeiHua {
+		g.meiHua.Update()
+	}
+	g.big6.UI.Visible = g.showBig6
+	if g.showBig6 {
+		g.big6.Update()
+	}
 	if g.showAstrolabe {
 		g.astrolabe.Update()
 	}
+	//g.stars.Update()
 	//g.stars.SetPos(g.astrolabe.GetSolarPos())
 	//if g.autoMinute && !g.astrolabe.DataQuerying() {
 	if g.autoMinute {
@@ -62,16 +74,25 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	g.qiMen.Draw(screen)
 	if g.showAstrolabe {
 		g.astrolabe.Draw(screen)
 	}
+	g.qiMen.Draw(screen)
 	//g.stars.Draw(screen)
-	g.meiHua.Draw(screen)
-	g.char8.Draw(screen)
+	if g.showMeiHua {
+		g.meiHua.Draw(screen)
+	}
+	if g.showBig6 {
+		g.big6.Draw(screen)
+	}
+	if g.showChar8 {
+		g.char8.Draw(screen)
+	}
 	gui.Draw(screen)
-	msg := fmt.Sprintf(`FPS: %0.2f, TPS: %0.2f`, ebiten.ActualFPS(), ebiten.ActualTPS())
-	ebitenutil.DebugPrint(screen, msg)
+	if Dev {
+		msg := fmt.Sprintf(`FPS: %0.2f, TPS: %0.2f`, ebiten.ActualFPS(), ebiten.ActualTPS())
+		ebitenutil.DebugPrint(screen, msg)
+	}
 }
 
 func (g *Game) Layout(w, h int) (int, int) {
@@ -92,24 +113,30 @@ func (g *Game) Layout(w, h int) (int, int) {
 }
 
 func NewGame() *Game {
-	if _, ok := util.Args2Map()["debug"]; ok {
-		Debug = true
+	if _, ok := util.Args2Map()["dev"]; ok {
+		Dev = true
 		gui.SetBorderDebug(true)
 		UIShowChat()
 	}
 	u := UIShowQiMen()
 	solar := calendar.NewSolarFromDate(time.Now())
 	pan := u.Apply(solar)
+	if pan == nil {
+		panic("pan is nil")
+	}
 	g := &Game{
 		uiQM:      u,
+		qmGame:    pan,
 		stars:     NewStarEffect(float32(ScreenWidth/2), 217),
 		qiMen:     NewQiMenShow(450, 500),
+		meiHua:    NewMeiHua(1130, 170),
+		big6:      NewBig6(880, 170),
+		char8:     NewChar8Pan(880, 314),
 		astrolabe: NewAstrolabe(1650, 450),
-		char8:     NewChar8Pan(880, 174),
-		qmGame:    pan,
-		meiHua:    NewMeiHua(880, 780),
 
+		showQiMen:     true,
 		showMeiHua:    true,
+		showBig6:      true,
 		showChar8:     true,
 		showAstrolabe: true,
 

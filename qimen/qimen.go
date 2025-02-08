@@ -70,12 +70,12 @@ type QMGame struct {
 	Lunar          *calendar.Lunar
 	LunarMonthDays int //农历月天数
 
-	YueJian  string //月建
-	YueJiang string //月将
+	MonthBuild  string //月建
+	MonthLeader string //月将
 
 	JieQi     string //节气文本
 	TimeHorse string //时家马
-	//Big6      []Big6Gong
+	//Big6      []Big6RenGong
 	Big6 *Big6Ren
 
 	YearPan  *QMPan //年家奇门盘
@@ -89,24 +89,24 @@ type QMGame struct {
 func NewQMGame(solar *calendar.Solar, params QMParams) *QMGame {
 	ymdh, qmType, qmHostingType, pqmFlyType, startType, hideGanType :=
 		params.YMDH, params.Type, params.HostingType, params.FlyType, params.JuType, params.HideGanType
-	lunar := calendar.NewLunarFromSolar(solar)
-	c8 := lunar.GetEightChar()
-	jieQi := lunar.GetPrevJieQi()
-	jieQiName := lunar.GetPrevJieQi().GetName()
+	l := calendar.NewLunarFromSolar(solar)
+	c8 := l.GetEightChar()
+	jieQi := l.GetPrevJieQi()
+	jieQiName := l.GetPrevJieQi().GetName()
 
 	p := QMGame{
 		Solar:          solar,
-		Lunar:          lunar,
-		LunarMonthDays: calendar.NewLunarYear(lunar.GetYear()).GetMonth(lunar.GetMonth()).GetDayCount(),
+		Lunar:          l,
+		LunarMonthDays: calendar.NewLunarYear(l.GetYear()).GetMonth(l.GetMonth()).GetDayCount(),
 		JieQi:          jieQiName,
 		TimeHorse:      Horse[c8.GetTimeZhi()],
 	}
 	if jieQi.IsJie() {
-		p.YueJian = Jie2YueJian(jieQi.GetName())
-		p.YueJiang = Qi2YueJiang(lunar.GetPrevQi().GetName())
+		p.MonthBuild = Jie2YueJian(jieQi.GetName())
+		p.MonthLeader = Qi2YueJiang(l.GetPrevQi().GetName())
 	} else { //qi
-		p.YueJian = Jie2YueJian(lunar.GetPrevJie().GetName())
-		p.YueJiang = Qi2YueJiang(jieQi.GetName())
+		p.MonthBuild = Jie2YueJian(l.GetPrevJie().GetName())
+		p.MonthLeader = Qi2YueJiang(jieQi.GetName())
 	}
 	switch ymdh {
 	case QMGameHour: //排时家奇门
@@ -149,7 +149,7 @@ func NewQMGame(solar *calendar.Solar, params QMParams) *QMGame {
 					jqName := hl.GetPrevJieQi().GetName()
 					headInJieQi := jqName == jieQiName
 					if headInJieQi { //符头在本节气
-						jqNext := lunar.GetNextJieQi() //下个节气 冬至/夏至
+						jqNext := l.GetNextJieQi() //下个节气 冬至/夏至
 						days := jqNext.GetSolar().Subtract(solar)
 						if yuan == 1 && days <= 5 { //下一节气 符头提前在本节气 超神
 							jqi++
@@ -169,6 +169,16 @@ func NewQMGame(solar *calendar.Solar, params QMParams) *QMGame {
 			}
 		case QMJuTypeSelf:
 			ju = params.SelfJu
+		case QMJuTypeLunar:
+			jqi := _JieQiIndex[jieQiName]
+			//年支数+月数+日数+时支数)÷9取余数，余数即为局数
+			ju = (l.GetYearZhiIndexExact() + l.GetMonth() + l.GetDay() + l.GetTimeZhiIndex()) % 9
+			if ju == 0 {
+				ju = 9
+			}
+			if jqi > 12 {
+				ju = -ju
+			}
 		}
 		p.TimePan = &QMPan{
 			Yuan3:    yuan,
@@ -535,7 +545,7 @@ func (p *QMGame) calcGongDay2(pp *QMPan) {
 }
 
 func (p *QMGame) CalBig6() {
-	p.Big6 = NewBig6(p.Lunar)
+	p.Big6 = NewBig6Ren(p.Lunar)
 }
 
 func (p *QMGame) ShowHeadCommon() {
@@ -559,12 +569,12 @@ func (p *QMGame) ShowHeadCommon() {
 	d8 := Diagrams9(y9)
 	y3y9 := fmt.Sprintf("三元九运:%s%s%s%s%s", Yuan3Name[pp.Yuan3],
 		LunarUtil.NUMBER[y9], Gong9Color[y9], d8, DiagramsWuxing[d8])
-	pp.JiText = fmt.Sprintf("黄帝纪元:%4s %s", GetYearInChinese(GetHuangDiYear(p.Lunar.GetYear())), y3y9)
+	pp.JiText = fmt.Sprintf("道历:%4s %s", GetYearInChinese(GetHuangDiYear(p.Lunar.GetYear())), y3y9) //黄帝纪元
 	pp.JuText = fmt.Sprintf("%s %s %s遁%s", Yuan3Name[pp.Yuan3], juName, pp.Xun, HideJia[pp.Xun])
 	pp.DutyText = fmt.Sprintf("值符%s落%d宫 值使%s落%d宫",
 		Star0+pp.DutyStar, pp.DutyStarPos, pp.DutyDoor+Door0, pp.DutyDoorPos,
 	)
-	pp.YueJiang = fmt.Sprintf("%s月建%s %s月将%s", jie.GetName(), p.YueJian, qi.GetName(), p.YueJiang)
+	pp.YueJiang = fmt.Sprintf("%s月建%s %s月将%s", jie.GetName(), p.MonthBuild, qi.GetName(), p.MonthLeader)
 }
 func (p *QMGame) ShowTimeGame() {
 	pp := p.TimePan

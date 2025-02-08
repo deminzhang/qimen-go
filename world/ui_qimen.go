@@ -9,12 +9,6 @@ import (
 	"time"
 )
 
-var gongOffset = [][]int{{0, 0},
-	{1, 2}, {2, 0}, {0, 1},
-	{0, 0}, {1, 1}, {2, 2},
-	{2, 1}, {0, 2}, {1, 0},
-}
-
 type UIQiMen struct {
 	gui.BaseUI
 	//pan                                                       *qimen.QMGame
@@ -107,13 +101,15 @@ func NewUIQiMen() *UIQiMen {
 	py0 += 18
 	opHourPan := gui.NewOptionBox(px0, py0, "时家")
 	opDayPan := gui.NewOptionBox(px0+72, py0, "日家")
+	opDay2Pan := gui.NewOptionBox(px0+72*1.5, py0, "_日家2")
 	opMonthPan := gui.NewOptionBox(px0+72*2, py0, "月家")
 	opYearPan := gui.NewOptionBox(px0+72*3, py0, "年家")
 	p.cbAuto = gui.NewCheckBox(px0+72*4, py0, "自动")
 	py0 += 18
-	opDay2Pan := gui.NewOptionBox(px0+72, py0, "_日家2")
-	cbChar8Pan := gui.NewCheckBox(px0+72*3, py0, "四柱")
-	cbMeiHuaPan := gui.NewCheckBox(px0+72*4, py0, "梅花")
+	cbQiMenPan := gui.NewCheckBox(px0+72, py0, "奇门")
+	cbBig6Pan := gui.NewCheckBox(px0+72*2, py0, "大六壬")
+	cbMeiHuaPan := gui.NewCheckBox(px0+72*3, py0, "梅花")
+	cbChar8Pan := gui.NewCheckBox(px0+72*4, py0, "四柱")
 	cbStarPan := gui.NewCheckBox(px0+72*5, py0, "星盘")
 
 	p.AddChildren(panelSDate, panelOpCb)
@@ -133,7 +129,7 @@ func NewUIQiMen() *UIQiMen {
 		btnPreJu, btnNextJu, p.cbHostingType, p.cbFlyType,
 		opHourPan, opDayPan, opMonthPan, opYearPan, opDay2Pan,
 		p.opStartSplit, p.opStartMaoShan, p.opStartZhiRun, p.opStartSelf, p.inputSelfJu,
-		p.cbAuto, cbChar8Pan, cbStarPan, cbMeiHuaPan,
+		p.cbAuto, cbChar8Pan, cbStarPan, cbMeiHuaPan, cbBig6Pan, cbQiMenPan,
 		p.opHideGan0, p.opHideGan1)
 
 	gui.MakeOptionBoxGroup(opTypeRoll, opTypeFly, opTypeAmaze)
@@ -207,6 +203,18 @@ func NewUIQiMen() *UIQiMen {
 	})
 	opDay2Pan.Disabled = true
 	opDay2Pan.Visible = false
+	cbQiMenPan.SetChecked(true)
+	cbQiMenPan.SetOnCheckChanged(func(c *gui.CheckBox) {
+		if ThisGame != nil {
+			ThisGame.showQiMen = c.Checked()
+		}
+	})
+	cbBig6Pan.SetChecked(true)
+	cbBig6Pan.SetOnCheckChanged(func(c *gui.CheckBox) {
+		if ThisGame != nil {
+			ThisGame.showBig6 = c.Checked()
+		}
+	})
 	cbMeiHuaPan.SetChecked(true)
 	cbMeiHuaPan.SetOnCheckChanged(func(c *gui.CheckBox) {
 		if ThisGame != nil {

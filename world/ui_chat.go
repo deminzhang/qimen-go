@@ -8,12 +8,7 @@ import (
 
 type UIChat struct {
 	gui.BaseUI
-	//btnChatSwitch *gui.Button
-	//btnClear      *gui.Button
 	textBoxLog *gui.TextBox
-	//inputBoxChat  *gui.InputBox
-	//checkBoxGM    *gui.CheckBox
-	//btnChatSend   *gui.Button
 	showChatUI bool
 }
 
@@ -46,6 +41,7 @@ func NewUIChat() *UIChat {
 	}
 	textBoxLog := gui.NewTextBox(16, 0, 270, 180)
 	inputBoxChat := gui.NewInputBox(16, 190, 270, 32)
+
 	checkBoxGM := gui.NewCheckBox(290, 200, "令")
 	btnChatSend := gui.NewButton(290, 230, 32, 16, "发")
 
@@ -56,7 +52,7 @@ func NewUIChat() *UIChat {
 	p.AddChildren(btnChatSwitch, btnClear, btnCopy,
 		textBoxLog,
 		inputBoxChat,
-		checkBoxGM,
+		//checkBoxGM,
 		btnChatSend)
 
 	inputBoxChat.DefaultText = "输入信息指令.."
