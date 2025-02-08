@@ -51,6 +51,142 @@ var (
 		"壬": "卯", "癸": "卯",
 		"辛": "寅",
 	}
+	//大六壬课体对应卦及条件
+	Big6RenKeTi = map[string]string{
+		"元首": "乾",   // 条件：一上克下，余课无克，为元首课。
+		"重审": "坤",   // 条件：四课中仅有一组下克上神，为重审课。余课若无克，亦名始入课。
+		"知一": "比",   // 条件：四课中有二上克下，或二下克上。
+		"涉害": "坎",   // 条件：四课之中同时出现多组上克下或下克上神。
+		"遥克": "睽",   // 条件：四课上下俱无相克。
+		"昴星": "履",   // 条件：若四课上下无克，又无遥克。
+		"别责": "涣",   // 条件：四课之中出现其中两课相同。
+		"八专": "同人", // 条件：凡别责课遇到干支同位。
+		"伏吟": "艮",   // 条件：月将占时相同，天盘合于地盘本位。
+		"反吟": "震",   // 条件：月将与占时为六冲之辰。
+		"三光": "贲",   // 条件：1日干旺相；2日支旺相；3用神自四课出旺相；4皆乘吉将。
+		"三阳": "晋",   // 条件：1贵人顺行；2日辰旺相有气，居贵人之前；3用神旺相。
+		"三奇": "豫",   // 条件：旬奇发用或入传。
+		"六仪": "兑",   // 条件：旬仪发用或者入传。
+		"时泰": "泰",   // 条件：1太岁和月建，一个发用，一个入传；2初末传乘青龙、六合吉将。
+		"官爵": "益",   // 条件：1发用必须是太岁、月建、本命、行年的驿马。
+		"富贵": "大有", // 条件：1贵人乘旺相之气发用。
+		"龙德": "萃",   // 条件：1太岁和月将相同。
+		"轩盖": "升",   // 条件：1午火发用；2三传卯木、子水俱全。
+		"铸印": "鼎",   // 条件：凡戌加巳入传。
+		"斫轮": "颐",   // 条件：1卯木发用；2卯木必须加庚辛或申酉发用。
+		"引从": "临",   // 条件：凡课日辰干支前后上神发用为初末传。
+		"亨通": "谦",   // 条件：1初传生曰干，2三传递生曰干，3干支互相相生。
+		"繁昌": "咸",   // 条件：1夫妻行年立德方或值德合。
+		"荣华": "渐",   // 条件：1禄、马、贵人加临干支或者年命发用。
+		"德庆": "需",   // 条件：1是德神发用，2是年命上神乘吉将。
+		"合欢": "恒",   // 条件：1是日上神遁干与日干作合。
+		"和美": "丰",   // 条件：1日干与支上神作合，日支与日干上神作合。
+		"斩关": "井",   // 条件：凡课魁罡加曰辰发用。
+		"闭口": "遁",   // 条件：1旬尾加旬首发用。
+		"游子": "观",   // 条件：凡课三传皆土，遇旬丁、天马为用。
+		"三交": "姤",   // 条件：1四仲曰占，2四仲加干支。
+		"乱首": "师",   // 条件：1干加支，被支克。
+		"赘婿": "旅",   // 条件：1干加支上克支。
+		"冲破": "夬",   // 条件：凡干支之冲神、加破神发用。
+		"淫佚": "既济", // 条件：凡课初传卯酉发用。
+		"无淫": "小蓄", // 条件：1四课缺一为不备，且有克。
+		"解离": "解离", // 条件：无淫课中，遇夫妻行年及行年上神均既冲且克者。
+		"孤寡": "革",   // 条件：1以旬空论，阳空为孤，阴空为寡。
+		"度厄": "剥",   // 条件：凡三上克下、为幼度厄；三下贼上、为长度厄。
+		"绝嗣": "",     // 条件：四下俱克上，为无禄课。
+		"无禄": "",     // 条件：四上俱克下，为绝嗣课。
+		"迍福": "屯",   // 条件：凡八迍课得五福，为迍福课。
+		"侵害": "损",   // 条件：日辰上各加害神发用，为侵害课。
+		"刑伤": "讼",   // 条件：1发用刑干；2发用刑支；3发用刑行年。
+		"二烦": "明夷", // 条件：课日月宿为仲神。
+		"天祸": "大过", // 条件：凡四立日占，得今日干支加昨日干支。
+		"天狱": "噬嗑", // 条件：1发用必须是死气、囚气或墓气。
+		"天寇": "蹇",   // 条件：占日为四离日。
+		"天网": "蒙",   // 条件：1、时用俱克日；2、干前一位为天罗煞。
+		"魄化": "蛊",   // 条件：凡白虎带死神死气，临日辰行年发用。
+		"龙战": "离",   // 条件：凡卯酉日占，卯酉为用。
+		"死奇": "未济", // 条件：凡天罡加日辰阴阳发用。
+		"灾厄": "归妹", // 条件：凡课丧车、游魂、伏殃、病符、丧吊、丘墓、岁虎发用者。
+		"殃咎": "解",   // 条件：1三传递克日干。
+		"九丑": "小过", // 条件：1占日为九丑日。
+		"鬼墓": "困",   // 条件：凡干支之墓神、兼日鬼发用，为鬼墓课。
+		"励德": "随",   // 条件：（干支）阳神在贵人前，阴神在贵人后。
+		"盘珠": "大壮", // 条件：凡事会合成实，吉则成福，凶则成殃。
+		"全局": "大畜", // 条件：三传成局，除土局外，别的都是三合局。
+		"玄胎": "家人", // 条件：凡课孟神发用，传皆四孟。
+		"连珠": "复",   // 含义： 凶者重重，吉亦累累。孕必连胎，事当续举。
+		"六纯": "无妄", // 含义：六纯十杂兼物类，三传之说最纷纭。
+		//未提:
+		//巽
+		//否
+		//节
+		//小畜
+		//中孚
+	}
+	Big6RenKeTiDes = map[string]string{
+		"元首": "占事多顺，忧喜皆实，事从外来，事起男子，宜主动。| 遇凶神恶将，上恶而下受欺；或上休囚而下得势，则下强而上受欺。",
+		"重审": "卑犯尊，贱犯贵之象。占事多不顺，事从内起，起于女人。| 贵人顺行吉，贵人逆行凶，传生吉，传墓凶。",
+		"知一": "占婚姻主不和谐，失物寻人俱在临近。| 上克下发用，有嫌疑；下克上发用，有妒忌。",
+		"涉害": "占者凡事艰难，必有稽迟，乃苦尽甘来之象也。| 神将凶，三四克，灾深难解。",
+		"遥克": "开始气势汹汹，后来雷声大雨点小。| 三传神将凶，日辰无气。",
+		"昴星": "关梁闭塞，津渡稽留。外出轻者灾，重则有死亡、囚禁之祸。| 蛇虎入传，日辰用神囚死大凶。",
+		"别责": "课名芜淫，为三角恋之象。诸事不完备，有涩滞牵连之象。| 占断家庭，主闺房淫乱，或夫妇互有外情。",
+		"八专": "神将吉，为同心协力，专一之象。| 如果有上下克，则以常法取用。",
+		"伏吟": "凡事主屈而不伸，静中思动。选举必成，考试必中。| 如果三传见吉神，又乘天马、德神、天喜，日辰又临旺相，当以吉论。",
+		"反吟": "高峰为谷，深谷为陵，变化不定。得物必失，失败反成。| 神将凶，主多损失，动亦无益。",
+		"三光": "万事可行，不劳费力，利有攸往。| 如果三传中末见死囚，是三光失明。",
+		"三阳": "凡事吉庆，所求皆遂。| 若占病讼遇之，却凶多吉少。",
+		"三奇": "凡事吉利，百祸消散。| 如果三奇空亡，精力不足，其福减半。",
+		"六仪": "动无阻隔，家集千祥。兆多吉庆，求财相宜。| 如果旬仪、支仪皆入传，且乘天乙吉将，为富贵六仪。",
+		"时泰": "万事亨通，灾潜祸消，谋为无阻，婚姻美满。| 如传见空亡，则事多虚喜。",
+		"官爵": "富贵荣华，有官迁职，无官得官，财名皆利。| 若驿马逢冲破，主官爵淹留。",
+		"富贵": "天降福德，万事新鲜。| 如果贵人临辰戌为坐狱，所占皆凶。",
+		"龙德": "君恩及下，万民欢欣。| 不利尊贵求卑下，再带凶煞、日鬼。",
+		"轩盖": "高车驷马，招摇过市，诸事吉庆。| 如果三传凶神凶将，克年命、日辰或空亡。",
+		"铸印": "投书献策，官职高迁。有进职加薪之喜。| 若逢戌土空亡、日辰无气，名破模损印。",
+		"斫轮": "卯木逢初末传引从，名轩车格，有升职之喜。| 如果三传中有墓神，名旧轮再斫。",
+		"引从": "凡课日辰干支前后上神发用为初末传。| 此贵人出行，前者引，后者从，故名引从。",
+		"亨通": "凡占课得亨通课，三传相生，干支有情。| 如果递生逢空亡，课传中无解救，仍以凶论。",
+		"繁昌": "阴阳和合，万物生成。| 如果夫妻行年俱乘衰败气，或互相克害，则名德孕不育。",
+		"荣华": "人宅俱利，经营俱亨。| 如果昼夜贵人逆行或者坐辰戌之上，名坐狱。",
+		"德庆": "占事逢德庆课，德神在位，诸煞潜藏。| 如果德神为干鬼，德有化鬼之妙，占功名必高中。",
+		"合欢": "占事逢合欢课，主乾坤匹配，吉将齐聚。| 三合事关众多，克应要过月。",
+		"和美": "上下欢悦，交易大通。| 如果课中逢有刑害，主恩中有怨。",
+		"斩关": "主关梁逾越，最利逃亡。| 若带血支、血忌、呻吟、羊刃、三杀，必伤人而走。",
+		"闭口": "主禁口闭缄，机关莫测。| 请白虎占病，主痰气阻塞，喉肿舌禁。",
+		"游子": "丁马加吉神，主奔走西东。| 乘三奇、六仪等课体，年命曰辰上有冲克救神。",
+		"三交": "占事逢三交课，主交加连累，奸私隐匿。| 初传乘空幻合，主门户不利。",
+		"乱首": "子忤其父，弟背其兄。| 三传吉神吉将，年命处有克制凶神名患门有解。",
+		"赘婿": "主曲意从人，事多牵连。| 如果年命得吉神吉将，仍可摆脱牵制，任意所为。",
+		"冲破": "主人情反复，门户不宁。| 吉将不宜冲，凶将却宜冲。",
+		"淫佚": "男子就室，女子有家，淫乱成风。| 上克下发用，过在男子；下克上发用，错在女子。",
+		"无淫": "男女争斗，两方均不利。| 如果神将吉，又有救神，不以凶论。",
+		"解离": "无淫课中，遇夫妻年年神均既冲且克者。| 若占胎孕，亦主损胎。",
+		"孤寡": "占主孤独，离乡背井；官易位，财空手。| 如果兼三奇、六仪课或神将皆吉，主反祸为福。",
+		"度厄": "占者家宅乖和，老幼不安。| 如果日辰旺相，反主长得幼力，幼得长力。",
+		"绝嗣": "上下悖逆，父子分离。| 无禄课占病必死，兵讼后者胜。",
+		"迍福": "忧患将至，得病重危，遭官坐死，谋望不成。| 若逢五福，变忧为喜。",
+		"侵害": "六亲失靠，骨肉刑伤；财利潜害，疾病欧伤。| 若发用乘吉将，且兼德合，事阻而终成。",
+		"刑伤": "主偏倚失位，家门不昌。| 若遇吉神吉将，事有阻但终遂。",
+		"二烦": "家有灾祸，荆棘满途之课。| 此课极凶难避，春夏占得之，凶稍轻。",
+		"天祸": "以新易旧，天降灾祸，咎事莫为，身宜谨守。| 天祸课若遇绝神发用，各有所主。",
+		"天狱": "占主犯法入狱，病未痊愈，出行凶。| 如果发用刑日干，带恶煞尤凶。",
+		"天寇": "占事多破坏，主阴阳分离，行人诈破，病危。| 如果月宿加离日地支发用，为祸尤甚。",
+		"天网": "凡事阻碍，逃亡遭殃，胎孕损子，病入膏肓。| 如果日辰、行年临旺相气，又遇德神，主危中有救，忧中有喜。",
+		"魄化": "魄化课占病大凶，因白虎死丧之神又叠加死气死神，有死亡将临之象。| 若发用为日干的墓神，名白虎衔尸，凶不可言。",
+		"龙战": "占主疑惑反复，门户不宁；合者将离，居者将徙。| 如果人行年又在卯酉更凶。",
+		"死奇": "天罡为星宿死奇凶恶之神。| 如果初传旺相为吉将，或六处有救神，或辰土为月将，名死奇回光，则除祸为福。",
+		"灾厄": "灾厄重重，妖孽为害。| 占主灾厄重重，妖孽为害",
+		"殃咎": "递克被人欺，夹克不自由。| 递克被人欺，夹克不自由。",
+		"九丑": "占者多凶，刚日男凶，柔日女祸。| 发用若再乘大小时煞，祸不出月。",
+		"鬼墓": "盗贼难获，家宅不昌。| 如果初传为鬼墓，末传为长生，名自墓传生。",
+		"励德": "阳神前引，阴神后随，则君子吉，小人危。| 主君子迁官，小人退职，利君子不利小人。",
+		"盘珠": "凡事会合成实，吉则成福，凶则成殃。| 如果日干、用神旺相，神将吉者大吉。",
+		"全局": "三传成局，除土局外，别的都是三合局。| 三传中若有一神与干支上神刑冲破害，名三合犯杀。",
+		"玄胎": "事体皆新，胎孕成型。| 发用若为父母，主尊长有灾。",
+		"连珠": "凶者重重，吉亦累累。| 三传顺进名进连茹，多宜进，贵人顺行则应事迅速。",
+		"六纯": "六阳动达，如登三天。私凶公吉，官职升迁。| 六阴课占孕主女，五阴相继，盗气迤逦脱去，为源消根断。",
+	}
 )
 
 type (
@@ -108,12 +244,13 @@ func NewBig6Ren(l *calendar.Lunar) *Big6Ren {
 		DayXun:          l.GetDayXunExact(),
 		GuiRenStartType: "卯酉",
 	}
-	shiZhiIdx := ZhiIdx[l.GetTimeZhi()]
-	p.Reset(shiZhiIdx)
+	p.Reset(l.GetTimeZhi())
 	return &p
 }
 
-func (p *Big6Ren) Reset(shiZhiIdx int) {
+func (p *Big6Ren) Reset(shiZhi string) {
+	p.TimeZhi = shiZhi
+	shiZhiIdx := ZhiIdx[shiZhi]
 	jiangIdx := ZhiIdx[p.MonthLeader]
 	jianIdx := ZhiIdx[p.MonthBuild]
 	dayGanIdx := GanIdx[p.DayGan]
@@ -156,7 +293,7 @@ func (p *Big6Ren) Reset(shiZhiIdx int) {
 	//定三传
 	var kes []string
 	p.Chuan, kes = p.calcChuan()
-	p.parseGe(kes)
+	p.parseKeti(kes)
 }
 
 // 起贵人,布天将
@@ -247,21 +384,23 @@ func (p *Big6Ren) chuanNormal(chuan0 string) [3]string {
 func (p *Big6Ren) chuanOverlap(hasKe bool, chuan0 string) (chuan [3]string, kts []string) {
 	ke4 := p.Ke4
 	dayGan := p.DayGan
-	yangDay := GanZhiYinYang[dayGan] == "阳" //阳日
+	yangDay := YinYang[dayGan] == "阳" //阳日
 	//初传为自刑的伏吟课为杜传格。刚日伏吟课无克为自任格。柔日伏吟课无克为自信格。
 	if hasKe { //四课上下有克，照常取克发用，
 		chuan[0] = chuan0
-		if XingZhi[chuan[0]] == chuan[0] { //如果初传是自刑的支（即初传为辰、午、酉、亥），则中传取支上神，末传取中传所刑的支。
+		chuan[1] = XingZhi[chuan[0]]
+		if chuan[1] == chuan[0] { //如果初传是自刑的支（即初传为辰、午、酉、亥），则中传取支上神，末传取中传所刑的支。
 			chuan[1] = ke4[2].Up
 		}
-		if XingZhi[chuan[1]] == chuan[1] { //如果中传又是自刑的支（即中传为辰、午、酉、亥），则取与中传相冲的支为末传。
+		chuan[2] = XingZhi[chuan[1]]
+		if chuan[2] == chuan[1] { //如果中传又是自刑的支（即中传为辰、午、酉、亥），则取与中传相冲的支为末传。
 			chuan[2] = ChongZhi[chuan[1]]
 		} else {
 			chuan[2] = XingZhi[chuan[1]]
 		}
-		kts = append(kts, "艮", "伏吟")
+		kts = append(kts, "伏吟")
 		return
-	} else { //如果四课上下没有克,
+	} else {         //如果四课上下没有克,
 		if yangDay { //阳日:取日上神发用，中末递刑取之（即初传刑者为中传，中传刑者为末传）
 			chuan[0] = ke4[0].Up
 			chuan[1] = XingZhi[chuan[0]]
@@ -271,11 +410,11 @@ func (p *Big6Ren) chuanOverlap(hasKe bool, chuan0 string) (chuan [3]string, kts 
 				if chuan[2] == chuan[1] { //如果中传又是自刑的支，则取与中传相冲的支为末传。
 					chuan[2] = ChongZhi[chuan[1]]
 				}
-				kts = append(kts, "艮", "伏吟", "自任")
+				kts = append(kts, "伏吟", "自任")
 				return
 			} else {
 				chuan[2] = XingZhi[chuan[1]]
-				kts = append(kts, "艮", "伏吟", "自信")
+				kts = append(kts, "伏吟", "自信")
 				return
 			}
 		} else { //阴日:取支上神为用，中末递刑取之（即初传刑者为中传，中传刑者为末传，如果中传是互刑，末传取冲）。
@@ -287,11 +426,11 @@ func (p *Big6Ren) chuanOverlap(hasKe bool, chuan0 string) (chuan [3]string, kts 
 				if chuan[2] == chuan[1] { //如果中传又是自刑的支，则取与中传相冲的支为末传。
 					chuan[2] = ChongZhi[chuan[1]]
 				}
-				kts = append(kts, "艮", "伏吟", "自任")
+				kts = append(kts, "伏吟", "自任")
 				return
 			} else {
 				chuan[2] = XingZhi[chuan[1]]
-				kts = append(kts, "艮", "伏吟", "自信")
+				kts = append(kts, "伏吟", "自信")
 				return
 			}
 		}
@@ -305,7 +444,7 @@ func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 	gs := &p.Gong
 	overlap := gs[0].JiangZhi == LunarUtil.ZHI[1] //伏吟
 	reverse := gs[0].JiangZhi == LunarUtil.ZHI[7] //反吟
-	yangDay := GanZhiYinYang[dayGan] == "阳"       //阳日
+	yangDay := YinYang[dayGan] == "阳"            //阳日
 	var xiaKe []Big6Ke
 	var shangKe []Big6Ke
 	var keMap = make(map[string]bool)
@@ -342,7 +481,7 @@ func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 		case 1: //重审课
 			chuan[0] = xiaKe[0].Up
 			//chuan = p.chuanNormal(xiaKe[0].Up)
-			kts = append(kts, "坤", "重审")
+			kts = append(kts, "重审")
 			if len(shangKeXia) == 0 {
 				kts = append(kts, "始入")
 			}
@@ -351,40 +490,42 @@ func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 			if len(shangKeXia) == 1 {
 				chuan[0] = shangKe[0].Up
 				//chuan = p.chuanNormal(shangKe[0].Up)
-				kts = append(kts, "乾", "元首")
+				kts = append(kts, "元首")
 				//return
 			}
 		}
-		//2.比用法
-		//下贼或二三四侵，若逢上克亦同云。
-		//常将天日比神用，阳日用阳阴用阴。
-		//若或俱比俱不比，立法别有涉害陈。
-		//如果四课中有两课或两课以上的下贼上或上克下，且克者与日干的阴阳属性相同（即比），则以与日干相比者为初传。
-		//例如，日干为阳，有两课下贼上，其中一课的克者为阳，则取该阳克者为初传。
-		//比用.下克上
-		var xiaKeBi []Big6Ke
-		for _, ke := range xiaKe {
-			if GanZhiYinYang[ke.Up] == GanZhiYinYang[dayGan] {
-				xiaKeBi = append(xiaKeBi, ke)
-			}
-		}
-		if len(xiaKeBi) == 1 {
-			chuan[0] = xiaKeBi[0].Up
-			kts = append(kts, "坎", "比用", "知一")
-			//return p.chuanNormal(xiaKeBi[0].Up), kts
-		}
-		if len(xiaKeBi) == 0 {
-			//比用.上克下
-			var shangKeBi []Big6Ke
-			for _, ke := range shangKe {
-				if GanZhiYinYang[ke.Up] == GanZhiYinYang[dayGan] {
-					shangKeBi = append(shangKeBi, ke)
+		if chuan[0] == "" {
+			//2.比用法
+			//下贼或二三四侵，若逢上克亦同云。
+			//常将天日比神用，阳日用阳阴用阴。
+			//若或俱比俱不比，立法别有涉害陈。
+			//如果四课中有两课或两课以上的下贼上或上克下，且克者与日干的阴阳属性相同（即比），则以与日干相比者为初传。
+			//例如，日干为阳，有两课下贼上，其中一课的克者为阳，则取该阳克者为初传。
+			//比用.下克上
+			var xiaKeBi []Big6Ke
+			for _, ke := range xiaKe {
+				if YinYang[ke.Up] == YinYang[dayGan] {
+					xiaKeBi = append(xiaKeBi, ke)
 				}
 			}
-			if len(shangKeBi) == 1 {
-				chuan[0] = shangKeBi[0].Up
-				kts = append(kts, "坎", "比用")
-				//return p.chuanNormal(shangKeBi[0].Up), kts
+			if len(xiaKeBi) == 1 {
+				chuan[0] = xiaKeBi[0].Up
+				kts = append(kts, "比用", "知一")
+				//return p.chuanNormal(xiaKeBi[0].Up), kts
+			}
+			if len(xiaKeBi) == 0 {
+				//比用.上克下
+				var shangKeBi []Big6Ke
+				for _, ke := range shangKe {
+					if YinYang[ke.Up] == YinYang[dayGan] {
+						shangKeBi = append(shangKeBi, ke)
+					}
+				}
+				if len(shangKeBi) == 1 {
+					chuan[0] = shangKeBi[0].Up
+					kts = append(kts, "比用")
+					//return p.chuanNormal(shangKeBi[0].Up), kts
+				}
 			}
 		}
 		if !overlap {
@@ -398,7 +539,7 @@ func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 	}
 	if reverse {
 		//9.反吟法 反吟有克堪为用，初上中末先后排；无克驿马发用奇，辰中干和日末是其真。若知六日该无克，丑未同干丁己辛。丑日登明未太乙。
-		kts = append(kts, "震", "反吟")
+		kts = append(kts, "反吟")
 		if !hasKe { //以日支的驿马为初传 、日支上神为中传，日干上神为末传。
 			chuan[0] = Horse[dayZhi]
 			chuan[1] = ke4[2].Up
@@ -421,7 +562,7 @@ func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 		hits := map[string]int{}
 		if len(xiaKeShang) > 1 {
 			for up := range xiaKeShang {
-				if GanZhiYinYang[up] != GanZhiYinYang[dayGan] { //排除不比的
+				if YinYang[up] != YinYang[dayGan] { //排除不比的
 					continue
 				}
 				up5x := GanZhiWuXing[up]
@@ -448,7 +589,7 @@ func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 		if len(hits) == 0 {
 			if len(shangKeXia) > 1 {
 				for up := range shangKeXia {
-					if GanZhiYinYang[up] != GanZhiYinYang[dayGan] { //排除不比的
+					if YinYang[up] != YinYang[dayGan] { //排除不比的
 						continue
 					}
 					up5x := GanZhiWuXing[up]
@@ -485,7 +626,7 @@ func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 			}
 		}
 		if maxUp != "" {
-			return p.chuanNormal(maxUp), []string{"坎", "涉害"}
+			return p.chuanNormal(maxUp), []string{"涉害"}
 		} else { //4个1 || 2个2
 			//如果涉害深浅相等，则取在地盘四孟上者为用；
 			//如果无四孟，则取四仲上者为用；
@@ -498,7 +639,7 @@ func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 			switch len(mid) {
 			case 1: //见机
 				for up := range mid {
-					return p.chuanNormal(up), []string{"坎", "涉害", "见机"}
+					return p.chuanNormal(up), []string{"涉害", "见机"}
 				}
 			case 0:
 				for up := range hits { //如果无四孟，则取四仲上者为用
@@ -508,7 +649,7 @@ func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 				}
 				if len(mid) == 1 {
 					for up := range mid {
-						return p.chuanNormal(up), []string{"坎", "涉害", "察微"}
+						return p.chuanNormal(up), []string{"涉害", "察微"}
 					}
 				}
 			}
@@ -518,13 +659,13 @@ func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 				if yangDay {
 					for up := range mid {
 						if up == ke4[0].Up || up == ke4[1].Up {
-							return p.chuanNormal(up), []string{"坎", "涉害", "缀瑕"} // 复等
+							return p.chuanNormal(up), []string{"涉害", "缀瑕"} // 复等
 						}
 					}
 				} else {
 					for up := range mid {
 						if up == ke4[2].Up || up == ke4[3].Up {
-							return p.chuanNormal(up), []string{"坎", "涉害", "缀瑕"} // 复等
+							return p.chuanNormal(up), []string{"涉害", "缀瑕"} // 复等
 						}
 					}
 				}
@@ -550,7 +691,7 @@ func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 		}
 		chuan[1] = ke4[0].Up
 		chuan[2] = ke4[0].Up
-		kts = append(kts, "同人", "八专")
+		kts = append(kts, "八专")
 		return
 	}
 	//4.遥克法
@@ -568,7 +709,7 @@ func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 		}
 		switch len(keDayGan) {
 		case 1:
-			return p.chuanNormal(keDayGan[0].Up), []string{"睽", "遥克", "蒿矢"}
+			return p.chuanNormal(keDayGan[0].Up), []string{"遥克", "蒿矢"}
 		case 0:
 			var dayGanKe []Big6Ke //日干克者
 			for _, ke := range ke4[1:] {
@@ -582,14 +723,14 @@ func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 			case 0:
 			default: //日干克者比
 				for _, ke := range dayGanKe {
-					if GanZhiYinYang[ke.Up] == GanZhiYinYang[dayGan] {
+					if YinYang[ke.Up] == YinYang[dayGan] {
 						return p.chuanNormal(ke.Up), []string{"遥克", "弹射"}
 					}
 				}
 			}
 		default: //克日干者比
 			for _, ke := range keDayGan { //比
-				if GanZhiYinYang[ke.Up] == GanZhiYinYang[dayGan] {
+				if YinYang[ke.Up] == YinYang[dayGan] {
 					return p.chuanNormal(ke.Up), []string{"睽", "遥克", "蒿矢"}
 				}
 			}
@@ -612,7 +753,7 @@ func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 			k1h := Big6RenGanHide[dayGan]
 			chuan[1] = gs[ZhiIdx[k1h]-1].JiangZhi
 			chuan[2] = gs[ZhiIdx[dayZhi]-1].JiangZhi
-			kts = append(kts, "履", "昴星", "冬蛇掩目")
+			kts = append(kts, "昴星", "冬蛇掩目")
 			return
 		}
 	}
@@ -631,7 +772,7 @@ func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 		}
 		chuan[1] = ke4[0].Up
 		chuan[2] = ke4[0].Up
-		kts = append(kts, "涣", "别责")
+		kts = append(kts, "别责")
 		return
 	}
 	return
@@ -639,7 +780,7 @@ func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 
 // 课体细析
 // http://www.360doc.com/content/23/0331/21/46945463_1074566892.shtml
-func (p *Big6Ren) parseGe(ts []string) {
+func (p *Big6Ren) parseKeti(ts []string) {
 	c := p.Chuan
 	c0, c1, c2 := c[0], c[1], c[2]
 	if c0 == "" || c1 == "" || c2 == "" {
@@ -698,7 +839,10 @@ func (p *Big6Ren) parseGe(ts []string) {
 			ts = append(ts, "斩关")
 		}
 	}
-
+	//gua := Big6RenKeTi[ts[0]] //TODO 细化
+	//if gua != "" {
+	//	ts = append(ts, gua+"卦")
+	//}
 	p.KeTi = strings.Join(ts, ",")
 }
 

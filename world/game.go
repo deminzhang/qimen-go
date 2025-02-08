@@ -82,7 +82,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	if g.showMeiHua {
 		g.meiHua.Draw(screen)
 	}
-	if g.showBig6 && Dev {
+	if g.showBig6 {
 		g.big6.Draw(screen)
 	}
 	if g.showChar8 {

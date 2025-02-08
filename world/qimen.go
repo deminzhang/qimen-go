@@ -509,8 +509,9 @@ func (q *QMShow) draw12Gong(dst *ebiten.Image) {
 func (q *QMShow) drawBig6(dst *ebiten.Image) {
 	ft, _ := GetFontFace(14)
 	pan := ThisGame.qmGame
+	b6 := pan.Big6
 	//大六壬
-	if pan.Big6 == nil {
+	if b6 == nil {
 		return
 	}
 	for i := 0; i < 12; i++ {
@@ -524,7 +525,7 @@ func (q *QMShow) drawBig6(dst *ebiten.Image) {
 		//	//} else if slices.Contains(qimen.KongWang[pan.ShowPan.Xun], LunarUtil.ZHI[qimen.Idx12[i+6]]) {
 		//	//	zhiGongTxt = fmt.Sprintf("%s虚", LunarUtil.ZHI[i])
 		//}
-		g := pan.Big6.Gong[i]
+		g := b6.Gong[i]
 
 		//月建
 		jianColor := colorJian
@@ -553,7 +554,7 @@ func (q *QMShow) drawBig6(dst *ebiten.Image) {
 		pos = q.jiangGanPos[i]
 		//text.Draw(dst, g.JiangGan, ft, pos[0], pos[1], util.If(g.JiangGan == pan.Lunar.GetDayGan(), colorRed, colorJiang)) //月将干名
 		pos = q.jiangZhiPos[i]
-		text.Draw(dst, g.JiangZhi, ft, pos[0], pos[1], jiangColor) //月将支名
+		//text.Draw(dst, g.JiangZhi, ft, pos[0], pos[1], jiangColor) //月将支名
 		//text.Draw(dst, g.Jiang12, ft, pos[0]+16, pos[1], util.If(g.Jiang12 == "贵", colorRed, colorGray)) //大六壬贵人
 		pos = q.jiangGongPos[i]
 		text.Draw(dst, zhi, ft, pos[0], pos[1], colorGray) //宫地盘支
@@ -566,23 +567,27 @@ func (q *QMShow) drawBig6(dst *ebiten.Image) {
 		//text.Draw(dst, zhi, ft, pos[0], pos[1], colorGray) //地盘本支
 		pos = q.zhiRectPos[i]
 		//text.Draw(dst, zhi, ft, pos[0], pos[1], colorGray) //地盘本支
+		isGui := g.Jiang12 == "贵"
+		isDayGan := g.JiangGan == b6.DayGan
+		guiColor := util.If(isGui, colorRed, colorGray)
+		dayGanColor := util.If(isDayGan, colorRed, colorGray)
 		switch i {
-		case 0, 1, 11:
-			text.Draw(dst, g.JiangZhi, ft, pos[0], pos[1], colorWhite)    //天盘支
-			text.Draw(dst, g.Jiang12, ft, pos[0], pos[1]+16, colorWhite)  //贵人神将
-			text.Draw(dst, g.JiangGan, ft, pos[0], pos[1]+32, colorWhite) //天盘干
-		case 2, 3, 4:
+		case 0, 1, 11: //北
+			text.Draw(dst, g.JiangZhi, ft, pos[0], pos[1], colorWhite)     //天盘支
+			text.Draw(dst, g.Jiang12, ft, pos[0], pos[1]+16, guiColor)     //贵人神将
+			text.Draw(dst, g.JiangGan, ft, pos[0], pos[1]+32, dayGanColor) //天盘干
+		case 2, 3, 4: //东
 			text.Draw(dst, g.JiangZhi, ft, pos[0], pos[1], colorWhite)
-			text.Draw(dst, g.Jiang12, ft, pos[0]-16, pos[1], colorWhite)
-			text.Draw(dst, g.JiangGan, ft, pos[0]-32, pos[1], colorWhite)
-		case 5, 6, 7:
+			text.Draw(dst, g.Jiang12, ft, pos[0]-16, pos[1], guiColor)
+			text.Draw(dst, g.JiangGan, ft, pos[0]-32, pos[1], dayGanColor)
+		case 5, 6, 7: //南
 			text.Draw(dst, g.JiangZhi, ft, pos[0], pos[1], colorWhite)
-			text.Draw(dst, g.Jiang12, ft, pos[0], pos[1]-16, colorWhite)
-			text.Draw(dst, g.JiangGan, ft, pos[0], pos[1]-32, colorWhite)
-		case 8, 9, 10:
+			text.Draw(dst, g.Jiang12, ft, pos[0], pos[1]-16, guiColor)
+			text.Draw(dst, g.JiangGan, ft, pos[0], pos[1]-32, dayGanColor)
+		case 8, 9, 10: //西
 			text.Draw(dst, g.JiangZhi, ft, pos[0], pos[1], colorWhite)
-			text.Draw(dst, g.Jiang12, ft, pos[0]+16, pos[1], colorWhite)
-			text.Draw(dst, g.JiangGan, ft, pos[0]+32, pos[1], colorWhite)
+			text.Draw(dst, g.Jiang12, ft, pos[0]+16, pos[1], guiColor)
+			text.Draw(dst, g.JiangGan, ft, pos[0]+32, pos[1], dayGanColor)
 		}
 
 	}

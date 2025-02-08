@@ -206,11 +206,12 @@ func (m *MeiHua) Draw(dst *ebiten.Image) {
 	ft14, _ := asset.GetDefaultFontFace(14)
 	text.Draw(dst, "梅花易数", ft14, m.X+16, m.Y+16, colorWhite)
 	cx, cy := m.X+26, m.Y+32
-	yz := ThisGame.qmGame.Lunar.GetYearZhiExact()
-	mz := ThisGame.qmGame.Lunar.GetMonthZhiExact()
-	dz := ThisGame.qmGame.Lunar.GetDayZhiExact()
-	tz := ThisGame.qmGame.Lunar.GetTimeZhi()
-	text.Draw(dst, fmt.Sprintf("%s年", yz), ft14, cx+184, cy-16, colorWhite)
+	l := ThisGame.qmGame.Lunar
+	//yz := l.GetYearZhiExact()
+	mz := l.GetMonthZhiExact()
+	dz := l.GetDayZhiExact()
+	tz := l.GetTimeZhi()
+	//text.Draw(dst, fmt.Sprintf("%s年", yz), ft14, cx+184, cy-16, colorWhite)
 	text.Draw(dst, fmt.Sprintf("%s月", mz), ft14, cx+184, cy, ColorGanZhi(mz))
 	text.Draw(dst, fmt.Sprintf("%s日", dz), ft14, cx+184, cy+16, ColorGanZhi(dz))
 	text.Draw(dst, fmt.Sprintf("%s时", tz), ft14, cx+184, cy+32, ColorGanZhi(tz))
