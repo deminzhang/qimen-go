@@ -2,7 +2,7 @@ package world
 
 import (
 	"github.com/6tail/lunar-go/LunarUtil"
-	"github.com/deminzhang/qimen-go/qimen"
+	"github.com/deminzhang/qimen-go/xuan"
 	"image/color"
 )
 
@@ -96,7 +96,7 @@ func GetHideGan(gan string, idx int) string {
 }
 
 func ColorGanZhi(gz string) color.RGBA {
-	wx := qimen.GanZhiWuXing[gz]
+	wx := xuan.GanZhiWuXing[gz]
 	return color5Xing[wx]
 }
 
@@ -108,5 +108,5 @@ func ColorNaYin(gz string) color.RGBA {
 
 func ShiShenShort(ganMaster, gan string) string {
 	sx := LunarUtil.SHI_SHEN[ganMaster+gan]
-	return qimen.ShiShenShort[sx]
+	return xuan.ShiShenShort[sx]
 }

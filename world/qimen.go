@@ -5,8 +5,8 @@ import (
 	"github.com/6tail/lunar-go/LunarUtil"
 	"github.com/6tail/lunar-go/calendar"
 	"github.com/deminzhang/qimen-go/graphic"
-	"github.com/deminzhang/qimen-go/qimen"
 	"github.com/deminzhang/qimen-go/util"
+	"github.com/deminzhang/qimen-go/xuan"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
@@ -77,7 +77,7 @@ type QMShow struct {
 func NewQiMenShow(centerX, centerY int) *QMShow {
 	bg := make(map[int]*ebiten.Image, 9)
 	for i := 1; i <= 9; i++ {
-		bg[i] = graphic.NewBaGuaImage(qimen.Diagrams9(i), _BaGuaSize)
+		bg[i] = graphic.NewBaGuaImage(xuan.Diagrams9(i), _BaGuaSize)
 	}
 
 	return &QMShow{
@@ -159,15 +159,15 @@ func (q *QMShow) Update() {
 	q.jq4Loc[3][0], q.jq4Loc[3][1] = int(x-6), int(y) //冬至
 	//星宿
 	for i := 0; i < 28; i++ {
-		xi := qimen.Xiu28[i]
-		degrees := degreesR + qimen.XiuAngle[xi]
+		xi := xuan.Xiu28[i]
+		degrees := degreesR + xuan.XiuAngle[xi]
 		ly1, lx1 := util.CalRadiansPos(cy, cx, _XiuR+_SkyCircleWidth/5, degrees)
 		ly2, lx2 := util.CalRadiansPos(cy, cx, _XiuR-_SkyCircleWidth/6, degrees)
-		degreesNext := qimen.XiuAngle[qimen.Xiu28[i+1]]
-		if qimen.XiuAngle[xi] > degreesNext {
+		degreesNext := xuan.XiuAngle[xuan.Xiu28[i+1]]
+		if xuan.XiuAngle[xi] > degreesNext {
 			degreesNext += 360
 		}
-		degreesMid := degrees + (degreesNext-qimen.XiuAngle[xi])/2
+		degreesMid := degrees + (degreesNext-xuan.XiuAngle[xi])/2
 		y, x = util.CalRadiansPos(cy, cx, _XiuR, degreesMid)
 		q.xiuLoc[i] = SegmentPos{lx1, ly1, lx2, ly2, int(x - 6), int(y + 4)}
 	}
@@ -314,8 +314,8 @@ func (q *QMShow) drawHead(dst *ebiten.Image) {
 
 	text.Draw(dst, fmt.Sprintf("月相 %s", lunar.GetYueXiang()), ft14, px, py+16*6, colorWhite)
 	text.Draw(dst, fmt.Sprintf("日值 %s%s%s", lunar.GetXiu(), lunar.GetZheng(), lunar.GetAnimal()), ft14, px, py+16*7, colorWhite)
-	text.Draw(dst, fmt.Sprintf("岁大将军 %s", qimen.BigJiang[lunar.GetYearZhiExact()]), ft14, px, py+16*8, colorWhite)
-	text.Draw(dst, fmt.Sprintf("月建大将军 %s", qimen.BigJiang[lunar.GetMonthZhiExact()]), ft14, px, py+16*9, colorWhite)
+	text.Draw(dst, fmt.Sprintf("岁大将军 %s", xuan.BigJiang[lunar.GetYearZhiExact()]), ft14, px, py+16*8, colorWhite)
+	text.Draw(dst, fmt.Sprintf("月建大将军 %s", xuan.BigJiang[lunar.GetMonthZhiExact()]), ft14, px, py+16*9, colorWhite)
 
 	text.Draw(dst, "符使马时", ft14, px, py+16*10, colorDuty)
 	text.Draw(dst, "击刑", ft14, px, py+16*11, colorJiXing)
@@ -357,7 +357,7 @@ func (q *QMShow) draw9Gong(dst *ebiten.Image) {
 		q.drawGong(dst, px, py, &g)
 	}
 }
-func (q *QMShow) drawGong(dst *ebiten.Image, x, y float32, g *qimen.QMPalace) {
+func (q *QMShow) drawGong(dst *ebiten.Image, x, y float32, g *xuan.QMPalace) {
 	vector.StrokeRect(dst, x, y, _Gong9Width-1, _Gong9Width-1, 1, color9Gong[g.Idx], true)
 	ft, _ := GetFontFace(14)
 	qm := ThisGame.qmGame
@@ -368,19 +368,19 @@ func (q *QMShow) drawGong(dst *ebiten.Image, x, y float32, g *qimen.QMPalace) {
 	}
 	var empty, horse = "  ", "  "
 	for _, z := range []rune(pp.KongWang) {
-		if qimen.ZhiGong9[string(z)] == g.Idx {
+		if xuan.ZhiGong9[string(z)] == g.Idx {
 			empty = "〇" //"空亡"
 		}
 	}
-	if qimen.ZhiGong9[pp.Horse] == g.Idx {
+	if xuan.ZhiGong9[pp.Horse] == g.Idx {
 		horse = "马"
 		//horse = "馬"
 	}
-	star := qimen.Star0 + g.Star
+	star := xuan.Star0 + g.Star
 	if g.Star == "" {
 		star = ""
 	}
-	door := g.Door + qimen.Door0
+	door := g.Door + xuan.Door0
 	if g.Door == "" {
 		door = ""
 	}
@@ -388,7 +388,7 @@ func (q *QMShow) drawGong(dst *ebiten.Image, x, y float32, g *qimen.QMPalace) {
 	y += 36                                                 //神盘
 	text.Draw(dst, empty, ft, int(x+8), int(y), colorWhite) //空亡
 	text.Draw(dst, g.God, ft, int(x+24), int(y),
-		util.If(g.God == qimen.QMGod8(1), colorDuty, colorWhite)) //神盘
+		util.If(g.God == xuan.QMGod8(1), colorDuty, colorWhite)) //神盘
 	text.Draw(dst, horse, ft, int(x+24+64)+rand.Intn(2), int(y)+rand.Intn(2), colorDuty) //驿马
 	if g.God == "值符" {
 		text.Draw(dst, pp.Xun, ft, int(x+24), int(y+16), util.If(pp.Gan == "甲", colorDuty, colorGray)) //遁甲,甲时显
@@ -406,8 +406,8 @@ func (q *QMShow) drawGong(dst *ebiten.Image, x, y float32, g *qimen.QMPalace) {
 	}
 	text.Draw(dst, hosting, ft, int(x+48), int(y), colorDuty) //寄禽
 	//text.Draw(dst, "", ft, int(x+8+32), int(y), colorGray)           //中寄
-	guestGanTomb := qimen.ZhiGong9[qimen.QMTomb[g.GuestGan]] == g.Idx
-	jiXing := g.God == "值符" && qimen.ZhiGong9[qimen.QM6YiJiXing[pp.Xun]] == g.Idx
+	guestGanTomb := xuan.ZhiGong9[xuan.QMTomb[g.GuestGan]] == g.Idx
+	jiXing := g.God == "值符" && xuan.ZhiGong9[xuan.QM6YiJiXing[pp.Xun]] == g.Idx
 	guestGanCC := colorWhite
 	if jiXing {
 		guestGanCC = colorJiXing
@@ -421,9 +421,9 @@ func (q *QMShow) drawGong(dst *ebiten.Image, x, y float32, g *qimen.QMPalace) {
 	if g.GuestGan == pp.Gan && pp == qm.TimePan {
 		vector.StrokeRect(dst, x+64+24, y-12, 16, 16, 1, colorDuty, true)
 	}
-	y += 32                                                                                            //地盘
-	text.Draw(dst, g.PathZhi, ft, int(x+8), int(y), colorGray)                                         //流支
-	doorPo := qimen.WuXingKe[qimen.DoorWuxing[g.Door]] == qimen.DiagramsWuxing[qimen.Diagrams9(g.Idx)] //门迫
+	y += 32                                                                                        //地盘
+	text.Draw(dst, g.PathZhi, ft, int(x+8), int(y), colorGray)                                     //流支
+	doorPo := xuan.WuXingKe[xuan.DoorWuxing[g.Door]] == xuan.DiagramsWuxing[xuan.Diagrams9(g.Idx)] //门迫
 	text.Draw(dst, door, ft, int(x+24), int(y), util.If(doorPo, colorMengPo,
 		util.If(g.Door == pp.DutyDoor, colorDuty, colorWhite))) //门
 	if g.Door == pp.DutyDoor {
@@ -432,7 +432,7 @@ func (q *QMShow) drawGong(dst *ebiten.Image, x, y float32, g *qimen.QMPalace) {
 		op.ColorScale.ScaleWithColor(colorDuty)
 		dst.DrawImage(q.DutyFlag, &op)
 	}
-	hostGanTomb := qimen.ZhiGong9[qimen.QMTomb[g.HostGan]] == g.Idx
+	hostGanTomb := xuan.ZhiGong9[xuan.QMTomb[g.HostGan]] == g.Idx
 	hostGanCC := colorWhite
 	if jiXing {
 		hostGanCC = colorJiXing
@@ -490,13 +490,13 @@ func (q *QMShow) draw12Gong(dst *ebiten.Image) {
 	for i := 0; i < 28; i++ {
 		loc := &q.xiuLoc[i]
 		vector.StrokeLine(dst, loc.Lx1, loc.Ly1, loc.Lx2, loc.Ly2, .5, colorWhite, true) //星宿
-		text.Draw(dst, qimen.Xiu28[i], ft, loc.X, loc.Y, colorLeader)                    //星宿
+		text.Draw(dst, xuan.Xiu28[i], ft, loc.X, loc.Y, colorLeader)                     //星宿
 	}
 	//画12星座
 	for i := 0; i < 12; i++ {
 		loc := q.cnstLoc[i]
 		vector.StrokeLine(dst, loc.Lx1, loc.Ly1, loc.Lx2, loc.Ly2, .5, colorWhite, true) //星座分隔线
-		text.Draw(dst, qimen.ConstellationShort[i], ft, loc.X, loc.Y, colorLeader)       //星座
+		text.Draw(dst, xuan.ConstellationShort[i], ft, loc.X, loc.Y, colorLeader)        //星座
 	}
 }
 func (q *QMShow) drawBig6(dst *ebiten.Image) {
@@ -524,7 +524,7 @@ func (q *QMShow) drawBig6(dst *ebiten.Image) {
 		jianColor := colorJian
 		if g.IsJian {
 			jianColor = colorLeader
-		} else if qimen.GroundGate4[g.Jian] {
+		} else if xuan.GroundGate4[g.Jian] {
 			jianColor = colorGate
 		}
 		pos := q.jianPos[i]
@@ -539,7 +539,7 @@ func (q *QMShow) drawBig6(dst *ebiten.Image) {
 		jiangColor := colorJiang
 		if g.IsJiang {
 			jiangColor = colorLeader
-		} else if qimen.SkyGate3[g.JiangName] {
+		} else if xuan.SkyGate3[g.JiangName] {
 			jiangColor = colorGate
 		}
 		pos = q.jiangPos[i]

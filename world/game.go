@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/6tail/lunar-go/calendar"
 	"github.com/deminzhang/qimen-go/gui"
-	"github.com/deminzhang/qimen-go/qimen"
 	"github.com/deminzhang/qimen-go/util"
+	"github.com/deminzhang/qimen-go/xuan"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"time"
@@ -24,7 +24,7 @@ type Game struct {
 	astrolabe *Astrolabe
 	qiMen     *QMShow
 	char8     *Char8Pan
-	qmGame    *qimen.QMGame
+	qmGame    *xuan.QMGame
 	meiHua    *MeiHua
 	big6      *Big6Show
 

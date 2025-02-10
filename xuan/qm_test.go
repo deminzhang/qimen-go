@@ -1,10 +1,10 @@
-package qimen_test
+package xuan_test
 
 import (
 	"fmt"
 	"github.com/6tail/lunar-go/LunarUtil"
 	"github.com/6tail/lunar-go/calendar"
-	"github.com/deminzhang/qimen-go/qimen"
+	"github.com/deminzhang/qimen-go/xuan"
 	"testing"
 	"time"
 )
@@ -12,12 +12,12 @@ import (
 func TestQimen(t *testing.T) {
 	tm := time.Now()
 	solar := calendar.NewSolar(tm.Year(), int(tm.Month()), tm.Day(), tm.Hour(), tm.Minute(), 0)
-	pan := qimen.NewQMGame(solar,
-		qimen.QMParams{
-			Type:        qimen.QMTypeAmaze,
-			HostingType: qimen.QMHostingType28,
-			FlyType:     qimen.QMFlyTypeAllOrder,
-			JuType:      qimen.QMJuTypeSplit,
+	pan := xuan.NewQMGame(solar,
+		xuan.QMParams{
+			Type:        xuan.QMTypeAmaze,
+			HostingType: xuan.QMHostingType28,
+			FlyType:     xuan.QMFlyTypeAllOrder,
+			JuType:      xuan.QMJuTypeSplit,
 			HideGanType: 0,
 		})
 	//九宫文本
@@ -30,7 +30,7 @@ func TestQimen(t *testing.T) {
 		fmt.Printf("\n      %s\n\n%s    %s%s%s\n\n%s    %s    %s\n\n      %s%s",
 			g.God,
 			g.PathGan, g.Star, hosting, g.GuestGan,
-			g.PathZhi, g.Door, g.HostGan, qimen.Diagrams9(i),
+			g.PathZhi, g.Door, g.HostGan, xuan.Diagrams9(i),
 			LunarUtil.NUMBER[i])
 	}
 	fmt.Println("---")

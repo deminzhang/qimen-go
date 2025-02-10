@@ -7,6 +7,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"image/color"
+	"math"
 )
 
 func NewRectImage(size int) *ebiten.Image {
@@ -204,6 +205,7 @@ func NewTextImage(txt string, size int) *ebiten.Image {
 	return img
 }
 
+// 营帐
 func NewCampImage(size int) *ebiten.Image {
 	img := ebiten.NewImage(size, size)
 	c := color.White
@@ -225,6 +227,7 @@ func NewCampImage(size int) *ebiten.Image {
 	return img
 }
 
+// 兵
 func NewArmyImage(name string, size, action int) *ebiten.Image {
 	img := ebiten.NewImage(size, size)
 	ft, _ := asset.GetDefaultFontFace(float64(size))
@@ -237,3 +240,59 @@ func NewArmyImage(name string, size, action int) *ebiten.Image {
 	}
 	return img
 }
+
+// 心形
+func NewHeartImage(size int) *ebiten.Image {
+	img := ebiten.NewImage(size, size)
+	//用心形函数绘制心形
+	matrix := make([][]bool, size)
+	for i := range matrix {
+		matrix[i] = make([]bool, size)
+	}
+	minX, minY, maxX, maxY := size, size, 0, 0
+	for t := 0.0; t < 2*math.Pi; t += 0.01 {
+		x := 16 * math.Pow(math.Sin(t), 3)
+		y := 13*math.Cos(t) - 5*math.Cos(2*t) - 2*math.Cos(3*t) - math.Cos(4*t)
+		xPos := int((x + 20) / 40 * float64(size))
+		yPos := int((y + 20) / 40 * float64(size))
+		if xPos >= 0 && xPos < size && yPos >= 0 && yPos < size {
+			matrix[xPos][yPos] = true
+			if xPos < minX {
+				minX = xPos
+			}
+			if yPos < minY {
+				minY = yPos
+			}
+			if xPos > maxX {
+				maxX = xPos
+			}
+			if yPos > maxY {
+				maxY = yPos
+			}
+		}
+	}
+	// 填充内部
+	for i := minX; i <= maxX; i++ {
+		left, right := -1, -1
+		for j := minY; j <= maxY; j++ {
+			if matrix[i][j] {
+				if left == -1 {
+					left = j
+				}
+				right = j
+			}
+		}
+		if left != -1 && right != -1 {
+			for k := left; k <= right; k++ {
+				img.Set(i, size-k, color.White)
+			}
+		}
+	}
+	return img
+}
+
+// TODO
+// 四角星
+// 五角星
+// 圆孤
+// 扇形

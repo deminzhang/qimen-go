@@ -6,8 +6,8 @@ import (
 	"github.com/deminzhang/qimen-go/asset"
 	"github.com/deminzhang/qimen-go/graphic"
 	"github.com/deminzhang/qimen-go/gui"
-	"github.com/deminzhang/qimen-go/qimen"
 	"github.com/deminzhang/qimen-go/util"
+	"github.com/deminzhang/qimen-go/xuan"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"strconv"
@@ -65,7 +65,7 @@ func (m *Big6Show) Reset(zhi string) {
 	b6 := ThisGame.qmGame.Big6
 	b6.Reset(zhi)
 	if !m.InputGuaNum.Focused() {
-		m.InputGuaNum.SetText(fmt.Sprintf("%d", qimen.ZhiIdx[b6.TimeZhi]))
+		m.InputGuaNum.SetText(fmt.Sprintf("%d", xuan.ZhiIdx[b6.TimeZhi]))
 	}
 }
 
@@ -104,33 +104,33 @@ func (m *Big6Show) Draw(dst *ebiten.Image) {
 	text.Draw(dst, ke[3].God, ft14, cx, cy, util.If(ke[3].God == "贵", colorRed, colorGray))
 	text.Draw(dst, ke[3].Up, ft14, cx, cy+16, colorWhite)
 	text.Draw(dst, ke[3].Down, ft14, cx, cy+32, colorWhite)
-	if qimen.WuXingKe[qimen.GanZhiWuXing[ke[3].Down]] == qimen.GanZhiWuXing[ke[3].Up] {
+	if xuan.WuXingKe[xuan.GanZhiWuXing[ke[3].Down]] == xuan.GanZhiWuXing[ke[3].Up] {
 		text.Draw(dst, "↑", ft14, cx+6, cy+24, colorRed)
-	} else if qimen.WuXingKe[qimen.GanZhiWuXing[ke[3].Up]] == qimen.GanZhiWuXing[ke[3].Down] {
+	} else if xuan.WuXingKe[xuan.GanZhiWuXing[ke[3].Up]] == xuan.GanZhiWuXing[ke[3].Down] {
 		text.Draw(dst, "↓", ft14, cx+6, cy+24, colorRed)
 	}
 	text.Draw(dst, ke[2].God, ft14, cx+16, cy, util.If(ke[2].God == "贵", colorRed, colorGray))
 	text.Draw(dst, ke[2].Up, ft14, cx+16, cy+16, colorWhite)
 	text.Draw(dst, ke[2].Down, ft14, cx+16, cy+32, ColorGanZhi(b6.DayZhi))
-	if qimen.WuXingKe[qimen.GanZhiWuXing[ke[2].Down]] == qimen.GanZhiWuXing[ke[2].Up] {
+	if xuan.WuXingKe[xuan.GanZhiWuXing[ke[2].Down]] == xuan.GanZhiWuXing[ke[2].Up] {
 		text.Draw(dst, "↑", ft14, cx+16+6, cy+24, colorRed)
-	} else if qimen.WuXingKe[qimen.GanZhiWuXing[ke[2].Up]] == qimen.GanZhiWuXing[ke[2].Down] {
+	} else if xuan.WuXingKe[xuan.GanZhiWuXing[ke[2].Up]] == xuan.GanZhiWuXing[ke[2].Down] {
 		text.Draw(dst, "↓", ft14, cx+16+6, cy+24, colorRed)
 	}
 	text.Draw(dst, ke[1].God, ft14, cx+32, cy, util.If(ke[1].God == "贵", colorRed, colorGray))
 	text.Draw(dst, ke[1].Up, ft14, cx+32, cy+16, colorWhite)
 	text.Draw(dst, ke[1].Down, ft14, cx+32, cy+32, colorWhite)
-	if qimen.WuXingKe[qimen.GanZhiWuXing[ke[1].Down]] == qimen.GanZhiWuXing[ke[1].Up] {
+	if xuan.WuXingKe[xuan.GanZhiWuXing[ke[1].Down]] == xuan.GanZhiWuXing[ke[1].Up] {
 		text.Draw(dst, "↑", ft14, cx+32+6, cy+24, colorRed)
-	} else if qimen.WuXingKe[qimen.GanZhiWuXing[ke[1].Up]] == qimen.GanZhiWuXing[ke[1].Down] {
+	} else if xuan.WuXingKe[xuan.GanZhiWuXing[ke[1].Up]] == xuan.GanZhiWuXing[ke[1].Down] {
 		text.Draw(dst, "↓", ft14, cx+32+6, cy+24, colorRed)
 	}
 	text.Draw(dst, ke[0].God, ft14, cx+48, cy, util.If(ke[0].God == "贵", colorRed, colorGray))
 	text.Draw(dst, ke[0].Up, ft14, cx+48, cy+16, colorWhite)
 	text.Draw(dst, ke[0].Down, ft14, cx+48, cy+32, ColorGanZhi(b6.DayGan))
-	if qimen.WuXingKe[qimen.GanZhiWuXing[ke[0].Down]] == qimen.GanZhiWuXing[ke[0].Up] {
+	if xuan.WuXingKe[xuan.GanZhiWuXing[ke[0].Down]] == xuan.GanZhiWuXing[ke[0].Up] {
 		text.Draw(dst, "↑", ft14, cx+48+6, cy+24, colorRed)
-	} else if qimen.WuXingKe[qimen.GanZhiWuXing[ke[0].Up]] == qimen.GanZhiWuXing[ke[0].Down] {
+	} else if xuan.WuXingKe[xuan.GanZhiWuXing[ke[0].Up]] == xuan.GanZhiWuXing[ke[0].Down] {
 		text.Draw(dst, "↓", ft14, cx+48+6, cy+24, colorRed)
 	}
 	chuan := b6.Chuan

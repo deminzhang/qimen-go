@@ -5,8 +5,8 @@ import (
 	"github.com/6tail/lunar-go/calendar"
 	"github.com/deminzhang/qimen-go/graphic"
 	"github.com/deminzhang/qimen-go/gui"
-	"github.com/deminzhang/qimen-go/qimen"
 	"github.com/deminzhang/qimen-go/util"
+	"github.com/deminzhang/qimen-go/xuan"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
@@ -288,12 +288,12 @@ func (g *Char8Pan) Update() {
 	}
 	if change {
 		if p.FYun != nil {
-			sss := qimen.CalcShenSha(p.Birth.GetEightChar(), p.FYun.GetGanZhi(),
+			sss := xuan.CalcShenSha(p.Birth.GetEightChar(), p.FYun.GetGanZhi(),
 				cal.GetYearInGanZhiExact(), cal.GetMonthInGanZhiExact(), cal.GetDayInGanZhiExact(), cal.GetTimeInGanZhi())
 			p.ShenShaY, p.ShenShaM, p.ShenShaD, p.ShenShaT = sss[0], sss[1], sss[2], sss[3]
 			p.ShenShaYY, p.ShenShaFY, p.ShenShaFM, p.ShenShaFD, p.ShenShaFT = sss[4], sss[5], sss[6], sss[7], sss[8]
 		} else {
-			sss := qimen.CalcShenSha(p.Birth.GetEightChar(),
+			sss := xuan.CalcShenSha(p.Birth.GetEightChar(),
 				cal.GetYearInGanZhiExact(), cal.GetMonthInGanZhiExact(), cal.GetDayInGanZhiExact(), cal.GetTimeInGanZhi())
 			p.ShenShaY, p.ShenShaM, p.ShenShaD, p.ShenShaT = sss[0], sss[1], sss[2], sss[3]
 			p.ShenShaFY, p.ShenShaFM, p.ShenShaFD, p.ShenShaFT = sss[4], sss[5], sss[6], sss[7]
@@ -779,7 +779,7 @@ func (p *Player) Reset(lunar *calendar.Lunar, gender int) {
 	p.Month = NewCharBody(bz.GetMonthGan(), zhiM, HpGanMonth, HpZhiMonth, false)
 	p.Day = NewCharBody(bz.GetDayGan(), zhiD, HpGanDay, HpZhiDay, false)
 	p.Time = NewCharBody(bz.GetTimeGan(), zhiT, HpGanTime, HpZhiTime, false)
-	sss := qimen.CalcShenSha(bz)
+	sss := xuan.CalcShenSha(bz)
 	p.ShenShaY, p.ShenShaM, p.ShenShaD, p.ShenShaT = sss[0], sss[1], sss[2], sss[3]
 
 	yun := bz.GetYun(p.Gender)

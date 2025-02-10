@@ -2,7 +2,7 @@ package world
 
 import (
 	"github.com/deminzhang/qimen-go/graphic"
-	"github.com/deminzhang/qimen-go/qimen"
+	"github.com/deminzhang/qimen-go/xuan"
 	"github.com/hajimehoshi/ebiten/v2"
 	"image/color"
 	"time"
@@ -57,6 +57,7 @@ func NewArmy(x, y float32, size int, name string, camp int) *Unit {
 	u.Sprite = sprite
 	return u
 }
+
 func NewCamp(x, y float32, size int, name string, camp int) *Unit {
 	u := NewUnit(x, y, "camp", name, camp)
 	sprite := NewSprite(graphic.NewCampImage(size), CampColor[camp])
@@ -140,7 +141,7 @@ func (b *Battle) InitBattle(q *QMShow) {
 		b.AddGuestUnit(u)
 		y, x = q.GetOutCampBornPos(i)
 		u = NewArmy(x, y, 32, "兵", 1)
-		ti := qimen.ZhiGong2Gong8[i]
+		ti := xuan.ZhiGong2Gong8[i]
 		x, y = q.GetInArmyPos(ti)
 		u.Tx, u.Ty = x, y
 		b.AddGuestUnit(u)

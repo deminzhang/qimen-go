@@ -1,4 +1,4 @@
-package qimen
+package xuan
 
 // 年月日家奇门,日家2
 //http://www.360doc.com/content/10/0524/00/1471833_29180548.shtml

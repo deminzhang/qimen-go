@@ -1,4 +1,4 @@
-package qimen
+package xuan
 
 import (
 	"github.com/6tail/lunar-go/calendar"

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/6tail/lunar-go/calendar"
 	"github.com/deminzhang/qimen-go/graphic"
-	"github.com/deminzhang/qimen-go/qimen"
 	"github.com/deminzhang/qimen-go/util"
+	"github.com/deminzhang/qimen-go/xuan"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
@@ -345,8 +345,8 @@ func (a *Astrolabe) calGongLocation() {
 		a.ConstellationLoc[i-1] = SegmentPos{lx1, ly1, lx2, ly2, int(x), int(y)}
 	}
 	for i := 1; i <= 28; i++ {
-		xiu := qimen.Xiu28[i]
-		degrees := a.tzRA0 + qimen.XiuAngle[xiu]
+		xiu := xuan.Xiu28[i]
+		degrees := a.tzRA0 + xuan.XiuAngle[xiu]
 		r := float64(outCircleR0 - outCircleW)
 		ly1, lx1 := util.CalRadiansPos(cy, cx, float32(r-outCircleW/2), degrees)
 		ly2, lx2 := util.CalRadiansPos(cy, cx, float32(r+outCircleW/2), degrees)
@@ -386,21 +386,21 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 		l := a.ConstellationLoc[i]
 		vector.StrokeLine(dst, l.Lx1, l.Ly1, l.Lx2, l.Ly2, 1, colorGongSplit, true) //星宫
 		//text.Draw(dst, qimen.ConstellationSymbol[i], ft, l.X-6, l.Y+6, colorJiang)  //星座符号 需要字体支持
-		text.Draw(dst, qimen.ConstellationShort[i], ft, l.X-6, l.Y+6, colorJiang) //星座
+		text.Draw(dst, xuan.ConstellationShort[i], ft, l.X-6, l.Y+6, colorJiang) //星座
 		l = a.AstrolabeLoc[i]
 		vector.StrokeLine(dst, l.Lx1, l.Ly1, l.Lx2, l.Ly2, 1, colorGongSplit, true) //宫
 		//text.Draw(dst, fmt.Sprintf("%d", i+1), ft, l.X-4, l.Y+4, colorJiang)        //宫位
 		degrees := float64(i+1)*30 - 90
 		r := float64(outCircleR0 - outCircleW*2)
 		//gongName := qimen.AstrolabeGong[i] //宫名
-		gongName := qimen.AstrolabeGong74[i] //政余名
+		gongName := xuan.AstrolabeGong74[i] //政余名
 		DrawRotateText(dst, float64(cx-4), float64(cy+4), r, degrees-10, gongName, 12, colorJiang)
 	}
 	//画28星宿
 	for i := 1; i <= 28; i++ {
 		l := a.XiuLoc[i-1]
 		vector.StrokeLine(dst, l.Lx1, l.Ly1, l.Lx2, l.Ly2, 1, colorGongSplit, true) //星宿
-		text.Draw(dst, qimen.Xiu28[i], ft, l.X-4, l.Y+4, colorJiang)                //星宿
+		text.Draw(dst, xuan.Xiu28[i], ft, l.X-4, l.Y+4, colorJiang)                 //星宿
 	}
 	//画星体
 	for _, id := range Draws {
