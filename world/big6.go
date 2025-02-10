@@ -57,9 +57,7 @@ func NewBig6(x, y int) *Big6Show {
 	iptNumber.SetOnLostFocus(doSet)
 	iptNumber.SetOnPressEnter(doSet)
 	m.InputGuaNum = iptNumber
-	if Dev {
-		m.UI.AddChildren(cbTimeStart, iptNumber) //TODO
-	}
+	m.UI.AddChildren(cbTimeStart, iptNumber) //TODO
 	gui.ActiveUI(m.UI)
 	return m
 }

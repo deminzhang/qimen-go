@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/atotto/clipboard"
 	"github.com/deminzhang/qimen-go/gui"
+	"strings"
 )
 
 type UIChat struct {
@@ -84,6 +85,7 @@ func NewUIChat() *UIChat {
 			if checkBoxGM.Checked() { //调试命令
 				textBoxLog.AppendLine("cmd: " + i.Text())
 				//sendGMCmd(i.Text())
+				parseCmd(i.Text())
 			} else { //聊天
 				textBoxLog.AppendLine("me:" + i.Text())
 				//sendChat(World.self, i.Text)
@@ -134,4 +136,20 @@ func (p *UIChat) ChatLog(msg string, a ...any) {
 		msg = fmt.Sprintf(msg, a...)
 	}
 	p.textBoxLog.AppendLine(msg)
+}
+
+func parseCmd(str string) {
+	arr := strings.Split(str, " ")
+	var args []string
+	for _, ss := range arr {
+		if len(strings.TrimSpace(ss)) > 0 {
+			args = append(args, strings.TrimSpace(ss))
+		}
+	}
+	switch strings.ToLower(args[0]) {
+	case strings.ToLower("showBattle"):
+		ThisGame.showBattle = true
+	case strings.ToLower("hideBattle"):
+		ThisGame.showBattle = false
+	}
 }

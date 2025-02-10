@@ -79,7 +79,9 @@ func (s *Sprite) onMoveTo(sx, sy, dx, dy int) {
 func (s *Sprite) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(float64(s.x), float64(s.y))
-	op.ColorScale.ScaleWithColor(s.colorScale)
+	if s.colorScale != nil {
+		op.ColorScale.ScaleWithColor(s.colorScale)
+	}
 	if s.dragged {
 		op.ColorScale.ScaleAlpha(0.5)
 	}

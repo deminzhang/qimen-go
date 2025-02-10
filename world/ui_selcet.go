@@ -48,8 +48,9 @@ func NewUISelect(solar *calendar.Solar, gender int, onOK func(*calendar.Solar, i
 	inputSMin := gui.NewInputBox(px0+70+52*3, py0, 48, h)
 	btnNow := gui.NewButton(px0+70*4, py0, 64, h, "此时")
 	py0 += 32
-	opMale := gui.NewOptionBox(px0+70+52*2, py0+8, "男")
-	opFemale := gui.NewOptionBox(px0+70+52*3, py0+8, "女")
+	opMale := gui.NewOptionBox(px0+70+52, py0+8, "男")
+	opFemale := gui.NewOptionBox(px0+70+52*2, py0+8, "女")
+	//cbSaveDefault := gui.NewCheckBox(px0+70+52*3, py0+8, "存为默认")
 	btnOK := gui.NewButton(px0+70*4, py0, 64, h, "确定")
 
 	p.AddChildren(panelBG)
@@ -71,7 +72,7 @@ func NewUISelect(solar *calendar.Solar, gender int, onOK func(*calendar.Solar, i
 		inputSMin.SetText(solar.GetMinute())
 	}
 	panelBG.AddChildren(inputSYear, inputSMonth, inputSDay, inputSHour, inputSMin,
-		btnX, btnOK, btnNow, opMale, opFemale)
+		btnX, btnOK, btnNow, opMale, opFemale) //, cbSaveDefault)
 	gui.MakeOptionBoxGroup(opMale, opFemale)
 	if gender == GenderFemale {
 		opFemale.Select()
@@ -99,6 +100,11 @@ func NewUISelect(solar *calendar.Solar, gender int, onOK func(*calendar.Solar, i
 		if opMale.Selected() {
 			g = GenderMale
 		}
+		//if cbSaveDefault.Checked() {
+		//	//saveDefault
+		//} else {
+		//	//clearDefault
+		//}
 		onOK(s, g)
 		gui.CloseUI(p)
 	})

@@ -75,7 +75,7 @@ var XiuAngle = map[string]float32{
 const (
 	MercuryPeriod = 87.97 * 24 * 60
 	VenusPeriod   = 224.7 * 24 * 60
-	EarthPeriod   = 365.25 * 24 * 60
+	EarthPeriod   = 365.2422 * 24 * 60
 	MarsPeriod    = 686.98 * 24 * 60
 	JupiterPeriod = 11.86 * EarthPeriod
 	SaturnPeriod  = 29.46 * EarthPeriod

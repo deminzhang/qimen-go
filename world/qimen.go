@@ -34,11 +34,11 @@ var (
 		{2, 1}, {0, 2}, {1, 0},
 	}
 	gong12Offset = [][]float32{
-		{0, 1.6}, {-1, 1.6}, //子,丑
-		{-1.6, 1}, {-1.6, 0}, {-1.6, -1}, //寅,卯,辰
-		{-1, -1.55}, {0, -1.55}, {1, -1.55}, //巳,午,未
-		{1.6, -1}, {1.6, 0}, {1.6, 1}, //申,酉,戌
-		{1, 1.6}, {0, 1.6}, //亥,子
+		{0, 1.6}, {-.8, 1.6}, //子,丑
+		{-1.6, .8}, {-1.6, 0}, {-1.6, -.8}, //寅,卯,辰
+		{-.8, -1.55}, {0, -1.55}, {.8, -1.55}, //巳,午,未
+		{1.6, -.8}, {1.6, 0}, {1.6, .8}, //申,酉,戌
+		{.8, 1.6}, {0, 1.6}, //亥,子
 	}
 )
 
@@ -52,10 +52,6 @@ type QMShow struct {
 	Sun      *Sprite
 	Moon     *Sprite
 	BaGua    map[int]*ebiten.Image
-	CampM    *ebiten.Image
-	Camp     *ebiten.Image
-	Army     *ebiten.Image
-	ArmyA    *ebiten.Image
 	DutyFlag *ebiten.Image
 
 	Battle *Battle
@@ -88,10 +84,6 @@ func NewQiMenShow(centerX, centerY int) *QMShow {
 		X: float32(centerX), Y: float32(centerY),
 		TaiJi:    graphic.NewTaiJiImage(_TaiJiSize),
 		BaGua:    bg,
-		CampM:    graphic.NewCampImage(64),
-		Camp:     graphic.NewCampImage(32),
-		Army:     graphic.NewArmyImage("庚", 32, 0),
-		ArmyA:    graphic.NewArmyImage("兵", 32, 1),
 		DutyFlag: graphic.NewFlagImage(16),
 		Battle:   NewBattle(),
 		dirty:    true,
@@ -260,8 +252,9 @@ func (q *QMShow) Draw(dst *ebiten.Image) {
 		q.drawBig6(dst)
 	}
 
+	//if ThisGame.showBattle && Dev {
 	if Dev {
-		//q.drawBattle(dst)
+		q.drawBattle(dst)
 	}
 }
 func (q *QMShow) drawHead(dst *ebiten.Image) {
@@ -594,65 +587,20 @@ func (q *QMShow) drawBig6(dst *ebiten.Image) {
 }
 
 func (q *QMShow) drawBattle(dst *ebiten.Image) {
-	//qm := ThisGame.qmGame
-	//pp := qm.ShowPan
-	op := ebiten.DrawImageOptions{}
-	var y, x float32
-	//画九宫
-	for i := 1; i <= 9; i++ {
-		x, y = q.GetInCampPos(i)
-		op.GeoM.Reset()
-		op.ColorScale.Reset()
-		if i == 5 {
-			op.GeoM.Translate(float64(x), float64(y))
-			op.ColorScale.ScaleWithColor(colorLeader)
-			dst.DrawImage(q.CampM, &op)
-		} else {
-			op.GeoM.Translate(float64(x), float64(y))
-			op.ColorScale.ScaleWithColor(colorGreen)
-			dst.DrawImage(q.Camp, &op)
-
-			x, y = q.GetInBornPos(i)
-			op.GeoM.Reset()
-			op.ColorScale.Reset()
-			op.GeoM.Translate(float64(x), float64(y))
-			op.ColorScale.ScaleWithColor(colorGreen)
-			dst.DrawImage(q.ArmyA, &op)
-
-			x, y = q.GetInArmyPos(i)
-			op.GeoM.Reset()
-			op.ColorScale.Reset()
-			op.GeoM.Translate(float64(x), float64(y))
-			op.ColorScale.ScaleWithColor(colorWhite)
-			dst.DrawImage(q.ArmyA, &op)
-		}
+	b := q.Battle
+	if b == nil {
+		return
 	}
-
-	for i := 1; i <= 12; i++ {
-		y, x = q.GetOutCampPos(i)
-		op.GeoM.Reset()
-		op.ColorScale.Reset()
-		op.GeoM.Translate(float64(x-16), float64(y-16))
-		op.ColorScale.ScaleWithColor(colorWhite)
-		dst.DrawImage(q.Camp, &op)
-
-		//op.GeoM.Reset()
-		//op.ColorScale.Reset()
-		//y, x = q.GetOutCampBornPos(i)
-		//op = ebiten.DrawImageOptions{}
-		//op.GeoM.Translate(float64(x-16), float64(y-16))
-		//op.ColorScale.ScaleWithColor(colorWhite)
-		//dst.DrawImage(q.Army, &op)
-	}
+	b.Draw(dst, q)
 }
 
 func (q *QMShow) GetInCampPos(i int) (float32, float32) {
 	offX, offZ := gong9Offset[i][0]*_Gong9Width-_Gong9Width/2, gong9Offset[i][1]*_Gong9Width-_Gong9Width/2
 	px, py := q.X+float32(offX)-32-8, q.Y+float32(offZ)-32
 	if i == 5 {
-		return q.X - 32, q.Y - 32
+		return q.X, q.Y + 16
 	}
-	return px - 32, py
+	return px - 16, py + 16
 }
 
 func (q *QMShow) GetInBornPos(i int) (float32, float32) {
@@ -661,16 +609,16 @@ func (q *QMShow) GetInBornPos(i int) (float32, float32) {
 	if i == 5 {
 		return q.X, q.Y
 	}
-	return px - 32, py - 32
+	return px - 16, py - 8
 }
 
 func (q *QMShow) GetInArmyPos(i int) (float32, float32) {
 	offX, offZ := gong9Offset[i][0]*_Gong9Width-_Gong9Width/2, gong9Offset[i][1]*_Gong9Width-_Gong9Width/2
 	px, py := q.X+float32(offX)-32-8, q.Y+float32(offZ)-32
 	if i == 5 {
-		return q.X - 32, q.Y - 32
+		return q.X - 16, q.Y - 16
 	}
-	return px - 32, py - 64
+	return px - 16, py - 32 - 8
 }
 
 func (q *QMShow) GetOutCampPos(i int) (float32, float32) {

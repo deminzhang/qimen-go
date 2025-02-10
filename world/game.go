@@ -34,6 +34,7 @@ type Game struct {
 	showBig6      bool
 	showChar8     bool
 	showAstrolabe bool
+	showBattle    bool
 
 	StrokeManager
 }

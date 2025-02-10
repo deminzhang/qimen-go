@@ -249,6 +249,9 @@ func NewBig6Ren(l *calendar.Lunar) *Big6Ren {
 }
 
 func (p *Big6Ren) Reset(shiZhi string) {
+	if p.TimeZhi == shiZhi {
+		return
+	}
 	p.TimeZhi = shiZhi
 	shiZhiIdx := ZhiIdx[shiZhi]
 	jiangIdx := ZhiIdx[p.MonthLeader]
@@ -510,7 +513,7 @@ func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 			}
 			if len(xiaKeBi) == 1 {
 				chuan[0] = xiaKeBi[0].Up
-				kts = append(kts, "比用", "知一")
+				kts = append(kts, "知一")
 				//return p.chuanNormal(xiaKeBi[0].Up), kts
 			}
 			if len(xiaKeBi) == 0 {
@@ -523,7 +526,7 @@ func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 				}
 				if len(shangKeBi) == 1 {
 					chuan[0] = shangKeBi[0].Up
-					kts = append(kts, "比用")
+					kts = append(kts, "知一")
 					//return p.chuanNormal(shangKeBi[0].Up), kts
 				}
 			}
@@ -577,7 +580,7 @@ func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 									hits[up]++
 								}
 							}
-							if j == upHomeIdx {
+							if gIdx == upHomeIdx {
 								break
 							}
 						}
@@ -604,7 +607,7 @@ func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 										hits[up]++
 									}
 								}
-								if j == upHomeIdx {
+								if gIdx == upHomeIdx {
 									break
 								}
 							}
