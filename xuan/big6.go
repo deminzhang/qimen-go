@@ -93,8 +93,6 @@ var (
 		"解离": "解离", // 条件：无淫课中，遇夫妻行年及行年上神均既冲且克者。
 		"孤寡": "革",  // 条件：1以旬空论，阳空为孤，阴空为寡。
 		"度厄": "剥",  // 条件：凡三上克下、为幼度厄；三下贼上、为长度厄。
-		"绝嗣": "",   // 条件：四下俱克上，为无禄课。
-		"无禄": "",   // 条件：四上俱克下，为绝嗣课。
 		"迍福": "屯",  // 条件：凡八迍课得五福，为迍福课。
 		"侵害": "损",  // 条件：日辰上各加害神发用，为侵害课。
 		"刑伤": "讼",  // 条件：1发用刑干；2发用刑支；3发用刑行年。
@@ -116,6 +114,8 @@ var (
 		"玄胎": "家人", // 条件：凡课孟神发用，传皆四孟。
 		"连珠": "复",  // 含义： 凶者重重，吉亦累累。孕必连胎，事当续举。
 		"六纯": "无妄", // 含义：六纯十杂兼物类，三传之说最纷纭。
+		"绝嗣": "",   // 条件：四下俱克上，为无禄课。
+		"无禄": "",   // 条件：四上俱克下，为绝嗣课。
 		//未提:
 		//巽
 		//否
@@ -440,6 +440,32 @@ func (p *Big6Ren) chuanOverlap(hasKe bool, chuan0 string) (chuan [3]string, kts 
 	}
 }
 
+// 7.八专法 两课无克号八专，阳日顺行三位取初传，阴日逆行三位取初传，中末总向日上眠。
+func (p *Big6Ren) chuan8Zhuan() (chuan [3]string, kts []string) {
+	gs := &p.Gong
+	ke4 := p.Ke4
+	dayGan := p.DayGan
+	yangDay := YinYang[dayGan] == "阳" //阳日
+	if yangDay {                      //阳日：日干上神在天盘顺数三位为初传，中传末传为干上神。
+		k1h := Big6RenGanHide[dayGan]
+		zhiIdx := (ZhiIdx[k1h] + 2) % 12
+		if zhiIdx == 0 {
+			zhiIdx = 12
+		}
+		chuan[0] = gs[zhiIdx-1].JiangZhi
+	} else { // 阴日：第四课的上神在天盘逆数三位为初传，中传末传为干上神。
+		zhiIdx := (ZhiIdx[ke4[3].Up] - 2 + 12) % 12
+		if zhiIdx == 0 {
+			zhiIdx = 12
+		}
+		chuan[0] = gs[zhiIdx-1].JiangZhi
+	}
+	chuan[1] = ke4[0].Up
+	chuan[2] = ke4[0].Up
+	kts = append(kts, "八专")
+	return
+}
+
 func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 	ke4 := p.Ke4
 	dayGan := p.DayGan
@@ -676,26 +702,8 @@ func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 		}
 		//注：还有一种直接用孟仲法来取三传，就是不管受克深浅，直接按照如上方式去排三传，两种方式各有优缺，各位壬友请自行比较！
 	}
-	//7.八专法 两课无克号八专，阳日顺行三位取初传，阴日逆行三位取初传，中末总向日上眠。
 	if keRealCnt == 2 {
-		if yangDay { //阳日：日干上神在天盘顺数三位为初传，中传末传为干上神。
-			k1h := Big6RenGanHide[dayGan]
-			zhiIdx := (ZhiIdx[k1h] + 2) % 12
-			if zhiIdx == 0 {
-				zhiIdx = 12
-			}
-			chuan[0] = gs[zhiIdx-1].JiangZhi
-		} else { // 阴日：第四课的上神在天盘逆数三位为初传，中传末传为干上神。
-			zhiIdx := (ZhiIdx[ke4[3].Up] - 2 + 12) % 12
-			if zhiIdx == 0 {
-				zhiIdx = 12
-			}
-			chuan[0] = gs[zhiIdx-1].JiangZhi
-		}
-		chuan[1] = ke4[0].Up
-		chuan[2] = ke4[0].Up
-		kts = append(kts, "八专")
-		return
+		return p.chuan8Zhuan()
 	}
 	//4.遥克法
 	//四课无克号为遥，日与神兮递互招。先取神遥克其日，如无方取日来遥。或有日克乎两神，复有两神来克日，择与日干比者用，阳日用阳阴用阴。

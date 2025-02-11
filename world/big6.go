@@ -88,7 +88,7 @@ func (m *Big6Show) Update() {
 			m.Y += dy
 			m.UI.X, m.UI.Y = m.X, m.Y
 		}
-		ThisGame.AddSprite(m.Mover)
+		ThisGame.StrokeManager.AddSprite(m.Mover)
 		m.Mover.MoveTo(m.X, m.Y)
 	}
 

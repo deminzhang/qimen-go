@@ -83,10 +83,6 @@ type Battle struct {
 	lastUpdateTime int64
 	HostUnit       []*Unit
 	GuestUnit      []*Unit
-	CampM          *ebiten.Image
-	Camp           *ebiten.Image
-	Army           *ebiten.Image
-	ArmyA          *ebiten.Image
 	inited         bool
 }
 
@@ -94,10 +90,6 @@ func NewBattle() *Battle {
 	return &Battle{
 		HostUnit:  []*Unit{},
 		GuestUnit: []*Unit{},
-		CampM:     graphic.NewCampImage(64),
-		Camp:      graphic.NewCampImage(32),
-		Army:      graphic.NewArmyImage("庚", 32, 0),
-		ArmyA:     graphic.NewArmyImage("兵", 32, 1),
 	}
 }
 
@@ -168,7 +160,7 @@ func (b *Battle) Update() {
 	}
 }
 
-func (b *Battle) Draw(dst *ebiten.Image, q *QMShow) {
+func (b *Battle) Draw(dst *ebiten.Image) {
 	for _, u := range b.HostUnit {
 		u.Draw(dst)
 	}

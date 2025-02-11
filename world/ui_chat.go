@@ -38,7 +38,7 @@ func NewUIChat() *UIChat {
 		BaseUI: gui.BaseUI{Visible: true,
 			X: 0, Y: ScreenHeight - 250, W: 350, H: 250,
 		},
-		showChatUI: false,
+		showChatUI: true,
 	}
 	textBoxLog := gui.NewTextBox(16, 0, 270, 180)
 	inputBoxChat := gui.NewInputBox(16, 190, 270, 32)
@@ -56,7 +56,7 @@ func NewUIChat() *UIChat {
 		//checkBoxGM,
 		btnChatSend)
 
-	inputBoxChat.DefaultText = "输入信息指令.."
+	inputBoxChat.DefaultText = "输入信息指令..[help查看命令]"
 
 	inputBoxChat.SetOnPressEnter(func(i *gui.InputBox) {
 		if !p.showChatUI {
@@ -147,9 +147,19 @@ func parseCmd(str string) {
 		}
 	}
 	switch strings.ToLower(args[0]) {
+	case strings.ToLower("help"):
+		UIChatLog("help: show help")
+		UIChatLog("showBattle: 显战斗")
+		UIChatLog("hideBattle: 隐战斗")
+		UIChatLog("showWave: 显示引力波")
+		UIChatLog("hideWave: 隐引力波")
 	case strings.ToLower("showBattle"):
 		ThisGame.showBattle = true
 	case strings.ToLower("hideBattle"):
 		ThisGame.showBattle = false
+	case strings.ToLower("showWave"):
+		ThisGame.showWave = true
+	case strings.ToLower("hideWave"):
+		ThisGame.showWave = false
 	}
 }

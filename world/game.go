@@ -20,13 +20,16 @@ var (
 type Game struct {
 	count     int
 	uiQM      *UIQiMen
-	stars     *StarEffect
 	astrolabe *Astrolabe
 	qiMen     *QMShow
 	char8     *Char8Pan
 	qmGame    *xuan.QMGame
 	meiHua    *MeiHua
 	big6      *Big6Show
+
+	StrokeManager *StrokeManager
+	stars         *StarEffect
+	waves         *WaveComponent
 
 	autoMinute    bool
 	showMeiHua    bool
@@ -35,8 +38,9 @@ type Game struct {
 	showChar8     bool
 	showAstrolabe bool
 	showBattle    bool
+	showWave      bool
 
-	StrokeManager
+	Components map[string]IComponent
 }
 
 func (g *Game) Update() error {
@@ -59,6 +63,9 @@ func (g *Game) Update() error {
 	if g.showAstrolabe {
 		g.astrolabe.Update()
 	}
+	if g.showWave {
+		g.waves.Update()
+	}
 	//g.stars.Update()
 	//g.stars.SetPos(g.astrolabe.GetSolarPos())
 	//if g.autoMinute && !g.astrolabe.DataQuerying() {
@@ -68,17 +75,24 @@ func (g *Game) Update() error {
 			g.qmGame = g.uiQM.NextMinute()
 		}
 	}
+
 	g.StrokeManager.Update()
+	for _, c := range g.Components {
+		c.Update()
+	}
 
 	gui.Update()
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
+	if g.showWave {
+		g.waves.Draw(screen)
+	}
+	g.qiMen.Draw(screen)
 	if g.showAstrolabe {
 		g.astrolabe.Draw(screen)
 	}
-	g.qiMen.Draw(screen)
 	//g.stars.Draw(screen)
 	if g.showMeiHua {
 		g.meiHua.Draw(screen)
@@ -88,6 +102,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 	if g.showChar8 {
 		g.char8.Draw(screen)
+	}
+	for _, c := range g.Components {
+		c.Draw(screen)
 	}
 	gui.Draw(screen)
 	if Dev {
@@ -128,7 +145,6 @@ func NewGame() *Game {
 	g := &Game{
 		uiQM:      u,
 		qmGame:    pan,
-		stars:     NewStarEffect(float32(ScreenWidth/2), 217),
 		qiMen:     NewQiMenShow(450, 500),
 		meiHua:    NewMeiHua(1130, 170),
 		big6:      NewBig6(880, 170),
@@ -140,11 +156,23 @@ func NewGame() *Game {
 		showBig6:      true,
 		showChar8:     true,
 		showAstrolabe: true,
-
-		StrokeManager: StrokeManager{
+		Components:    make(map[string]IComponent),
+		StrokeManager: &StrokeManager{
 			strokes: make(map[*Stroke]struct{}),
 		},
+
+		stars: NewStarEffect(float32(ScreenWidth/2), 217),
+		waves: NewWaveComponent(),
 	}
+	OnNewGame(g)
 
 	return g
+}
+
+var OnNewGameFuncs []func(*Game)
+
+func OnNewGame(g *Game) {
+	for _, f := range OnNewGameFuncs {
+		f(g)
+	}
 }

@@ -201,7 +201,7 @@ func (g *Char8Pan) Update() {
 				line.Move(float32(dx), float32(dy))
 			}
 		}
-		ThisGame.AddSprite(g.Mover)
+		ThisGame.StrokeManager.AddSprite(g.Mover)
 		g.Mover.MoveTo(g.X, g.Y)
 	}
 

@@ -78,7 +78,7 @@ func (m *MeiHua) Reset(upIdx, downIdx, change uint) {
 	}
 
 	for _, sprite := range m.GuaSprite {
-		ThisGame.RemoveSprite(sprite)
+		ThisGame.StrokeManager.RemoveSprite(sprite)
 	}
 	m.GuaSprite = nil
 }
@@ -115,7 +115,7 @@ func (m *MeiHua) Update() {
 				m.GuaSprite[5].MoveTo(m.X+32+128, m.Y+64+dis)
 			}
 		}
-		ThisGame.AddSprite(m.Mover)
+		ThisGame.StrokeManager.AddSprite(m.Mover)
 		m.Mover.MoveTo(m.X, m.Y)
 	}
 	if m.GuaSprite == nil {

@@ -127,6 +127,7 @@ func (q *QMShow) Update() {
 	//日
 	if q.Sun == nil {
 		q.Sun = NewSprite(graphic.NewSunImage(_StarSize), colorSun)
+		ThisGame.waves.AddWave(_TaiJiSize, 1, q.Sun)
 	}
 	degreesS := -((float32(h) + float32(m)/60) * 15) //本地时区太阳角度 0~360 0时0度
 	sy, sx := util.CalRadiansPos(cy, cx, _JianR+12, degreesS)
@@ -134,6 +135,7 @@ func (q *QMShow) Update() {
 	//月
 	if q.Moon == nil {
 		q.Moon = NewSprite(graphic.NewMoonImage(_StarSize), colorMoon)
+		ThisGame.waves.AddWave(_TaiJiSize, 1, q.Moon)
 	}
 	degreesM := -((float32(h)+float32(m)/60)*15 - float32(pan.Lunar.GetDay()-1)/float32(pan.LunarMonthDays)*360)
 	my, mx := util.CalRadiansPos(cy, cx, _JianR-12, degreesM)
@@ -252,8 +254,7 @@ func (q *QMShow) Draw(dst *ebiten.Image) {
 		q.drawBig6(dst)
 	}
 
-	//if ThisGame.showBattle && Dev {
-	if Dev {
+	if ThisGame.showBattle && Dev {
 		q.drawBattle(dst)
 	}
 }
@@ -591,7 +592,7 @@ func (q *QMShow) drawBattle(dst *ebiten.Image) {
 	if b == nil {
 		return
 	}
-	b.Draw(dst, q)
+	b.Draw(dst)
 }
 
 func (q *QMShow) GetInCampPos(i int) (float32, float32) {

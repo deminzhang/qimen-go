@@ -254,7 +254,9 @@ func NewHeartImage(size int) *ebiten.Image {
 		x := 16 * math.Pow(math.Sin(t), 3)
 		y := 13*math.Cos(t) - 5*math.Cos(2*t) - 2*math.Cos(3*t) - math.Cos(4*t)
 		xPos := int((x + 20) / 40 * float64(size))
-		yPos := int((y + 20) / 40 * float64(size))
+		//yPos := int((y + 20) / 40 * float64(size)) //心尖向上
+		// 上下翻转y坐标
+		yPos := int((-y + 20) / 40 * float64(size)) //心尖向下
 		if xPos >= 0 && xPos < size && yPos >= 0 && yPos < size {
 			matrix[xPos][yPos] = true
 			if xPos < minX {
@@ -284,7 +286,7 @@ func NewHeartImage(size int) *ebiten.Image {
 		}
 		if left != -1 && right != -1 {
 			for k := left; k <= right; k++ {
-				img.Set(i, size-k, color.White)
+				img.Set(i, k, color.White)
 			}
 		}
 	}

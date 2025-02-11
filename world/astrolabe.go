@@ -33,7 +33,7 @@ const (
 	outCircleR  = 240
 	outCircleW  = 16
 	outCircleR0 = outCircleR + outCircleW/2
-	sphereR     = outCircleR - outCircleW*4
+	sphereR     = outCircleR - outCircleW*1.5
 
 	DataTimeMin        = "2006-01-02 15:04"
 	DateTimeNASA       = "2006-Jan-02 15:04"
@@ -210,7 +210,7 @@ func (a *Astrolabe) Update() {
 			a.Y += float32(dy)
 			a.dirty = true
 		}
-		ThisGame.AddSprite(a.Earth)
+		ThisGame.StrokeManager.AddSprite(a.Earth)
 	}
 	a.Earth.MoveTo(int(cx-8), int(cy-8))
 	//计算太阳位置 以时间计角度
@@ -369,8 +369,6 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 	vector.StrokeCircle(dst, cx, cy, r, w, colorGroundGateCircle, true) //星宿
 	r -= w
 	vector.StrokeCircle(dst, cx, cy, r, w, colorPowerCircle, true) //天球
-	r -= w
-	vector.StrokeCircle(dst, cx, cy, r, w, colorGroundGateCircle, true) //宫位
 	//十字线
 	horizons := float32(0) //TODO 地平线按太阳视角调整
 	vector.StrokeLine(dst, cx-outCircleR, cy-horizons, cx+outCircleR, cy-horizons, 1, colorCross, true)
@@ -390,11 +388,11 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 		l = a.AstrolabeLoc[i]
 		vector.StrokeLine(dst, l.Lx1, l.Ly1, l.Lx2, l.Ly2, 1, colorGongSplit, true) //宫
 		//text.Draw(dst, fmt.Sprintf("%d", i+1), ft, l.X-4, l.Y+4, colorJiang)        //宫位
-		degrees := float64(i+1)*30 - 90
-		r := float64(outCircleR0 - outCircleW*2)
+		//degrees := float64(i+1)*30 - 90
+		//r := float64(outCircleR0 - outCircleW*2)
 		//gongName := qimen.AstrolabeGong[i] //宫名
-		gongName := xuan.AstrolabeGong74[i] //政余名
-		DrawRotateText(dst, float64(cx-4), float64(cy+4), r, degrees-10, gongName, 12, colorJiang)
+		//gongName := xuan.AstrolabeGong74[i] //政余名
+		//DrawRotateText(dst, float64(cx-4), float64(cy+4), r, degrees-10, gongName, 12, colorJiang)
 	}
 	//画28星宿
 	for i := 1; i <= 28; i++ {
