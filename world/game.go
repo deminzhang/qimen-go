@@ -26,6 +26,7 @@ type Game struct {
 	qmGame    *xuan.QMGame
 	meiHua    *MeiHua
 	big6      *Big6Show
+	battle    *Battle
 
 	StrokeManager *StrokeManager
 	stars         *StarEffect
@@ -47,6 +48,9 @@ func (g *Game) Update() error {
 	g.count = (g.count + 1) % 60
 
 	g.qiMen.Update()
+	if ThisGame.showBattle {
+		g.battle.Update()
+	}
 
 	g.char8.UI.Visible = g.showChar8
 	if g.showChar8 {
@@ -90,6 +94,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		g.waves.Draw(screen)
 	}
 	g.qiMen.Draw(screen)
+	if g.showBattle {
+		g.battle.Draw(screen)
+	}
 	if g.showAstrolabe {
 		g.astrolabe.Draw(screen)
 	}
@@ -150,6 +157,7 @@ func NewGame() *Game {
 		big6:      NewBig6(880, 170),
 		char8:     NewChar8Pan(880, 314),
 		astrolabe: NewAstrolabe(1650, 450),
+		battle:    NewBattle(),
 
 		showQiMen:     true,
 		showMeiHua:    true,

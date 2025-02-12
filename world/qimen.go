@@ -54,8 +54,6 @@ type QMShow struct {
 	BaGua    map[int]*ebiten.Image
 	DutyFlag *ebiten.Image
 
-	Battle *Battle
-
 	circleDegrees [360][4]float32 //周天刻度
 	jq4Loc        [4][2]int       //春分夏至秋分冬至
 	xiuLoc        [28]SegmentPos  //星宿 分隔,位置
@@ -85,14 +83,12 @@ func NewQiMenShow(centerX, centerY int) *QMShow {
 		TaiJi:    graphic.NewTaiJiImage(_TaiJiSize),
 		BaGua:    bg,
 		DutyFlag: graphic.NewFlagImage(16),
-		Battle:   NewBattle(),
 		dirty:    true,
 	}
 }
 func (q *QMShow) Update() {
 	q.count++
 	q.count %= 360
-	q.Battle.Update()
 
 	pan := ThisGame.qmGame
 	if pan == nil {
@@ -233,12 +229,6 @@ func (q *QMShow) Update() {
 		q.jiangZhiPos[i] = [2]int{int(x - 10), int(y + 4)}
 
 	}
-
-	//战场
-	q.updateBattle()
-}
-func (q *QMShow) updateBattle() {
-
 }
 
 func (q *QMShow) Draw(dst *ebiten.Image) {
@@ -252,10 +242,6 @@ func (q *QMShow) Draw(dst *ebiten.Image) {
 	}
 	if ThisGame.showBig6 {
 		q.drawBig6(dst)
-	}
-
-	if ThisGame.showBattle && Dev {
-		q.drawBattle(dst)
 	}
 }
 func (q *QMShow) drawHead(dst *ebiten.Image) {
@@ -585,14 +571,6 @@ func (q *QMShow) drawBig6(dst *ebiten.Image) {
 		}
 
 	}
-}
-
-func (q *QMShow) drawBattle(dst *ebiten.Image) {
-	b := q.Battle
-	if b == nil {
-		return
-	}
-	b.Draw(dst)
 }
 
 func (q *QMShow) GetInCampPos(i int) (float32, float32) {

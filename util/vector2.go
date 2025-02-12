@@ -18,8 +18,8 @@ func (this *Vec2[T]) Set(x, y T) {
 	this.Y = y
 }
 
-func (this *Vec2[T]) Length() float32 {
-	return float32(math.Sqrt(float64((this.X * this.X) + (this.Y * this.Y))))
+func (this *Vec2[T]) Length() float64 {
+	return math.Sqrt(float64((this.X * this.X) + (this.Y * this.Y)))
 }
 
 func (this *Vec2[T]) Clone() Vec2[T] {
@@ -36,9 +36,9 @@ func (this *Vec2[T]) Sub(v Vec2[T]) {
 	this.Y -= v.Y
 }
 
-func (this *Vec2[T]) Multiply(scalar T) {
-	this.X *= scalar
-	this.Y *= scalar
+func (this *Vec2[T]) Multiply(scalar float64) {
+	this.X = T(float64(this.X) * scalar)
+	this.Y = T(float64(this.Y) * scalar)
 }
 
 func (this *Vec2[T]) Divide(scalar T) {
@@ -91,16 +91,28 @@ func (this *Vec2[T]) Normalized() Vec2[T] {
 }
 
 // 朝向不变拉长度
-func (this *Vec2[T]) ScaleToLength(newLength T) {
+func (this *Vec2[T]) ScaleToLength(newLength float64) {
 	this.Normalize()
 	this.Multiply(newLength)
 }
 
 // 复制朝向定长
-func (this *Vec2[T]) ScaledToLength(newLength T) Vec2[T] {
+func (this *Vec2[T]) ScaledToLength(newLength float64) Vec2[T] {
 	v := this.Clone()
 	v.ScaleToLength(newLength)
 	return v
+}
+
+func (this *Vec2[T]) MoveTowards(targetX T, targetY T, speed float64) Vec2[T] {
+	dir := Vec2[T]{X: targetX - this.X, Y: targetY - this.Y}
+	dis := dir.Length()
+	if dis <= speed {
+		return Vec2[T]{X: targetX, Y: targetY}
+	}
+	dir.Normalize()
+	dir.Multiply(speed)
+	newVec := Vec2[T]{X: this.X + dir.X, Y: this.Y + dir.Y}
+	return newVec
 }
 
 // 返回：新向量
@@ -151,7 +163,7 @@ func AddArrayV2[T Numeric](vs []Vec2[T], dv Vec2[T]) []Vec2[T] {
 	return vs
 }
 
-func MultiplyV2[T Numeric](v Vec2[T], scalars []T) []Vec2[T] {
+func MultiplyV2[T Numeric](v Vec2[T], scalars []float64) []Vec2[T] {
 	var vs []Vec2[T]
 	for _, value := range scalars {
 		vector := v.Clone()

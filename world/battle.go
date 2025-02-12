@@ -2,6 +2,7 @@ package world
 
 import (
 	"github.com/deminzhang/qimen-go/graphic"
+	"github.com/deminzhang/qimen-go/util"
 	"github.com/deminzhang/qimen-go/xuan"
 	"github.com/hajimehoshi/ebiten/v2"
 	"image/color"
@@ -14,12 +15,14 @@ type Unit struct {
 	Type   string
 	Name   string
 	Camp   int
+	State  int
+	Speed  float32
 	Hp     int
 	MaxHp  int
 	Atk    int
 	Def    int
-	Spd    int
 	AtkDis int
+	Size   int
 
 	Sprite *Sprite
 }
@@ -37,7 +40,7 @@ func NewUnit(x, y float32, unitType, name string, camp int) *Unit {
 		MaxHp:  100,
 		Atk:    10,
 		Def:    5,
-		Spd:    5,
+		Speed:  0,
 		AtkDis: 1,
 	}
 }
@@ -51,6 +54,8 @@ var (
 
 func NewArmy(x, y float32, size int, name string, camp int) *Unit {
 	u := NewUnit(x, y, "army", name, camp)
+	u.Size = size
+	u.Speed = 2
 	sprite := NewSprite(graphic.NewArmyImage(name, size, 1), CampColor[camp])
 	sprite.x = int(x) - size/2
 	sprite.y = int(y) - size/2
@@ -60,6 +65,7 @@ func NewArmy(x, y float32, size int, name string, camp int) *Unit {
 
 func NewCamp(x, y float32, size int, name string, camp int) *Unit {
 	u := NewUnit(x, y, "camp", name, camp)
+	u.Size = size
 	sprite := NewSprite(graphic.NewCampImage(size), CampColor[camp])
 	sprite.x = int(x) - size/2
 	sprite.y = int(y) - size/2
@@ -69,7 +75,11 @@ func NewCamp(x, y float32, size int, name string, camp int) *Unit {
 
 func (u *Unit) Update(now, delta int64) {
 	if u.Tx != u.X || u.Ty != u.Y {
-		//TODO move to TargetXY
+		from := util.Vec2[float32]{X: u.X, Y: u.Y}
+		newPos := from.MoveTowards(u.Tx, u.Ty, float64(u.Speed))
+		u.X, u.Y = newPos.X, newPos.Y
+		u.Sprite.x = int(u.X) - u.Size/2
+		u.Sprite.y = int(u.Y) - u.Size/2
 	}
 }
 
@@ -143,7 +153,7 @@ func (b *Battle) InitBattle(q *QMShow) {
 func (b *Battle) Update() {
 	now := time.Now().UnixMilli()
 	delta := now - b.lastUpdateTime
-	if delta < 2000 {
+	if delta < 200 {
 		return
 	}
 	if !b.inited {

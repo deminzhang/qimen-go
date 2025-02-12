@@ -53,7 +53,7 @@ func NewUIChat() *UIChat {
 	p.AddChildren(btnChatSwitch, btnClear, btnCopy,
 		textBoxLog,
 		inputBoxChat,
-		//checkBoxGM,
+		checkBoxGM,
 		btnChatSend)
 
 	inputBoxChat.DefaultText = "输入信息指令..[help查看命令]"
@@ -84,11 +84,10 @@ func NewUIChat() *UIChat {
 			i.SetFocused(false)
 			if checkBoxGM.Checked() { //调试命令
 				textBoxLog.AppendLine("cmd: " + i.Text())
-				//sendGMCmd(i.Text())
 				parseCmd(i.Text())
 			} else { //聊天
 				textBoxLog.AppendLine("me:" + i.Text())
-				//sendChat(World.self, i.Text)
+				sendChat(i.Text())
 			}
 			i.AppendTextHistory(i.Text())
 			i.SetText("")
@@ -162,4 +161,9 @@ func parseCmd(str string) {
 	case strings.ToLower("hideWave"):
 		ThisGame.showWave = false
 	}
+}
+
+func sendChat(str string) {
+	UIChatLog("chat: " + str)
+
 }
