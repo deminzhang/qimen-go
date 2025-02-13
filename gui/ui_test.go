@@ -37,10 +37,10 @@ func NewGame() *Game {
 	g.textBoxLog = NewTextBox(16, 96, 608, 368)
 
 	g.button1.SetOnClick(func() {
-		g.textBoxLog.AppendLine("Button 1 Pressed")
+		g.textBoxLog.AppendTextLn("Button 1 Pressed")
 	})
 	g.button2.SetOnClick(func() {
-		g.textBoxLog.AppendLine("Button 2 Pressed")
+		g.textBoxLog.AppendTextLn("Button 2 Pressed")
 	})
 	g.checkBox.SetOnCheckChanged(func(c *CheckBox) {
 		msg := "Check box check changed"
@@ -49,7 +49,7 @@ func NewGame() *Game {
 		} else {
 			msg += " (Unchecked)"
 		}
-		g.textBoxLog.AppendLine(msg)
+		g.textBoxLog.AppendTextLn(msg)
 	})
 	return g
 }

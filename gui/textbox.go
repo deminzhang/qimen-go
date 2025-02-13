@@ -49,7 +49,15 @@ func NewTextBox(x, y, w, h int) *TextBox {
 func (t *TextBox) SetText(v interface{}) {
 	t.Text = fmt.Sprintf("%v", v)
 }
-func (t *TextBox) AppendLine(line string) {
+func (t *TextBox) AppendText(line string) {
+	if t.Text == "" {
+		t.Text = line
+	} else {
+		t.Text += line
+	}
+}
+
+func (t *TextBox) AppendTextLn(line string) {
 	if t.Text == "" {
 		t.Text = line
 	} else {
