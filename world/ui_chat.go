@@ -63,7 +63,7 @@ func NewUIChat() *UIChat {
 		checkBoxGM,
 		btnChatSend)
 
-	inputBoxChat.DefaultText = "输入信息指令..[help查看命令]"
+	inputBoxChat.DefaultText = "输入内容发送.."
 
 	inputBoxChat.SetOnPressEnter(func(i *gui.InputBox) {
 		if !p.showChatUI {
@@ -76,11 +76,11 @@ func NewUIChat() *UIChat {
 		}
 	})
 	checkBoxGM.SetOnCheckChanged(func(c *gui.CheckBox) {
-		msg := "debug command"
+		var msg string
 		if c.Checked() {
-			msg += " (On)"
+			msg = " 命令模式(help查看命令)"
 		} else {
-			msg += " (Off)"
+			msg = " 聊天模式(AI)"
 		}
 		textBoxLog.AppendTextLn(msg)
 	})
@@ -93,7 +93,7 @@ func NewUIChat() *UIChat {
 				textBoxLog.AppendTextLn("cmd: " + i.Text())
 				parseCmd(i.Text())
 			} else { //聊天
-				textBoxLog.AppendTextLn("me:" + i.Text())
+				p.ChatLogLn("me: %s\n", i.Text())
 				go SendChat(i.Text())
 			}
 			i.AppendTextHistory(i.Text())

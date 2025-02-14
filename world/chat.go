@@ -13,7 +13,7 @@ import (
 const (
 	//DeepSeekChatURL https://api-docs.deepseek.com/zh-cn/
 	DeepSeekChatURL = "https://api.deepseek.com/chat/completions" //官方 DeepSeek
-	DeepSeekAPIKey  = "sk-11ec325f6c164193a0bc3a98b8c56fe3"       // Replace with your API key
+	DeepSeekAPIKey  = "*****************************"             // Replace with your API key
 
 	//ChatURL
 	//https://github.com/datawhalechina/handy-ollama/blob/main/docs/C4/1.%20Ollama%20API%20%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97.md
@@ -21,29 +21,43 @@ const (
 	APIKey  = ""                                                // Replace with your API key
 )
 
-func SendChat(str string) {
-	UIChatLogLn("")
-	err := SendAIRequest(ChatURL, APIKey, str, UIChatLog)
+type Chat struct {
+	Payload map[string]interface{}
+	outFunc func(fmt string, a ...any)
+}
+
+func NewChat(model string, outFunc func(fmt string, a ...any)) *Chat {
+	return &Chat{
+		Payload: map[string]interface{}{
+			"model":    model,
+			"messages": []map[string]string{},
+			//"stream": false, //非流式 一次性返回
+			"stream": true, //流式
+		},
+		outFunc: outFunc,
+	}
+}
+
+func (c *Chat) SetModel(str string) {
+	c.Payload["model"] = str
+}
+
+func (c *Chat) ApplyChat(role, content string) {
+	c.Payload["messages"] = append(c.Payload["messages"].([]map[string]string), map[string]string{"role": role, "content": content})
+}
+
+func (c *Chat) SendChat(role, content string) {
+	outFunc := c.outFunc
+	c.ApplyChat(role, content)
+	err := c.SendAIRequest(ChatURL, APIKey, outFunc)
 	if err != nil {
-		UIChatLogLn("error: " + err.Error())
+		outFunc("error: %s\n", err.Error())
 		println("error: " + err.Error())
 	}
 }
 
-var payload = map[string]interface{}{
-	//"model": "deepseek-chat",
-	"model": "deepseek-r1:7b",
-	"messages": []map[string]string{ //对话历史 好像用于上下文
-		{"role": "system", "content": "You are a helpful assistant."},
-		//{"role": "user", "content": "Hello!"},
-	},
-	//"stream": false, //非流式 一次性返回
-	"stream": true, //流式
-}
-
-func SendAIRequest(url, apikey, str string, outFunc func(fmt string, a ...any)) error {
-	payload["messages"] = append(payload["messages"].([]map[string]string), map[string]string{"role": "user", "content": str})
-
+func (c *Chat) SendAIRequest(url, apikey string, outFunc func(fmt string, a ...any)) error {
+	payload := c.Payload
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("error marshaling JSON: %w", err)
@@ -65,13 +79,15 @@ func SendAIRequest(url, apikey, str string, outFunc func(fmt string, a ...any)) 
 	defer resp.Body.Close()
 
 	if payload["stream"].(bool) {
-		return handleStreamResponse(resp, outFunc)
+		return c.handleStreamResponse(resp)
 	} else {
-		return handleNonStreamResponse(resp, outFunc)
+		return c.handleNonStreamResponse(resp)
 	}
 }
 
-func handleStreamResponse(resp *http.Response, outFunc func(fmt string, a ...any)) error {
+func (c *Chat) handleStreamResponse(resp *http.Response) error {
+	payload := c.Payload
+	outFunc := c.outFunc
 	done := make(chan struct{})
 	go func() {
 		defer func() {
@@ -130,13 +146,14 @@ func handleStreamResponse(resp *http.Response, outFunc func(fmt string, a ...any
 					role = delta["role"].(string)
 					outFunc(role + ": ")
 				}
-				outFunc(msg)
 				switch msg {
 				case "<think>":
 					thinking = true
+					msg = "思考中..."
 				case "</think>":
 					thinking = false
 				}
+				outFunc(msg)
 				if thinking {
 					continue
 				}
@@ -155,7 +172,9 @@ func handleStreamResponse(resp *http.Response, outFunc func(fmt string, a ...any
 	return nil
 }
 
-func handleNonStreamResponse(resp *http.Response, outFunc func(fmt string, a ...any)) error {
+func (c *Chat) handleNonStreamResponse(resp *http.Response) error {
+	payload := c.Payload
+	outFunc := c.outFunc
 	response, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("error reading response: %w", err)
@@ -197,4 +216,15 @@ func handleNonStreamResponse(resp *http.Response, outFunc func(fmt string, a ...
 		payload["messages"] = append(payload["messages"].([]map[string]string), map[string]string{"role": role, "content": content})
 	}
 	return nil
+}
+
+var chat *Chat
+
+func SendChat(str string) {
+	if chat == nil {
+		chat = NewChat("deepseek-chat", UIChatLog) //deepseek官方
+		chat.SetModel("deepseek-r1:7b")            //Ollama 本地
+		chat.ApplyChat("system", "You are a helpful assistant.")
+	}
+	chat.SendChat("user", str)
 }

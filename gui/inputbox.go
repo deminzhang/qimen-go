@@ -18,6 +18,7 @@ const (
 
 var textSelectColor = color.RGBA{B: 200, A: 128}
 
+// InputBox 不支持多行输入法 只能输英文字符, TODO TextField支持输入法
 type InputBox struct {
 	BaseUI
 	textRune     []rune

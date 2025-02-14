@@ -1,0 +1,241 @@
+package gui
+
+import (
+	"github.com/hajimehoshi/bitmapfont/v3"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/exp/textinput"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
+	"image"
+	"image/color"
+	"math"
+	"strings"
+	"unicode/utf8"
+)
+
+var fontFace = text.NewGoXFace(bitmapfont.FaceEA)
+
+// TODO TextField支持输入法
+// 参考 ebiten.exp.textinput.Field
+// ebiten/examples/textinput/main.go
+type TextField struct {
+	bounds     image.Rectangle
+	multilines bool
+	field      textinput.Field
+}
+
+func NewTextField(bounds image.Rectangle, multilines bool) *TextField {
+	return &TextField{
+		bounds:     bounds,
+		multilines: multilines,
+	}
+}
+
+func (t *TextField) Contains(x, y int) bool {
+	return image.Pt(x, y).In(t.bounds)
+}
+
+func (t *TextField) SetSelectionStartByCursorPosition(x, y int) bool {
+	idx, ok := t.textIndexByCursorPosition(x, y)
+	if !ok {
+		return false
+	}
+	t.field.SetSelection(idx, idx)
+	return true
+}
+
+func (t *TextField) textIndexByCursorPosition(x, y int) (int, bool) {
+	if !t.Contains(x, y) {
+		return 0, false
+	}
+
+	x -= t.bounds.Min.X
+	y -= t.bounds.Min.Y
+	px, py := textFieldPadding()
+	x -= px
+	y -= py
+	if x < 0 {
+		x = 0
+	}
+	if y < 0 {
+		y = 0
+	}
+
+	lineSpacingInPixels := int(fontFace.Metrics().HLineGap + fontFace.Metrics().HAscent + fontFace.Metrics().HDescent)
+	var nlCount int
+	var lineStart int
+	var prevAdvance float64
+	txt := t.field.Text()
+	for i, r := range txt {
+		var x0, x1 int
+		currentAdvance := text.Advance(txt[lineStart:i], fontFace)
+		if lineStart < i {
+			x0 = int((prevAdvance + currentAdvance) / 2)
+		}
+		if r == '\n' {
+			x1 = int(math.MaxInt32)
+		} else if i < len(txt) {
+			nextI := i + 1
+			for !utf8.ValidString(txt[i:nextI]) {
+				nextI++
+			}
+			nextAdvance := text.Advance(txt[lineStart:nextI], fontFace)
+			x1 = int((currentAdvance + nextAdvance) / 2)
+		} else {
+			x1 = int(currentAdvance)
+		}
+		if x0 <= x && x < x1 && nlCount*lineSpacingInPixels <= y && y < (nlCount+1)*lineSpacingInPixels {
+			return i, true
+		}
+		prevAdvance = currentAdvance
+
+		if r == '\n' {
+			nlCount++
+			lineStart = i + 1
+			prevAdvance = 0
+		}
+	}
+
+	return len(txt), true
+}
+
+func (t *TextField) Focus() {
+	t.field.Focus()
+}
+
+func (t *TextField) Blur() {
+	t.field.Blur()
+}
+
+func (t *TextField) Update() error {
+	if !t.field.IsFocused() {
+		return nil
+	}
+
+	x, y := t.bounds.Min.X, t.bounds.Min.Y
+	cx, cy := t.cursorPos()
+	px, py := textFieldPadding()
+	x += cx + px
+	y += cy + py + int(fontFace.Metrics().HAscent)
+	handled, err := t.field.HandleInput(x, y)
+	if err != nil {
+		return err
+	}
+	if handled {
+		return nil
+	}
+
+	switch {
+	case inpututil.IsKeyJustPressed(ebiten.KeyEnter), inpututil.IsKeyJustPressed(ebiten.KeyKPEnter):
+		if t.multilines {
+			text := t.field.Text()
+			selectionStart, selectionEnd := t.field.Selection()
+			text = text[:selectionStart] + "\n" + text[selectionEnd:]
+			selectionStart += len("\n")
+			selectionEnd = selectionStart
+			t.field.SetTextAndSelection(text, selectionStart, selectionEnd)
+		}
+	case inpututil.IsKeyJustPressed(ebiten.KeyBackspace):
+		text := t.field.Text()
+		selectionStart, selectionEnd := t.field.Selection()
+		if selectionStart != selectionEnd {
+			text = text[:selectionStart] + text[selectionEnd:]
+		} else if selectionStart > 0 {
+			// TODO: Remove a grapheme instead of a code point.
+			_, l := utf8.DecodeLastRuneInString(text[:selectionStart])
+			text = text[:selectionStart-l] + text[selectionEnd:]
+			selectionStart -= l
+		}
+		selectionEnd = selectionStart
+		t.field.SetTextAndSelection(text, selectionStart, selectionEnd)
+	case inpututil.IsKeyJustPressed(ebiten.KeyLeft):
+		text := t.field.Text()
+		selectionStart, _ := t.field.Selection()
+		if selectionStart > 0 {
+			// TODO: Remove a grapheme instead of a code point.
+			_, l := utf8.DecodeLastRuneInString(text[:selectionStart])
+			selectionStart -= l
+		}
+		t.field.SetTextAndSelection(text, selectionStart, selectionStart)
+	case inpututil.IsKeyJustPressed(ebiten.KeyRight):
+		text := t.field.Text()
+		_, selectionEnd := t.field.Selection()
+		if selectionEnd < len(text) {
+			// TODO: Remove a grapheme instead of a code point.
+			_, l := utf8.DecodeRuneInString(text[selectionEnd:])
+			selectionEnd += l
+		}
+		t.field.SetTextAndSelection(text, selectionEnd, selectionEnd)
+	}
+
+	if !t.multilines {
+		orig := t.field.Text()
+		new := strings.ReplaceAll(orig, "\n", "")
+		if new != orig {
+			selectionStart, selectionEnd := t.field.Selection()
+			selectionStart -= strings.Count(orig[:selectionStart], "\n")
+			selectionEnd -= strings.Count(orig[:selectionEnd], "\n")
+			t.field.SetSelection(selectionStart, selectionEnd)
+		}
+	}
+
+	return nil
+}
+
+func (t *TextField) cursorPos() (int, int) {
+	var nlCount int
+	lastNLPos := -1
+	txt := t.field.TextForRendering()
+	selectionStart, _ := t.field.Selection()
+	if s, _, ok := t.field.CompositionSelection(); ok {
+		selectionStart += s
+	}
+	txt = txt[:selectionStart]
+	for i, r := range txt {
+		if r == '\n' {
+			nlCount++
+			lastNLPos = i
+		}
+	}
+
+	txt = txt[lastNLPos+1:]
+	x := int(text.Advance(txt, fontFace))
+	y := nlCount * int(fontFace.Metrics().HLineGap+fontFace.Metrics().HAscent+fontFace.Metrics().HDescent)
+	return x, y
+}
+
+func (t *TextField) Draw(screen *ebiten.Image) {
+	vector.DrawFilledRect(screen, float32(t.bounds.Min.X), float32(t.bounds.Min.Y), float32(t.bounds.Dx()), float32(t.bounds.Dy()), color.White, false)
+	var clr color.Color = color.Black
+	if t.field.IsFocused() {
+		clr = color.RGBA{0, 0, 0xff, 0xff}
+	}
+	vector.StrokeRect(screen, float32(t.bounds.Min.X), float32(t.bounds.Min.Y), float32(t.bounds.Dx()), float32(t.bounds.Dy()), 1, clr, false)
+
+	px, py := textFieldPadding()
+	selectionStart, _ := t.field.Selection()
+	if t.field.IsFocused() && selectionStart >= 0 {
+		x, y := t.bounds.Min.X, t.bounds.Min.Y
+		cx, cy := t.cursorPos()
+		x += px + cx
+		y += py + cy
+		h := int(fontFace.Metrics().HLineGap + fontFace.Metrics().HAscent + fontFace.Metrics().HDescent)
+		vector.StrokeLine(screen, float32(x), float32(y), float32(x), float32(y+h), 1, color.Black, false)
+	}
+
+	tx := t.bounds.Min.X + px
+	ty := t.bounds.Min.Y + py
+	op := &text.DrawOptions{}
+	op.GeoM.Translate(float64(tx), float64(ty))
+	op.ColorScale.ScaleWithColor(color.Black)
+	op.LineSpacing = fontFace.Metrics().HLineGap + fontFace.Metrics().HAscent + fontFace.Metrics().HDescent
+	text.Draw(screen, t.field.TextForRendering(), fontFace, op)
+}
+
+const textFieldHeight = 24
+
+func textFieldPadding() (int, int) {
+	m := fontFace.Metrics()
+	return 4, (textFieldHeight - int(m.HLineGap+m.HAscent+m.HDescent)) / 2
+}
