@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 )
 
 const (
@@ -49,14 +50,14 @@ func (c *Chat) ApplyChat(role, content string) {
 func (c *Chat) SendChat(role, content string) {
 	outFunc := c.outFunc
 	c.ApplyChat(role, content)
-	err := c.SendAIRequest(ChatURL, APIKey, outFunc)
+	err := c.sendAIRequest(ChatURL, APIKey, outFunc)
 	if err != nil {
 		outFunc("error: %s\n", err.Error())
 		println("error: " + err.Error())
 	}
 }
 
-func (c *Chat) SendAIRequest(url, apikey string, outFunc func(fmt string, a ...any)) error {
+func (c *Chat) sendAIRequest(url, apikey string, outFunc func(fmt string, a ...any)) error {
 	payload := c.Payload
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
@@ -138,7 +139,7 @@ func (c *Chat) handleStreamResponse(resp *http.Response) error {
 				return
 			}
 			choices := data["choices"].([]interface{})
-			thinking := false
+			var thinking int64
 			for _, choice := range choices {
 				delta := choice.(map[string]interface{})["delta"].(map[string]interface{})
 				msg := delta["content"].(string)
@@ -148,13 +149,22 @@ func (c *Chat) handleStreamResponse(resp *http.Response) error {
 				}
 				switch msg {
 				case "<think>":
-					thinking = true
+					thinking = time.Now().Unix()
 					msg = "思考中..."
 				case "</think>":
-					thinking = false
+					thinking = 0
+					during := time.Now().Unix() - thinking
+					switch {
+					case during < 60:
+						msg = fmt.Sprintf("思考结束: (用时 %d 秒)", during)
+					case during < 3600:
+						msg = fmt.Sprintf("思考结束: (用时 %d 分 %d 秒)", during/60, during%60)
+					default:
+						msg = fmt.Sprintf("思考结束: (用时 %d 小时 %d 分 %d 秒)", during/3600, during%3600/60, during%60)
+					}
 				}
 				outFunc(msg)
-				if thinking {
+				if thinking > 0 {
 					continue
 				}
 				contentX += msg
@@ -224,7 +234,9 @@ func SendChat(str string) {
 	if chat == nil {
 		chat = NewChat("deepseek-chat", UIChatLog) //deepseek官方
 		chat.SetModel("deepseek-r1:7b")            //Ollama 本地
-		chat.ApplyChat("system", "You are a helpful assistant.")
+		//chat.ApplyChat("system", "You are a helpful assistant.")
+		chat.ApplyChat("system", "假如你是一个玄学大师,精通八字命理,奇门遁甲,大六壬,梅花易数,星盘解读,七政四余.")
 	}
+	chat.ApplyChat("system", fmt.Sprintf("当前时间是: %s", time.Now().Format(time.DateTime)))
 	chat.SendChat("user", str)
 }
