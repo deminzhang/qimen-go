@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
-	"golang.org/x/image/font"
-	"golang.org/x/image/font/opentype"
 	"image"
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
 	"log"
 	"os"
+
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/opentype"
 )
 
 //go:embed **/*

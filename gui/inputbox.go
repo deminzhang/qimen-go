@@ -4,13 +4,10 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"strings"
 
 	"github.com/atotto/clipboard"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
-	"github.com/hajimehoshi/ebiten/v2/text"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 const (
@@ -80,23 +77,16 @@ func (i *InputBox) Text() string {
 	return i.TextField.Text()
 }
 
-// Deprecated: 旧版不支持输入法
-func (i *InputBox) TextX() string {
-	return string(i.textRune)
-}
-
 func (i *InputBox) SetText(v interface{}) {
 	str := fmt.Sprintf("%v", v)
 	i.TextField.SetText(str)
 }
 
-// Deprecated: 旧版不支持输入法
-func (i *InputBox) SetTextX(v interface{}) {
-	str := fmt.Sprintf("%v", v)
-	i.textRune = []rune(str)
-}
-
 func (i *InputBox) Update() {
+	i.BaseUI.Update()
+	if !i.Selectable {
+		return
+	}
 	tf := i.TextField
 	if tf == nil {
 		return
@@ -384,50 +374,6 @@ func (i *InputBox) Draw(dst *ebiten.Image) {
 		return
 	}
 	i.TextField.Draw(dst)
-}
-
-// Deprecated: 旧版不支持输入法
-func (i *InputBox) DrawX(dst *ebiten.Image) {
-	if !i.Visible {
-		return
-	}
-	drawNinePatches(dst, i.UIImage, image.Rect(0, 0, i.W, i.H), i.ImageRect)
-
-	//drawText
-	x := i.textPadding //居左  //居中 + (i.Rect.Dx()-w)/2
-	y := i.H - (i.H-uiFontMHeight)/2
-
-	if len(i.textRune) == 0 && i.DefaultText != "" && !i.Focused() {
-		text.Draw(dst, i.DefaultText, uiFont, x, y, color.Gray{Y: 128})
-	} else {
-		r := i.textRune
-		if len(r) == 0 && i.PasswordChar != "" {
-			r = []rune(strings.Repeat(i.PasswordChar[:1], len(r)))
-		}
-		s := string(r)
-		//drawText todo 自动换行
-		text.Draw(dst, s, uiFont, x, y, color.Black)
-		//draw cursor
-		if i.Focused() {
-			i.cursorPos = min(i.cursorPos, len(r))
-			i.cursorSelect = min(i.cursorSelect, len(r))
-			//drawSelect
-			if i.cursorPos != i.cursorSelect {
-				left, right := i.cursorSelected()
-				s1 := string(r[:left])
-				s2 := string(r[:right])
-				wl, wr := getFontSelectWidth(uiFont, s, len(s1), len(s2))
-				vector.DrawFilledRect(dst, float32(x+wl), float32(4),
-					float32(wr-wl), float32(i.H-8), textSelectColor, false)
-			}
-			if i.cursorCounter%10 < 5 {
-				w := getFontWidth(uiFont, string(r[:i.cursorPos]))
-				//太矮 text.Draw(dst, "|", uiFont, x+w, y, color.Black)
-				//太窄 ebitenutil.DrawLine(dst, float64(x+w), float64(4), float64(x+w), float64(i.H-4), color.Black)
-				vector.DrawFilledRect(dst, float32(x+w), 4, 2, float32(i.H-8), color.Black, false)
-			}
-		}
-	}
 }
 
 func (i *InputBox) SetOnPressEnter(f func(*InputBox)) {

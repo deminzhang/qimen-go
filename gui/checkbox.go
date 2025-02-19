@@ -1,11 +1,12 @@
 package gui
 
 import (
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/text"
-	"golang.org/x/image/font"
 	"image"
 	"image/color"
+
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"golang.org/x/image/font"
 )
 
 const (
@@ -78,14 +79,15 @@ func (c *CheckBox) Draw(dst *ebiten.Image) {
 	if c.checked {
 		drawNinePatches(dst, c.UIImage, r, c.ImageRectMark)
 	}
-
-	x := checkBoxWidth //+ checkBoxPaddingLeft
-	y := checkBoxWidth - (checkBoxWidth-uiFontMHeight)/2
+	var cl color.Color = color.White
 	if c.Disabled {
-		text.Draw(dst, c.Text, uiFont, x, y, color.Gray{Y: 128})
-	} else {
-		text.Draw(dst, c.Text, uiFont, x, y, color.White)
+		cl = color.Gray{Y: 128}
 	}
+	op := &text.DrawOptions{}
+	op.GeoM.Translate(float64(checkBoxWidth), float64(0))
+	op.ColorScale.ScaleWithColor(cl)
+	op.LineSpacing = lineSpacingInPixels
+	text.Draw(dst, c.Text, fontFace, op)
 }
 
 func (c *CheckBox) SetChecked(b bool) {

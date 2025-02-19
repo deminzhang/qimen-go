@@ -1,15 +1,14 @@
 package gui
 
 import (
-	"fmt"
 	"image"
 	"image/color"
+	"log"
 	"math"
 	"strings"
 	"unicode/utf8"
 
 	"github.com/atotto/clipboard"
-	"github.com/hajimehoshi/bitmapfont/v3"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/exp/textinput"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -17,25 +16,32 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-var fontFace = text.NewGoXFace(bitmapfont.FaceEA)
+const (
+	textFieldHeightDefault = 24
+	textPaddingXDefault    = 4
+)
 
-//	TextField支持输入法
+// TextField 支持输入法
 //
 // 参考 ebiten.exp.textinput.Field
 // ebiten/examples/textinput/main.go
 type TextField struct {
-	bounds          image.Rectangle
-	multilines      bool
-	field           textinput.Field
-	cursorCounter   int
-	selectionStart0 int
+	bounds        image.Rectangle
+	multilines    bool
+	field         textinput.Field
+	textPaddingX  int
+	textHeight    int
+	cursorCounter int
+	selection0    int
 }
 
 func NewTextField(bounds image.Rectangle, multilines bool) *TextField {
 	return &TextField{
-		bounds:          bounds,
-		multilines:      multilines,
-		selectionStart0: -1,
+		bounds:       bounds,
+		multilines:   multilines,
+		textPaddingX: textPaddingXDefault,
+		textHeight:   textFieldHeightDefault,
+		selection0:   -1,
 	}
 }
 
@@ -59,7 +65,7 @@ func (t *TextField) textIndexByCursorPosition(x, y int) (int, bool) {
 
 	x -= t.bounds.Min.X
 	y -= t.bounds.Min.Y
-	px, py := textFieldPadding()
+	px, py := t.textFieldPadding()
 	x -= px
 	y -= py
 	if x < 0 {
@@ -107,6 +113,11 @@ func (t *TextField) textIndexByCursorPosition(x, y int) (int, bool) {
 	return len(txt), true
 }
 
+func (t *TextField) textFieldPadding() (int, int) {
+	m := fontFace.Metrics()
+	return t.textPaddingX, (t.textHeight - int(m.HLineGap+m.HAscent+m.HDescent)) / 2
+}
+
 func (t *TextField) Text() string {
 	return t.field.Text()
 }
@@ -136,7 +147,7 @@ func (t *TextField) Update() error {
 
 	x, y := t.bounds.Min.X, t.bounds.Min.Y
 	cx, cy := t.cursorPos()
-	px, py := textFieldPadding()
+	px, py := t.textFieldPadding()
 	x += cx + px
 	y += cy + py + int(fontFace.Metrics().HAscent)
 	handled, err := t.field.HandleInput(x, y)
@@ -201,13 +212,13 @@ func (t *TextField) Update() error {
 			_, l := utf8.DecodeLastRuneInString(text[:selectionStart])
 			if ebiten.IsKeyPressed(ebiten.KeyShift) {
 				if selectionStart != selectionEnd {
-					if selectionEnd > t.selectionStart0 {
+					if selectionEnd > t.selection0 {
 						selectionEnd -= l //退右选
 					} else {
 						selectionStart -= l //左选
 					}
 				} else {
-					t.selectionStart0 = selectionStart //记录选中开始位置
+					t.selection0 = selectionStart //记录选中开始位置
 					selectionStart -= l
 				}
 			} else {
@@ -227,13 +238,13 @@ func (t *TextField) Update() error {
 			_, l := utf8.DecodeRuneInString(text[selectionEnd:])
 			if ebiten.IsKeyPressed(ebiten.KeyShift) {
 				if selectionStart != selectionEnd {
-					if selectionStart < t.selectionStart0 {
+					if selectionStart < t.selection0 {
 						selectionStart += l //退左选
 					} else {
 						selectionEnd += l //右选
 					}
 				} else {
-					t.selectionStart0 = selectionEnd //记录选中开始位置
+					t.selection0 = selectionEnd //记录选中开始位置
 					selectionEnd += l
 				}
 			} else {
@@ -253,7 +264,7 @@ func (t *TextField) Update() error {
 			textX := text[selectionStart:selectionEnd]
 			err := clipboard.WriteAll(textX)
 			if err != nil {
-				fmt.Errorf("clipboard.WriteAll: %v", err)
+				log.Printf("clipboard.WriteAll: %s", err.Error())
 			}
 			text = text[:selectionStart] + text[selectionEnd:]
 		}
@@ -267,13 +278,13 @@ func (t *TextField) Update() error {
 		}
 		err := clipboard.WriteAll(text)
 		if err != nil {
-			fmt.Errorf("clipboard.WriteAll: %v", err)
+			log.Printf("clipboard.WriteAll: %s", err.Error())
 		}
 	case ebiten.IsKeyPressed(ebiten.KeyControl) && inpututil.IsKeyJustPressed(ebiten.KeyV):
 		text := t.field.Text()
 		textV, err := clipboard.ReadAll()
 		if err != nil {
-			fmt.Errorf("clipboard.ReadAll: %v", err)
+			log.Printf("clipboard.ReadAll: %s", err.Error())
 		}
 		selectionStart, selectionEnd := t.field.Selection()
 		text = text[:selectionStart] + textV + text[selectionEnd:]
@@ -325,7 +336,7 @@ func (t *TextField) Draw(screen *ebiten.Image) {
 	}
 	vector.StrokeRect(screen, float32(t.bounds.Min.X), float32(t.bounds.Min.Y), float32(t.bounds.Dx()), float32(t.bounds.Dy()), 1, clr, false)
 
-	px, py := textFieldPadding()
+	px, py := t.textFieldPadding()
 	selectionStart, selectionEnd := t.field.Selection()
 
 	if t.field.IsFocused() && selectionStart >= 0 {
@@ -355,11 +366,4 @@ func (t *TextField) Draw(screen *ebiten.Image) {
 	op.ColorScale.ScaleWithColor(color.Black)
 	op.LineSpacing = fontFace.Metrics().HLineGap + fontFace.Metrics().HAscent + fontFace.Metrics().HDescent
 	text.Draw(screen, t.field.TextForRendering(), fontFace, op)
-}
-
-const textFieldHeight = 24
-
-func textFieldPadding() (int, int) {
-	m := fontFace.Metrics()
-	return 4, (textFieldHeight - int(m.HLineGap+m.HAscent+m.HDescent)) / 2
 }

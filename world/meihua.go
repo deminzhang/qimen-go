@@ -2,14 +2,15 @@ package world
 
 import (
 	"fmt"
+	"math"
+	"strconv"
+
 	"github.com/deminzhang/qimen-go/asset"
 	"github.com/deminzhang/qimen-go/graphic"
 	"github.com/deminzhang/qimen-go/gui"
 	"github.com/deminzhang/qimen-go/xuan"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
-	"math"
-	"strconv"
 )
 
 const (
@@ -34,7 +35,7 @@ func NewMeiHua(x, y int) *MeiHua {
 		UI: &gui.BaseUI{X: x, Y: y, Visible: true, W: meiHuaUIWidth, H: meiHuaUIHeight, BDColor: colorGray},
 	}
 	cbTimeStart := gui.NewCheckBox(94, 3, "时起")
-	iptNumber := gui.NewInputBox(140, 3, 48, 16)
+	iptNumber := gui.NewInputBox(140, 3, 48, 20)
 	cbTimeStart.SetChecked(true)
 	iptNumber.Selectable = false
 	iptNumber.DefaultText = "上下变"

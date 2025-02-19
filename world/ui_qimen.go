@@ -67,7 +67,7 @@ func NewUIQiMen() *UIQiMen {
 		},
 	}
 	px0, py0 := 0, 0
-	h := 28
+	h := 24
 	panelSDate := gui.NewPanel(150, 0, 380, 32, nil)
 	p.inputSYear = gui.NewInputBox(px0, py0, 64, h)
 	p.inputSMonth = gui.NewInputBox(px0+72, py0, 64, h)

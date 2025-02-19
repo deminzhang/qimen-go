@@ -20,7 +20,7 @@ var defaultTextColor = color.Black
 
 type TextBox struct {
 	BaseUI
-	textField *TextField
+	TextField *TextField
 	Text      string
 	TextColor color.Color
 
@@ -41,6 +41,7 @@ type TextBox struct {
 func NewTextBox(x, y, w, h int) *TextBox {
 	return &TextBox{
 		BaseUI:         BaseUI{Visible: true, X: x, Y: y, W: w, H: h},
+		TextField:      NewTextField(image.Rect(x, y, x+w, y+h), true),
 		TextColor:      defaultTextColor,
 		lineHeight:     defaultLineHeight,
 		textBoxPadding: defaultTextBoxPadding,

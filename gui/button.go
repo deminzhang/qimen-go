@@ -1,12 +1,13 @@
 package gui
 
 import (
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/text"
-	"github.com/hajimehoshi/ebiten/v2/vector"
-	"golang.org/x/image/font"
 	"image"
 	"image/color"
+
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
+	"golang.org/x/image/font"
 )
 
 type Button struct {
@@ -78,22 +79,29 @@ func (b *Button) Update() {
 }
 
 func (b *Button) Draw(dst *ebiten.Image) {
+	op := &text.DrawOptions{}
 	if b.UIImage == nil {
 		vector.StrokeRect(dst, float32(b.X), float32(b.Y), float32(b.W), float32(b.H),
 			0.5, color.Gray{Y: 128}, true)
 		if b.mouseDown {
-			text.Draw(dst, b.Text, uiFont, b.textX+1, b.textY+1, b.TextColor)
+			op.GeoM.Translate(float64(b.W)/2+1, float64(b.H)/2+1)
 		} else {
-			text.Draw(dst, b.Text, uiFont, b.textX, b.textY, b.TextColor)
+			op.GeoM.Translate(float64(b.W)/2, float64(b.H)/2)
 		}
+		op.ColorScale.ScaleWithColor(b.TextColor)
 	} else {
 		imageRect := b.ImageRect
 		if b.mouseDown {
 			imageRect = b.ImageRectPressed
 		}
 		drawNinePatches(dst, b.UIImage, image.Rect(0, 0, b.W, b.H), imageRect)
-		text.Draw(dst, b.Text, uiFont, b.textX, b.textY, color.Black)
+		op.GeoM.Translate(float64(b.W)/2, float64(b.H)/2)
+		op.ColorScale.ScaleWithColor(color.Black)
 	}
+	op.LineSpacing = lineSpacingInPixels
+	op.PrimaryAlign = text.AlignCenter
+	op.SecondaryAlign = text.AlignCenter
+	text.Draw(dst, b.Text, fontFace, op)
 }
 
 func (b *Button) SetOnClick(f func()) {

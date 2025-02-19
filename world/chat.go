@@ -14,7 +14,7 @@ import (
 const (
 	//DeepSeekChatURL https://api-docs.deepseek.com/zh-cn/
 	DeepSeekChatURL = "https://api.deepseek.com/chat/completions" //官方 DeepSeek
-	DeepSeekAPIKey  = "*****************************"             // Replace with your API key
+	DeepSeekAPIKey  = ""                                          // Replace with your API key
 
 	//ChatURL
 	//https://github.com/datawhalechina/handy-ollama/blob/main/docs/C4/1.%20Ollama%20API%20%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97.md
@@ -50,14 +50,14 @@ func (c *Chat) ApplyChat(role, content string) {
 func (c *Chat) SendChat(role, content string) {
 	outFunc := c.outFunc
 	c.ApplyChat(role, content)
-	err := c.sendAIRequest(ChatURL, APIKey, outFunc)
+	err := c.sendAIRequest(ChatURL, APIKey)
 	if err != nil {
 		outFunc("error: %s\n", err.Error())
 		println("error: " + err.Error())
 	}
 }
 
-func (c *Chat) sendAIRequest(url, apikey string, outFunc func(fmt string, a ...any)) error {
+func (c *Chat) sendAIRequest(url, apikey string) error {
 	payload := c.Payload
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
@@ -235,7 +235,7 @@ func SendChat(str string) {
 		chat = NewChat("deepseek-chat", UIChatLog) //deepseek官方
 		chat.SetModel("deepseek-r1:7b")            //Ollama 本地
 		//chat.ApplyChat("system", "You are a helpful assistant.")
-		chat.ApplyChat("system", "假如你是一个玄学大师,精通八字命理,奇门遁甲,大六壬,梅花易数,星盘解读,七政四余.")
+		chat.ApplyChat("system", "假如你是一个玄学大师,精通八字命理,奇门遁甲,大六壬,梅花易数,星盘解读.")
 	}
 	chat.ApplyChat("system", fmt.Sprintf("当前时间是: %s", time.Now().Format(time.DateTime)))
 	chat.SendChat("user", str)

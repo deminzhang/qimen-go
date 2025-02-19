@@ -1,11 +1,12 @@
 package gui
 
 import (
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/text"
-	"golang.org/x/image/font"
 	"image"
 	"image/color"
+
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"golang.org/x/image/font"
 )
 
 const (
@@ -92,13 +93,15 @@ func (o *OptionBox) Draw(dst *ebiten.Image) {
 		drawNinePatches(dst, o.UIImage, r, o.ImageRectMark)
 	}
 
-	x := o.boxWidth // + o.boxPaddingLeft
-	y := (16) - (16-uiFontMHeight)/2
+	var c color.Color = color.White
 	if o.Disabled {
-		text.Draw(dst, o.Text, uiFont, x, y, color.Gray{Y: 128})
-	} else {
-		text.Draw(dst, o.Text, uiFont, x, y, color.White)
+		c = color.Gray{Y: 128}
 	}
+	op := &text.DrawOptions{}
+	op.GeoM.Translate(float64(o.boxWidth), float64(0))
+	op.ColorScale.ScaleWithColor(c)
+	op.LineSpacing = lineSpacingInPixels
+	text.Draw(dst, o.Text, fontFace, op)
 }
 
 func (o *OptionBox) setSelected(sel bool) {

@@ -49,7 +49,7 @@ func NewUIChat() *UIChat {
 		showChatUI: true,
 	}
 	textBoxLog := gui.NewTextBox(16, 0, 470, 180)
-	inputBoxChat := gui.NewInputBox(16, 190, 470, 32)
+	inputBoxChat := gui.NewInputBox(16, 190, 470, 24)
 
 	checkBoxGM := gui.NewCheckBox(490, 200, "令")
 	btnChatSend := gui.NewButton(490, 230, 32, 16, "发")

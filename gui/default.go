@@ -3,13 +3,16 @@ package gui
 import (
 	"bytes"
 	"embed"
-	"github.com/hajimehoshi/ebiten/v2"
-	"golang.org/x/image/font"
-	"golang.org/x/image/font/gofont/goregular"
-	"golang.org/x/image/font/opentype"
 	"image"
 	_ "image/png"
 	"log"
+
+	"github.com/hajimehoshi/bitmapfont/v3"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/gofont/goregular"
+	"golang.org/x/image/font/opentype"
 )
 
 //go:embed ui.png
@@ -19,6 +22,13 @@ var (
 	uiFont        font.Face
 	uiFontMHeight int
 	uiFontMWidth  int
+	uiFaceSource  *text.GoTextFaceSource
+	fontFace      = text.NewGoXFace(bitmapfont.FaceEA)
+)
+
+const (
+	uiFontSize          = 12
+	lineSpacingInPixels = 16
 )
 
 func init() {
@@ -58,6 +68,14 @@ func init() {
 	b, _, _ := uiFont.GlyphBounds('M')
 	uiFontMHeight = (b.Max.Y - b.Min.Y).Ceil()
 	uiFontMWidth = (b.Max.X - b.Min.X).Ceil()
+}
+
+func init() {
+	s, err := text.NewGoTextFaceSource(bytes.NewReader(goregular.TTF))
+	if err != nil {
+		log.Fatal(err)
+	}
+	uiFaceSource = s
 }
 
 type imageType int
