@@ -2,14 +2,15 @@ package gui
 
 import (
 	"fmt"
+	"image"
+	"image/color"
+	"strings"
+
 	"github.com/atotto/clipboard"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
-	"image"
-	"image/color"
-	"strings"
 )
 
 const (
@@ -21,16 +22,15 @@ var textSelectColor = color.RGBA{B: 200, A: 128}
 // InputBox 不支持多行输入法 只能输英文字符, TODO TextField支持输入法
 type InputBox struct {
 	BaseUI
+	TextField    *TextField
 	textRune     []rune
 	DefaultText  string //无Text时默认灰文本
 	MaxChars     int    //最大长度
 	PasswordChar string //密文显示
-	offsetX      int    //文本偏移 TODO
 	textPadding  int
 	Editable     bool
 	Selectable   bool
 
-	autoLinefeed   bool //自动换行
 	textHistory    []string
 	textHistoryIdx int
 
@@ -50,6 +50,7 @@ type InputBox struct {
 func NewInputBox(x, y, w, h int) *InputBox {
 	return &InputBox{
 		BaseUI:     BaseUI{X: x, Y: y, W: w, H: h, Visible: true, EnableFocus: true},
+		TextField:  NewTextField(image.Rect(0, 0, w, h), false),
 		Editable:   true,
 		Selectable: true,
 		//default resource
@@ -75,13 +76,73 @@ func repeatingKeyPressed(key ebiten.Key) bool {
 }
 
 func (i *InputBox) Text() string {
+	// return string(i.textRune)
+	return i.TextField.Text()
+}
+
+// Deprecated: 旧版不支持输入法
+func (i *InputBox) TextX() string {
 	return string(i.textRune)
 }
+
 func (i *InputBox) SetText(v interface{}) {
-	i.textRune = []rune(fmt.Sprintf("%v", v))
+	str := fmt.Sprintf("%v", v)
+	i.TextField.SetText(str)
+}
+
+// Deprecated: 旧版不支持输入法
+func (i *InputBox) SetTextX(v interface{}) {
+	str := fmt.Sprintf("%v", v)
+	i.textRune = []rune(str)
 }
 
 func (i *InputBox) Update() {
+	tf := i.TextField
+	if tf == nil {
+		return
+	}
+	ids := inpututil.AppendJustPressedTouchIDs(nil)
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) || len(ids) > 0 {
+		var x, y int
+		if len(ids) > 0 {
+			x, y = ebiten.TouchPosition(ids[0])
+		} else {
+			x, y = ebiten.CursorPosition()
+		}
+		wx, wy := i.GetWorldXY()
+		if tf.Contains(x-wx, y-wy) {
+			tf.Focus()
+			tf.SetSelectionStartByCursorPosition(x-wx, y-wy)
+		} else {
+			tf.Blur()
+			if i.Focused() {
+				if i.onLostFocus != nil {
+					i.onLostFocus(i)
+				}
+			}
+		}
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyEnter) || inpututil.IsKeyJustPressed(ebiten.KeyNumpadEnter) {
+		if i.onPressEnter != nil {
+			i.onPressEnter(i)
+		}
+	}
+	if err := tf.Update(); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	x, y := ebiten.CursorPosition()
+	wx, wy := i.GetWorldXY()
+	if tf.Contains(x-wx, y-wy) {
+		ebiten.SetCursorShape(ebiten.CursorShapeText)
+	} else {
+		ebiten.SetCursorShape(ebiten.CursorShapeDefault)
+	}
+}
+
+// Deprecated: 旧版不支持输入法
+func (i *InputBox) UpdateX() {
 	i.BaseUI.Update()
 	if !i.Selectable {
 		return
@@ -322,6 +383,14 @@ func (i *InputBox) Draw(dst *ebiten.Image) {
 	if !i.Visible {
 		return
 	}
+	i.TextField.Draw(dst)
+}
+
+// Deprecated: 旧版不支持输入法
+func (i *InputBox) DrawX(dst *ebiten.Image) {
+	if !i.Visible {
+		return
+	}
 	drawNinePatches(dst, i.UIImage, image.Rect(0, 0, i.W, i.H), i.ImageRect)
 
 	//drawText
@@ -338,9 +407,6 @@ func (i *InputBox) Draw(dst *ebiten.Image) {
 		s := string(r)
 		//drawText todo 自动换行
 		text.Draw(dst, s, uiFont, x, y, color.Black)
-		if i.autoLinefeed {
-		} else {
-		}
 		//draw cursor
 		if i.Focused() {
 			i.cursorPos = min(i.cursorPos, len(r))

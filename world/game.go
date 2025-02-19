@@ -2,13 +2,14 @@ package world
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/6tail/lunar-go/calendar"
 	"github.com/deminzhang/qimen-go/gui"
 	"github.com/deminzhang/qimen-go/util"
 	"github.com/deminzhang/qimen-go/xuan"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"time"
 )
 
 var (
@@ -163,7 +164,7 @@ func NewGame() *Game {
 		showMeiHua:    true,
 		showBig6:      true,
 		showChar8:     true,
-		showAstrolabe: true,
+		showAstrolabe: false,
 		Components:    make(map[string]IComponent),
 		StrokeManager: &StrokeManager{
 			strokes: make(map[*Stroke]struct{}),

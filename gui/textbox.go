@@ -2,12 +2,13 @@ package gui
 
 import (
 	"fmt"
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/text"
-	"golang.org/x/image/font"
 	"image"
 	"image/color"
 	"strings"
+
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text"
+	"golang.org/x/image/font"
 )
 
 const (
@@ -19,6 +20,7 @@ var defaultTextColor = color.Black
 
 type TextBox struct {
 	BaseUI
+	textField *TextField
 	Text      string
 	TextColor color.Color
 

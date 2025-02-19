@@ -1,34 +1,41 @@
 package gui
 
 import (
+	"fmt"
+	"image"
+	"image/color"
+	"math"
+	"strings"
+	"unicode/utf8"
+
+	"github.com/atotto/clipboard"
 	"github.com/hajimehoshi/bitmapfont/v3"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/exp/textinput"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
-	"image"
-	"image/color"
-	"math"
-	"strings"
-	"unicode/utf8"
 )
 
 var fontFace = text.NewGoXFace(bitmapfont.FaceEA)
 
-// TODO TextField支持输入法
+//	TextField支持输入法
+//
 // 参考 ebiten.exp.textinput.Field
 // ebiten/examples/textinput/main.go
 type TextField struct {
-	bounds     image.Rectangle
-	multilines bool
-	field      textinput.Field
+	bounds          image.Rectangle
+	multilines      bool
+	field           textinput.Field
+	cursorCounter   int
+	selectionStart0 int
 }
 
 func NewTextField(bounds image.Rectangle, multilines bool) *TextField {
 	return &TextField{
-		bounds:     bounds,
-		multilines: multilines,
+		bounds:          bounds,
+		multilines:      multilines,
+		selectionStart0: -1,
 	}
 }
 
@@ -100,6 +107,14 @@ func (t *TextField) textIndexByCursorPosition(x, y int) (int, bool) {
 	return len(txt), true
 }
 
+func (t *TextField) Text() string {
+	return t.field.Text()
+}
+
+func (t *TextField) SetText(text string) {
+	t.field.SetTextAndSelection(text, len(text), len(text))
+}
+
 func (t *TextField) Focus() {
 	t.field.Focus()
 }
@@ -108,10 +123,16 @@ func (t *TextField) Blur() {
 	t.field.Blur()
 }
 
+func (t *TextField) IsFocused() bool {
+	return t.field.IsFocused()
+}
+
 func (t *TextField) Update() error {
 	if !t.field.IsFocused() {
 		return nil
 	}
+
+	t.cursorCounter = (t.cursorCounter + 1) % 360
 
 	x, y := t.bounds.Min.X, t.bounds.Min.Y
 	cx, cy := t.cursorPos()
@@ -149,24 +170,115 @@ func (t *TextField) Update() error {
 		}
 		selectionEnd = selectionStart
 		t.field.SetTextAndSelection(text, selectionStart, selectionEnd)
+	case inpututil.IsKeyJustPressed(ebiten.KeyDelete):
+		text := t.field.Text()
+		selectionStart, selectionEnd := t.field.Selection()
+		if selectionStart != selectionEnd {
+			text = text[:selectionStart] + text[selectionEnd:]
+		} else if selectionStart < len(text) {
+		}
+		t.field.SetTextAndSelection(text, selectionStart, selectionEnd)
+	case inpututil.IsKeyJustPressed(ebiten.KeyHome):
+		text := t.field.Text()
+		selectionStart, selectionEnd := t.field.Selection()
+		if !ebiten.IsKeyPressed(ebiten.KeyShift) {
+			selectionEnd = selectionStart
+		}
+		selectionStart = 0
+		t.field.SetTextAndSelection(text, selectionStart, selectionEnd)
+	case inpututil.IsKeyJustPressed(ebiten.KeyEnd):
+		text := t.field.Text()
+		selectionStart, selectionEnd := t.field.Selection()
+		if !ebiten.IsKeyPressed(ebiten.KeyShift) {
+			selectionStart = selectionEnd
+		}
+		selectionEnd = len(text)
+		t.field.SetTextAndSelection(text, selectionStart, selectionEnd)
 	case inpututil.IsKeyJustPressed(ebiten.KeyLeft):
 		text := t.field.Text()
-		selectionStart, _ := t.field.Selection()
+		selectionStart, selectionEnd := t.field.Selection()
 		if selectionStart > 0 {
-			// TODO: Remove a grapheme instead of a code point.
 			_, l := utf8.DecodeLastRuneInString(text[:selectionStart])
-			selectionStart -= l
+			if ebiten.IsKeyPressed(ebiten.KeyShift) {
+				if selectionStart != selectionEnd {
+					if selectionEnd > t.selectionStart0 {
+						selectionEnd -= l //退右选
+					} else {
+						selectionStart -= l //左选
+					}
+				} else {
+					t.selectionStart0 = selectionStart //记录选中开始位置
+					selectionStart -= l
+				}
+			} else {
+				selectionStart -= l
+				selectionEnd = selectionStart
+			}
+		} else {
+			if !ebiten.IsKeyPressed(ebiten.KeyShift) {
+				selectionEnd = selectionStart
+			}
 		}
-		t.field.SetTextAndSelection(text, selectionStart, selectionStart)
+		t.field.SetTextAndSelection(text, selectionStart, selectionEnd)
 	case inpututil.IsKeyJustPressed(ebiten.KeyRight):
 		text := t.field.Text()
-		_, selectionEnd := t.field.Selection()
+		selectionStart, selectionEnd := t.field.Selection()
 		if selectionEnd < len(text) {
-			// TODO: Remove a grapheme instead of a code point.
 			_, l := utf8.DecodeRuneInString(text[selectionEnd:])
-			selectionEnd += l
+			if ebiten.IsKeyPressed(ebiten.KeyShift) {
+				if selectionStart != selectionEnd {
+					if selectionStart < t.selectionStart0 {
+						selectionStart += l //退左选
+					} else {
+						selectionEnd += l //右选
+					}
+				} else {
+					t.selectionStart0 = selectionEnd //记录选中开始位置
+					selectionEnd += l
+				}
+			} else {
+				selectionEnd += l
+				selectionStart = selectionEnd
+			}
+		} else {
+			if !ebiten.IsKeyPressed(ebiten.KeyShift) {
+				selectionStart = selectionEnd
+			}
 		}
-		t.field.SetTextAndSelection(text, selectionEnd, selectionEnd)
+		t.field.SetTextAndSelection(text, selectionStart, selectionEnd)
+	case ebiten.IsKeyPressed(ebiten.KeyControl) && inpututil.IsKeyJustPressed(ebiten.KeyX):
+		text := t.field.Text()
+		selectionStart, selectionEnd := t.field.Selection()
+		if selectionStart != selectionEnd {
+			textX := text[selectionStart:selectionEnd]
+			err := clipboard.WriteAll(textX)
+			if err != nil {
+				fmt.Errorf("clipboard.WriteAll: %v", err)
+			}
+			text = text[:selectionStart] + text[selectionEnd:]
+		}
+		selectionEnd = selectionStart
+		t.field.SetTextAndSelection(text, selectionStart, selectionEnd)
+	case ebiten.IsKeyPressed(ebiten.KeyControl) && inpututil.IsKeyJustPressed(ebiten.KeyC):
+		text := t.field.Text()
+		selectionStart, selectionEnd := t.field.Selection()
+		if selectionStart != selectionEnd {
+			text = text[selectionStart:selectionEnd]
+		}
+		err := clipboard.WriteAll(text)
+		if err != nil {
+			fmt.Errorf("clipboard.WriteAll: %v", err)
+		}
+	case ebiten.IsKeyPressed(ebiten.KeyControl) && inpututil.IsKeyJustPressed(ebiten.KeyV):
+		text := t.field.Text()
+		textV, err := clipboard.ReadAll()
+		if err != nil {
+			fmt.Errorf("clipboard.ReadAll: %v", err)
+		}
+		selectionStart, selectionEnd := t.field.Selection()
+		text = text[:selectionStart] + textV + text[selectionEnd:]
+		selectionEnd = selectionStart
+		t.field.SetTextAndSelection(text, selectionStart, selectionEnd)
 	}
 
 	if !t.multilines {
@@ -214,14 +326,26 @@ func (t *TextField) Draw(screen *ebiten.Image) {
 	vector.StrokeRect(screen, float32(t.bounds.Min.X), float32(t.bounds.Min.Y), float32(t.bounds.Dx()), float32(t.bounds.Dy()), 1, clr, false)
 
 	px, py := textFieldPadding()
-	selectionStart, _ := t.field.Selection()
+	selectionStart, selectionEnd := t.field.Selection()
+
 	if t.field.IsFocused() && selectionStart >= 0 {
 		x, y := t.bounds.Min.X, t.bounds.Min.Y
 		cx, cy := t.cursorPos()
 		x += px + cx
 		y += py + cy
 		h := int(fontFace.Metrics().HLineGap + fontFace.Metrics().HAscent + fontFace.Metrics().HDescent)
-		vector.StrokeLine(screen, float32(x), float32(y), float32(x), float32(y+h), 1, color.Black, false)
+		//draw selected text background
+		if selectionStart != selectionEnd {
+			txt := t.field.TextForRendering()
+			selText := txt[selectionStart:selectionEnd]
+			selX := int(text.Advance(txt[:selectionStart], fontFace))
+			selW := int(text.Advance(selText, fontFace))
+			vector.DrawFilledRect(screen, float32(px+selX), float32(y), float32(selW), float32(h), color.RGBA{0, 0, 0xff, 0x80}, false)
+		}
+		//draw cursor
+		if t.cursorCounter%20 < 5 {
+			vector.StrokeLine(screen, float32(x), float32(y), float32(x), float32(y+h), 1, color.Black, false)
+		}
 	}
 
 	tx := t.bounds.Min.X + px

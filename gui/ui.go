@@ -1,12 +1,13 @@
 package gui
 
 import (
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
-	"golang.org/x/image/font"
 	"image"
 	"image/color"
 	"sort"
+
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
+	"golang.org/x/image/font"
 )
 
 type IUIPanel interface {

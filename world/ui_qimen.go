@@ -2,11 +2,12 @@ package world
 
 import (
 	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/6tail/lunar-go/calendar"
 	"github.com/deminzhang/qimen-go/gui"
 	"github.com/deminzhang/qimen-go/xuan"
-	"strconv"
-	"time"
 )
 
 type UIQiMen struct {
@@ -227,10 +228,13 @@ func NewUIQiMen() *UIQiMen {
 			ThisGame.showChar8 = c.Checked()
 		}
 	})
-	cbStarPan.SetChecked(true)
+	cbStarPan.SetChecked(false)
 	cbStarPan.SetOnCheckChanged(func(c *gui.CheckBox) {
 		if ThisGame != nil {
 			ThisGame.showAstrolabe = c.Checked()
+			if ThisGame.showAstrolabe {
+				UIShowMsgBox("星盘需ssd.jpl.nasa.gov\n数据支持请确认可能连通", "确定", "取消", nil, nil)
+			}
 		}
 	})
 

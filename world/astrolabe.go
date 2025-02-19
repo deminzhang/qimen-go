@@ -2,14 +2,6 @@ package world
 
 import (
 	"fmt"
-	"github.com/6tail/lunar-go/calendar"
-	"github.com/deminzhang/qimen-go/graphic"
-	"github.com/deminzhang/qimen-go/util"
-	"github.com/deminzhang/qimen-go/xuan"
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/text"
-	"github.com/hajimehoshi/ebiten/v2/vector"
-	_ "github.com/mattn/go-sqlite3"
 	"image/color"
 	"io"
 	"log"
@@ -22,6 +14,15 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/6tail/lunar-go/calendar"
+	"github.com/deminzhang/qimen-go/graphic"
+	"github.com/deminzhang/qimen-go/util"
+	"github.com/deminzhang/qimen-go/xuan"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text"
+	"github.com/hajimehoshi/ebiten/v2/vector"
+	_ "github.com/mattn/go-sqlite3"
 	_ "xorm.io/core"
 )
 
@@ -45,6 +46,8 @@ const (
 
 	DataStartYear = 1600 //NASA数据支持开始年份
 	DataEndYear   = 2500 //NASA数据支持结束年份
+	//NASAURL 获取NASA天文数据,可能需翻墙
+	NASAURL = "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND='%d'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='500@399'&START_TIME='%s'&STOP_TIME='%s'&STEP_SIZE='%s'&QUANTITIES='1,20,23,24,29'"
 )
 
 // 建星是太阳位置,星座是太阳上升,所以星座相当建星是指定地支时
@@ -514,16 +517,13 @@ func (a *Astrolabe) GetEphemeris(tid int, s *calendar.Solar) *ObserveData {
 }
 
 func (a *Astrolabe) GetNASAData(tid int, sts, ets string) map[string]*observeDataSrc {
-	urls := fmt.Sprintf("https://ssd.jpl.nasa.gov/api/horizons.api?"+
-		"format=text&COMMAND='%d'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='500@399'"+
-		"&START_TIME='%s'&STOP_TIME='%s'&STEP_SIZE='%s'&QUANTITIES='1,20,23,24,29'",
-		tid, sts, ets, url.QueryEscape(NASADataStepSize))
+	urls := fmt.Sprintf(NASAURL, tid, sts, ets, url.QueryEscape(NASADataStepSize))
 	//QUANTITIES='1,3,20,23,24,29'
 	//Date__(UT)__HR:MN     R.A._____(ICRF)_____DEC  dRA*cosD d(DEC)/dt             delta      deldot     S-O-T /r     S-T-O  Cnst
 
 	resp, err := http.Get(urls)
 	if err != nil {
-		log.Printf("Error sending GET request: %v\n", err)
+		log.Printf("Error sending GET request: %s\n", err.Error())
 		return nil
 	}
 	if resp.StatusCode != http.StatusOK {

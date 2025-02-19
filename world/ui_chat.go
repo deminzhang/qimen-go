@@ -2,9 +2,10 @@ package world
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/atotto/clipboard"
 	"github.com/deminzhang/qimen-go/gui"
-	"strings"
 )
 
 type UIChat struct {
@@ -73,6 +74,11 @@ func NewUIChat() *UIChat {
 			btnChatSend.Click()
 		} else {
 			i.SetFocused(true)
+		}
+		if i.TextField.IsFocused() {
+			i.TextField.Blur()
+		} else {
+			i.TextField.Focus()
 		}
 	})
 	checkBoxGM.SetOnCheckChanged(func(c *gui.CheckBox) {
