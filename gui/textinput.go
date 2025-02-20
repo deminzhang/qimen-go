@@ -188,6 +188,7 @@ func (t *TextField) Update() error {
 			text = text[:selectionStart] + text[selectionEnd:]
 		} else if selectionStart < len(text) {
 		}
+		selectionEnd = selectionStart
 		t.field.SetTextAndSelection(text, selectionStart, selectionEnd)
 	case inpututil.IsKeyJustPressed(ebiten.KeyHome):
 		text := t.field.Text()
@@ -257,7 +258,7 @@ func (t *TextField) Update() error {
 			}
 		}
 		t.field.SetTextAndSelection(text, selectionStart, selectionEnd)
-	case ebiten.IsKeyPressed(ebiten.KeyControl) && inpututil.IsKeyJustPressed(ebiten.KeyX):
+	case ebiten.IsKeyPressed(ebiten.KeyControl) && inpututil.IsKeyJustPressed(ebiten.KeyX): //ctrl+x 禁if i.PasswordChar == "" {
 		text := t.field.Text()
 		selectionStart, selectionEnd := t.field.Selection()
 		if selectionStart != selectionEnd {
@@ -270,7 +271,7 @@ func (t *TextField) Update() error {
 		}
 		selectionEnd = selectionStart
 		t.field.SetTextAndSelection(text, selectionStart, selectionEnd)
-	case ebiten.IsKeyPressed(ebiten.KeyControl) && inpututil.IsKeyJustPressed(ebiten.KeyC):
+	case ebiten.IsKeyPressed(ebiten.KeyControl) && inpututil.IsKeyJustPressed(ebiten.KeyC): //ctrl+c 禁if i.PasswordChar == "" {
 		text := t.field.Text()
 		selectionStart, selectionEnd := t.field.Selection()
 		if selectionStart != selectionEnd {
@@ -288,6 +289,8 @@ func (t *TextField) Update() error {
 		}
 		selectionStart, selectionEnd := t.field.Selection()
 		text = text[:selectionStart] + textV + text[selectionEnd:]
+		_, l := utf8.DecodeRuneInString(textV)
+		selectionStart += l
 		selectionEnd = selectionStart
 		t.field.SetTextAndSelection(text, selectionStart, selectionEnd)
 	}

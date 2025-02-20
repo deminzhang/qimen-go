@@ -1,10 +1,11 @@
 package xuan
 
 import (
-	"github.com/6tail/lunar-go/LunarUtil"
-	"github.com/6tail/lunar-go/calendar"
 	"slices"
 	"strings"
+
+	"github.com/6tail/lunar-go/LunarUtil"
+	"github.com/6tail/lunar-go/calendar"
 )
 
 // 大六壬
@@ -509,18 +510,18 @@ func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 		switch len(xiaKeShang) {
 		case 1: //重审课
 			chuan[0] = xiaKe[0].Up
-			//chuan = p.chuanNormal(xiaKe[0].Up)
-			kts = append(kts, "重审")
+			if reverse {
+				kts = append(kts, "反吟")
+			} else {
+				kts = append(kts, "重审")
+			}
 			if len(shangKeXia) == 0 {
 				kts = append(kts, "始入")
 			}
-			//return
 		case 0:
 			if len(shangKeXia) == 1 {
 				chuan[0] = shangKe[0].Up
-				//chuan = p.chuanNormal(shangKe[0].Up)
 				kts = append(kts, "元首")
-				//return
 			}
 		}
 		if chuan[0] == "" {
@@ -540,7 +541,6 @@ func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 			if len(xiaKeBi) == 1 {
 				chuan[0] = xiaKeBi[0].Up
 				kts = append(kts, "知一")
-				//return p.chuanNormal(xiaKeBi[0].Up), kts
 			}
 			if len(xiaKeBi) == 0 {
 				//比用.上克下
@@ -553,7 +553,6 @@ func (p *Big6Ren) calcChuan() (chuan [3]string, kts []string) {
 				if len(shangKeBi) == 1 {
 					chuan[0] = shangKeBi[0].Up
 					kts = append(kts, "知一")
-					//return p.chuanNormal(shangKeBi[0].Up), kts
 				}
 			}
 		}

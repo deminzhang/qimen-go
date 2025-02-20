@@ -73,7 +73,6 @@ func repeatingKeyPressed(key ebiten.Key) bool {
 }
 
 func (i *InputBox) Text() string {
-	// return string(i.textRune)
 	return i.TextField.Text()
 }
 
@@ -212,76 +211,6 @@ func (i *InputBox) UpdateX() {
 			}
 		}
 
-		// If the backspace key is pressed, remove one character.
-		if i.Editable && repeatingKeyPressed(ebiten.KeyBackspace) {
-			if len(i.textRune) > 0 {
-				left, right := i.cursorSelected()
-				if left == right { //删左1个
-					if left > 0 {
-						ll := len(i.textRune[:left])
-						i.cursorPos -= 1
-						i.textRune = []rune(string(i.textRune[:ll-1]) + string(i.textRune[ll:]))
-					}
-				} else { //删选中区
-					i.textRune = []rune(string(i.textRune[:left]) + string(i.textRune[right:]))
-					i.cursorPos = left
-				}
-				i.cursorPos = min(i.cursorPos, len(i.textRune))
-				i.cursorPos = max(i.cursorPos, 0)
-				i.cursorSelect = i.cursorPos
-			}
-		}
-		if i.Editable && repeatingKeyPressed(ebiten.KeyDelete) {
-			l := len(i.textRune)
-			if l > 0 {
-				left, right := i.cursorSelected()
-				if left == right { //删右1个
-					if left < l {
-						i.textRune = []rune(string(i.textRune[:left]) + string(i.textRune[left+1:]))
-					}
-				} else { //删选中区
-					i.textRune = []rune(string(i.textRune[:left]) + string(i.textRune[right:]))
-					i.cursorPos = left
-				}
-				i.cursorPos = min(i.cursorPos, len(i.textRune))
-				i.cursorPos = max(i.cursorPos, 0)
-				i.cursorSelect = i.cursorPos
-			}
-		}
-		if repeatingKeyPressed(ebiten.KeyLeft) {
-			if ebiten.IsKeyPressed(ebiten.KeyShift) {
-				if i.cursorPos > 0 {
-					i.cursorPos--
-				}
-			} else {
-				left, right := i.cursorSelected()
-				if left != right {
-					i.cursorPos = left
-				} else {
-					if i.cursorPos > 0 {
-						i.cursorPos--
-					}
-				}
-				i.cursorSelect = i.cursorPos
-			}
-		}
-		if repeatingKeyPressed(ebiten.KeyRight) {
-			if ebiten.IsKeyPressed(ebiten.KeyShift) {
-				if i.cursorPos < len(i.textRune) {
-					i.cursorPos++
-				}
-			} else {
-				left, right := i.cursorSelected()
-				if left != right {
-					i.cursorPos = right
-				} else {
-					if i.cursorPos < len(i.textRune) {
-						i.cursorPos++
-					}
-				}
-				i.cursorSelect = i.cursorPos
-			}
-		}
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
 			mx, my := ebiten.CursorPosition()
 			x, y := i.GetWorldXY()

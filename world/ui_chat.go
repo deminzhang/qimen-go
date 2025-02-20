@@ -46,7 +46,7 @@ func NewUIChat() *UIChat {
 		BaseUI: gui.BaseUI{Visible: true,
 			X: 0, Y: ScreenHeight - 250, W: 550, H: 250,
 		},
-		showChatUI: true,
+		showChatUI: false,
 	}
 	textBoxLog := gui.NewTextBox(16, 0, 470, 180)
 	inputBoxChat := gui.NewInputBox(16, 190, 470, 24)
@@ -109,8 +109,7 @@ func NewUIChat() *UIChat {
 			textBoxLog.AppendTextLn("no input msg")
 		}
 	})
-	btnChatSwitch.SetOnClick(func() {
-		p.showChatUI = !p.showChatUI
+	resetView := func() {
 		if p.showChatUI {
 			btnChatSwitch.Text = "隐"
 		} else {
@@ -122,6 +121,10 @@ func NewUIChat() *UIChat {
 		checkBoxGM.Visible = p.showChatUI
 		btnClear.Visible = p.showChatUI
 		btnCopy.Visible = p.showChatUI
+	}
+	btnChatSwitch.SetOnClick(func() {
+		p.showChatUI = !p.showChatUI
+		resetView()
 	})
 	btnClear.SetOnClick(func() {
 		textBoxLog.Text = ""
@@ -132,6 +135,7 @@ func NewUIChat() *UIChat {
 
 	p.textBoxLog = textBoxLog
 	uiChat = p
+	resetView()
 	return p
 }
 
