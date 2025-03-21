@@ -87,7 +87,7 @@ func (c *CheckBox) Draw(dst *ebiten.Image) {
 	op.GeoM.Translate(float64(checkBoxWidth), float64(0))
 	op.ColorScale.ScaleWithColor(cl)
 	op.LineSpacing = lineSpacingInPixels
-	text.Draw(dst, c.Text, fontFace, op)
+	text.Draw(dst, c.Text, uiFontFace, op)
 }
 
 func (c *CheckBox) SetChecked(b bool) {

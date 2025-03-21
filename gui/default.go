@@ -23,7 +23,7 @@ var (
 	uiFontMHeight int
 	uiFontMWidth  int
 	uiFaceSource  *text.GoTextFaceSource
-	fontFace      = text.NewGoXFace(bitmapfont.FaceEA)
+	uiFontFace    = text.NewGoXFace(bitmapfont.FaceEA)
 )
 
 const (

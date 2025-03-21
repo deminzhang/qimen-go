@@ -75,14 +75,14 @@ func (t *TextField) textIndexByCursorPosition(x, y int) (int, bool) {
 		y = 0
 	}
 
-	lineSpacingInPixels := int(fontFace.Metrics().HLineGap + fontFace.Metrics().HAscent + fontFace.Metrics().HDescent)
+	lineSpacingInPixels := int(uiFontFace.Metrics().HLineGap + uiFontFace.Metrics().HAscent + uiFontFace.Metrics().HDescent)
 	var nlCount int
 	var lineStart int
 	var prevAdvance float64
 	txt := t.field.Text()
 	for i, r := range txt {
 		var x0, x1 int
-		currentAdvance := text.Advance(txt[lineStart:i], fontFace)
+		currentAdvance := text.Advance(txt[lineStart:i], uiFontFace)
 		if lineStart < i {
 			x0 = int((prevAdvance + currentAdvance) / 2)
 		}
@@ -93,7 +93,7 @@ func (t *TextField) textIndexByCursorPosition(x, y int) (int, bool) {
 			for !utf8.ValidString(txt[i:nextI]) {
 				nextI++
 			}
-			nextAdvance := text.Advance(txt[lineStart:nextI], fontFace)
+			nextAdvance := text.Advance(txt[lineStart:nextI], uiFontFace)
 			x1 = int((currentAdvance + nextAdvance) / 2)
 		} else {
 			x1 = int(currentAdvance)
@@ -114,7 +114,7 @@ func (t *TextField) textIndexByCursorPosition(x, y int) (int, bool) {
 }
 
 func (t *TextField) textFieldPadding() (int, int) {
-	m := fontFace.Metrics()
+	m := uiFontFace.Metrics()
 	return t.textPaddingX, (t.textHeight - int(m.HLineGap+m.HAscent+m.HDescent)) / 2
 }
 
@@ -149,7 +149,7 @@ func (t *TextField) Update() error {
 	cx, cy := t.cursorPos()
 	px, py := t.textFieldPadding()
 	x += cx + px
-	y += cy + py + int(fontFace.Metrics().HAscent)
+	y += cy + py + int(uiFontFace.Metrics().HAscent)
 	handled, err := t.field.HandleInput(x, y)
 	if err != nil {
 		return err
@@ -326,8 +326,8 @@ func (t *TextField) cursorPos() (int, int) {
 	}
 
 	txt = txt[lastNLPos+1:]
-	x := int(text.Advance(txt, fontFace))
-	y := nlCount * int(fontFace.Metrics().HLineGap+fontFace.Metrics().HAscent+fontFace.Metrics().HDescent)
+	x := int(text.Advance(txt, uiFontFace))
+	y := nlCount * int(uiFontFace.Metrics().HLineGap+uiFontFace.Metrics().HAscent+uiFontFace.Metrics().HDescent)
 	return x, y
 }
 
@@ -347,13 +347,13 @@ func (t *TextField) Draw(screen *ebiten.Image) {
 		cx, cy := t.cursorPos()
 		x += px + cx
 		y += py + cy
-		h := int(fontFace.Metrics().HLineGap + fontFace.Metrics().HAscent + fontFace.Metrics().HDescent)
+		h := int(uiFontFace.Metrics().HLineGap + uiFontFace.Metrics().HAscent + uiFontFace.Metrics().HDescent)
 		//draw selected text background
 		if selectionStart != selectionEnd {
 			txt := t.field.TextForRendering()
 			selText := txt[selectionStart:selectionEnd]
-			selX := int(text.Advance(txt[:selectionStart], fontFace))
-			selW := int(text.Advance(selText, fontFace))
+			selX := int(text.Advance(txt[:selectionStart], uiFontFace))
+			selW := int(text.Advance(selText, uiFontFace))
 			vector.DrawFilledRect(screen, float32(px+selX), float32(y), float32(selW), float32(h), color.RGBA{0, 0, 0xff, 0x80}, false)
 		}
 		//draw cursor
@@ -367,6 +367,6 @@ func (t *TextField) Draw(screen *ebiten.Image) {
 	op := &text.DrawOptions{}
 	op.GeoM.Translate(float64(tx), float64(ty))
 	op.ColorScale.ScaleWithColor(color.Black)
-	op.LineSpacing = fontFace.Metrics().HLineGap + fontFace.Metrics().HAscent + fontFace.Metrics().HDescent
-	text.Draw(screen, t.field.TextForRendering(), fontFace, op)
+	op.LineSpacing = uiFontFace.Metrics().HLineGap + uiFontFace.Metrics().HAscent + uiFontFace.Metrics().HDescent
+	text.Draw(screen, t.field.TextForRendering(), uiFontFace, op)
 }

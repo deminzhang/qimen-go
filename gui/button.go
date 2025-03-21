@@ -101,7 +101,7 @@ func (b *Button) Draw(dst *ebiten.Image) {
 	op.LineSpacing = lineSpacingInPixels
 	op.PrimaryAlign = text.AlignCenter
 	op.SecondaryAlign = text.AlignCenter
-	text.Draw(dst, b.Text, fontFace, op)
+	text.Draw(dst, b.Text, uiFontFace, op)
 }
 
 func (b *Button) SetOnClick(f func()) {

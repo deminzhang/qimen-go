@@ -101,7 +101,7 @@ func (o *OptionBox) Draw(dst *ebiten.Image) {
 	op.GeoM.Translate(float64(o.boxWidth), float64(0))
 	op.ColorScale.ScaleWithColor(c)
 	op.LineSpacing = lineSpacingInPixels
-	text.Draw(dst, o.Text, fontFace, op)
+	text.Draw(dst, o.Text, uiFontFace, op)
 }
 
 func (o *OptionBox) setSelected(sel bool) {
