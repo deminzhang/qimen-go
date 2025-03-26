@@ -517,7 +517,7 @@ func (q *QMShow) drawBig6(dst *ebiten.Image) {
 		pos := q.jianPos[i]
 		text.Draw(dst, g.Jian, ft, pos[0], pos[1], jianColor)
 		pos = q.jianZhiPos[i]
-		//text.Draw(dst, g.JianZhi, ft, pos[0], pos[1], jianColor) //月建支名
+		text.Draw(dst, g.JianZhi, ft, pos[0], pos[1], jianColor) //月建支名
 		pos = q.jianGongPos[i]
 		text.Draw(dst, zhi, ft, pos[0], pos[1], colorGrayB) //宫支
 		//月将
@@ -534,7 +534,7 @@ func (q *QMShow) drawBig6(dst *ebiten.Image) {
 		pos = q.jiangGanPos[i]
 		//text.Draw(dst, g.JiangGan, ft, pos[0], pos[1], util.If(g.JiangGan == pan.Lunar.GetDayGan(), colorRed, colorJiang)) //月将干名
 		pos = q.jiangZhiPos[i]
-		//text.Draw(dst, g.JiangZhi, ft, pos[0], pos[1], jiangColor) //月将支名
+		text.Draw(dst, g.JiangZhi, ft, pos[0], pos[1], jiangColor) //月将支名
 		//text.Draw(dst, g.Jiang12, ft, pos[0]+16, pos[1], util.If(g.Jiang12 == "贵", colorRed, colorGray)) //大六壬贵人
 		pos = q.jiangGongPos[i]
 		text.Draw(dst, zhi, ft, pos[0], pos[1], colorGray) //宫地盘支
