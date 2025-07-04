@@ -6,7 +6,7 @@ require (
 	github.com/6tail/lunar-go v1.3.15
 	github.com/atotto/clipboard v0.1.4
 	github.com/hajimehoshi/bitmapfont/v3 v3.2.0
-	github.com/hajimehoshi/ebiten/v2 v2.8.6
+	github.com/hajimehoshi/ebiten/v2 v2.8.8
 	github.com/mattn/go-sqlite3 v1.14.24
 	golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67
 	golang.org/x/image v0.23.0
