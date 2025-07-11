@@ -10,7 +10,7 @@ import (
 	"github.com/deminzhang/qimen-go/gui"
 	"github.com/deminzhang/qimen-go/xuan"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/text"
+	text "github.com/hajimehoshi/ebiten/v2/text"
 )
 
 const (

@@ -20,10 +20,7 @@ import (
 	"github.com/deminzhang/qimen-go/util"
 	"github.com/deminzhang/qimen-go/xuan"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
-	_ "github.com/mattn/go-sqlite3"
-	_ "xorm.io/core"
 )
 
 const (
@@ -361,7 +358,8 @@ func (a *Astrolabe) DataQuerying() bool {
 	return a.dataQuerying != 0
 }
 func (a *Astrolabe) Draw(dst *ebiten.Image) {
-	ft, _ := GetFontFace(12)
+	xf, _ := GetFontXFace(12)
+
 	cx, cy := a.X, a.Y
 	sX, sY := a.solarX, a.solarY
 	//外圈
@@ -379,15 +377,15 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 	//春分点 RA0
 	tzY, tzX := util.CalRadiansPos(cy, cx, outCircleR/2, a.tzRA0)
 	vector.StrokeLine(dst, cx, cy, tzX, tzY, 1, colorOrbits, true)
-	text.Draw(dst, "春分", ft, int(tzX), int(tzY), colorLeader)                                                        //春分点
-	text.Draw(dst, fmt.Sprintf("%s月", ThisGame.qmGame.Lunar.GetYueXiang()), ft, int(cx-16), int(cy-25), colorLeader) //月相
+	TextDrawV2(dst, "春分", xf, int(tzX), int(tzY), colorLeader)                                                        //春分点
+	TextDrawV2(dst, fmt.Sprintf("%s月", ThisGame.qmGame.Lunar.GetYueXiang()), xf, int(cx-16), int(cy-25), colorLeader) //月相
 
 	//画12宫
 	for i := 0; i < 12; i++ {
 		l := a.ConstellationLoc[i]
 		vector.StrokeLine(dst, l.Lx1, l.Ly1, l.Lx2, l.Ly2, 1, colorGongSplit, true) //星宫
 		//text.Draw(dst, qimen.ConstellationSymbol[i], ft, l.X-6, l.Y+6, colorJiang)  //星座符号 需要字体支持
-		text.Draw(dst, xuan.ConstellationShort[i], ft, l.X-6, l.Y+6, colorJiang) //星座
+		TextDrawV2(dst, xuan.ConstellationShort[i], xf, l.X-6, l.Y+6, colorJiang) //星座
 		l = a.AstrolabeLoc[i]
 		vector.StrokeLine(dst, l.Lx1, l.Ly1, l.Lx2, l.Ly2, 1, colorGongSplit, true) //宫
 		//text.Draw(dst, fmt.Sprintf("%d", i+1), ft, l.X-4, l.Y+4, colorJiang)        //宫位
@@ -401,7 +399,7 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 	for i := 1; i <= 28; i++ {
 		l := a.XiuLoc[i-1]
 		vector.StrokeLine(dst, l.Lx1, l.Ly1, l.Lx2, l.Ly2, 1, colorGongSplit, true) //星宿
-		text.Draw(dst, xuan.Xiu28[i], ft, l.X-4, l.Y+4, colorJiang)                 //星宿
+		TextDrawV2(dst, xuan.Xiu28[i], xf, l.X-4, l.Y+4, colorJiang)                //星宿
 	}
 	//画星体
 	for _, id := range Draws {
@@ -421,7 +419,7 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 			vector.StrokeCircle(dst, obj.sphereX, obj.sphereY, 2, .5, obj.color, true) // sphere
 
 			//text.Draw(dst, qimen.StarSymbol[obj.nameCN], ft, int(obj.sphereX-8), int(obj.sphereY-8), obj.color) //星体符号需要字体支持
-			text.Draw(dst, obj.nameCN, ft, int(obj.sphereX), int(obj.sphereY), obj.color)
+			TextDrawV2(dst, obj.nameCN, xf, int(obj.sphereX), int(obj.sphereY), obj.color)
 		}
 		if obj.Id == 10 { //日
 			if a.Sun != nil {
@@ -443,7 +441,7 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 				if a.Moon != nil {
 					a.Moon.Draw(dst)
 				}
-				text.Draw(dst, ob.nameCN, ft, int(ob.sphereX), int(ob.sphereY), ob.color)
+				TextDrawV2(dst, ob.nameCN, xf, int(ob.sphereX), int(ob.sphereY), ob.color)
 			} else {
 				my, mx := util.CalRadiansPos(obj.drawY, obj.drawX, ob.DrawR(), float32(rand.Intn(360)))
 				vector.DrawFilledCircle(dst, mx, my, 1, obj.color, true) //satellite
@@ -453,9 +451,9 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 	a.DrawGravity(dst)
 	switch a.dataQuerying {
 	case 1:
-		text.Draw(dst, "正在查询..", ft, int(cx-32), int(cy-10), color.White)
+		TextDrawV2(dst, "正在查询..", xf, int(cx-32), int(cy-10), color.White)
 	case 2:
-		text.Draw(dst, "正在观星..", ft, int(cx-32), int(cy-10), color.White)
+		TextDrawV2(dst, "正在观星..", xf, int(cx-32), int(cy-10), color.White)
 	}
 }
 func (a *Astrolabe) DrawGravity(dst *ebiten.Image) {

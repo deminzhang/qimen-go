@@ -1,13 +1,14 @@
 package graphic
 
 import (
+	"image/color"
+	"math"
+
 	"github.com/deminzhang/qimen-go/asset"
 	"github.com/deminzhang/qimen-go/util"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/text"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
-	"image/color"
-	"math"
 )
 
 func NewRectImage(size int) *ebiten.Image {
@@ -157,51 +158,57 @@ func NewMoonImage(size int) *ebiten.Image {
 	cover.DrawImage(moon, op)
 	return cover
 }
+func TextDrawV2(dst *ebiten.Image, txt string, xface *text.GoXFace, x, y int, clr color.Color) {
+	op := &text.DrawOptions{}
+	op.GeoM.Translate(float64(x), float64(y))
+	op.ColorScale.ScaleWithColor(clr)
+	text.Draw(dst, txt, xface, op)
+}
 
 // 火星
 func NewMarsImage(size int) *ebiten.Image {
 	img := ebiten.NewImage(size, size)
-	ft, _ := asset.GetDefaultFontFace(float64(size))
-	text.Draw(img, "火", ft, 0, size, color.White)
+	ft, _ := asset.GetDefaultFontXFace(float64(size))
+	TextDrawV2(img, "火", ft, 0, size, color.White)
 	return img
 }
 
 // 木星
 func NewJupiterImage(size int) *ebiten.Image {
 	img := ebiten.NewImage(size, size)
-	ft, _ := asset.GetDefaultFontFace(float64(size))
-	text.Draw(img, "木", ft, 0, size, color.White)
+	ft, _ := asset.GetDefaultFontXFace(float64(size))
+	TextDrawV2(img, "木", ft, 0, size, color.White)
 	return img
 }
 
 // 土星
 func NewSaturnImage(size int) *ebiten.Image {
 	img := ebiten.NewImage(size, size)
-	ft, _ := asset.GetDefaultFontFace(float64(size))
-	text.Draw(img, "土", ft, 0, size, color.White)
+	ft, _ := asset.GetDefaultFontXFace(float64(size))
+	TextDrawV2(img, "土", ft, 0, size, color.White)
 	return img
 }
 
 // 水星
 func NewMercuryImage(size int) *ebiten.Image {
 	img := ebiten.NewImage(size, size)
-	ft, _ := asset.GetDefaultFontFace(float64(size))
-	text.Draw(img, "水", ft, 0, size, color.White)
+	ft, _ := asset.GetDefaultFontXFace(float64(size))
+	TextDrawV2(img, "水", ft, 0, size, color.White)
 	return img
 }
 
 // 金星
 func NewVenusImage(size int) *ebiten.Image {
 	img := ebiten.NewImage(size, size)
-	ft, _ := asset.GetDefaultFontFace(float64(size))
-	text.Draw(img, "金", ft, 0, size, color.White)
+	ft, _ := asset.GetDefaultFontXFace(float64(size))
+	TextDrawV2(img, "金", ft, 0, size, color.White)
 	return img
 }
 
 func NewTextImage(txt string, size int) *ebiten.Image {
 	img := ebiten.NewImage(size, size)
-	ft, _ := asset.GetDefaultFontFace(float64(size))
-	text.Draw(img, txt, ft, 0, size, color.White)
+	ft, _ := asset.GetDefaultFontXFace(float64(size))
+	TextDrawV2(img, txt, ft, 0, size, color.White)
 	return img
 }
 
@@ -230,8 +237,8 @@ func NewCampImage(size int) *ebiten.Image {
 // 兵
 func NewArmyImage(name string, size, action int) *ebiten.Image {
 	img := ebiten.NewImage(size, size)
-	ft, _ := asset.GetDefaultFontFace(float64(size))
-	text.Draw(img, name, ft, 0, size*7/8, color.White)
+	ft, _ := asset.GetDefaultFontXFace(float64(size))
+	TextDrawV2(img, name, ft, 0, size*7/8, color.White)
 	switch action {
 	case 1:
 		vector.StrokeLine(img, 1, float32(size)*3/4, float32(size), float32(size)/4, 1, color.White, true) //横兵

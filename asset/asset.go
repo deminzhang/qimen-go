@@ -8,9 +8,9 @@ import (
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
-	"log"
 	"os"
 
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
 )
@@ -49,8 +49,9 @@ func LoadFontFS(path string) (*opentype.Font, error) {
 }
 
 var (
-	loadFonts     = map[string]*opentype.Font{}
-	loadFontFaces = map[*opentype.Font]map[float64]font.Face{}
+	loadFonts      = map[string]*opentype.Font{}
+	loadFontFaces  = map[*opentype.Font]map[float64]font.Face{}
+	loadXFontFaces = map[font.Face]*text.GoXFace{}
 )
 
 func LoadFont(path string, orDefault bool) (*opentype.Font, error) {
@@ -59,12 +60,6 @@ func LoadFont(path string, orDefault bool) (*opentype.Font, error) {
 	var ff *opentype.Font
 	if bytes, err = os.ReadFile(path); err == nil {
 		ff, err = opentype.Parse(bytes)
-	}
-	if err != nil {
-		log.Println("parse default font error:", err)
-		if orDefault {
-			ff, err = LoadFontFS("font/lana_pixel.ttf")
-		}
 	}
 	if err != nil {
 		return nil, err
@@ -110,4 +105,26 @@ func GetDefaultFontFace(size float64) (font.Face, error) {
 		loadFonts[DefaultUIFontPath] = ft
 	}
 	return GetFontFace(ft, size)
+}
+
+func GetDefaultFontXFace(size float64) (*text.GoXFace, error) {
+	ft, ok := loadFonts[DefaultUIFontPath]
+	var err error
+	if !ok {
+		ft, err = LoadDefaultFont()
+		if err != nil {
+			return nil, err
+		}
+		loadFonts[DefaultUIFontPath] = ft
+	}
+	ff, err := GetFontFace(ft, size)
+	if err != nil {
+		return nil, err
+	}
+	xf := loadXFontFaces[ff]
+	if xf == nil {
+		xf = text.NewGoXFace(ff)
+		loadXFontFaces[ff] = xf
+	}
+	return xf, err
 }

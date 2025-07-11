@@ -116,6 +116,10 @@ func GetDefaultUIFont() font.Face {
 	return uiFont
 }
 
+func GetDefaultUIFontV2() *text.GoXFace {
+	return uiFontFace
+}
+
 func SetDefaultUIImage(img *ebiten.Image) {
 	uiImage = img
 }

@@ -1,12 +1,15 @@
 package world
 
 import (
+	"image"
+	"image/color"
+	"log"
+
 	"github.com/deminzhang/qimen-go/asset"
 	"github.com/deminzhang/qimen-go/gui"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"golang.org/x/image/font"
-	"image"
-	"log"
 )
 
 var (
@@ -23,6 +26,20 @@ func init() {
 
 func GetFontFace(size float64) (font.Face, error) {
 	return asset.GetDefaultFontFace(size)
+}
+
+func GetFontXFace(size float64) (*text.GoXFace, error) {
+	return asset.GetDefaultFontXFace(size)
+}
+
+//	func TextDrawV1(dst *ebiten.Image, text string, face font.Face, x, y int, clr color.Color){
+//			"github.com/hajimehoshi/ebiten/v2/text".Draw(dst, text, face, x, y, clr)
+//		}
+func TextDrawV2(dst *ebiten.Image, txt string, xface *text.GoXFace, x, y int, clr color.Color) {
+	op := &text.DrawOptions{}
+	op.GeoM.Translate(float64(x), float64(y))
+	op.ColorScale.ScaleWithColor(clr)
+	text.Draw(dst, txt, xface, op)
 }
 
 func setWindow() {
