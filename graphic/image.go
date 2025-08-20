@@ -9,6 +9,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"golang.org/x/exp/constraints"
 )
 
 func NewRectImage(size int) *ebiten.Image {
@@ -158,7 +159,7 @@ func NewMoonImage(size int) *ebiten.Image {
 	cover.DrawImage(moon, op)
 	return cover
 }
-func TextDrawV2(dst *ebiten.Image, txt string, xface *text.GoXFace, x, y int, clr color.Color) {
+func TextDrawV2[T constraints.Integer | constraints.Float](dst *ebiten.Image, txt string, xface *text.GoXFace, x, y T, clr color.Color) {
 	op := &text.DrawOptions{}
 	op.GeoM.Translate(float64(x), float64(y))
 	op.ColorScale.ScaleWithColor(clr)

@@ -11,11 +11,12 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"golang.org/x/exp/constraints"
 	"golang.org/x/image/font"
 )
 
 // DrawProBar draw a horizontal progress bar
-func DrawProBar[T util.Numeric](dst *ebiten.Image, x, y, width, height float32, clr color.Color, val, maxV T, showVal bool) {
+func DrawProBar[T constraints.Integer | constraints.Float](dst *ebiten.Image, x, y, width, height float32, clr color.Color, val, maxV T, showVal bool) {
 	if val < 0 || maxV <= 0 {
 		return
 	}
@@ -28,7 +29,7 @@ func DrawProBar[T util.Numeric](dst *ebiten.Image, x, y, width, height float32, 
 }
 
 // DrawProBarV draw a vertical progress bar
-func DrawProBarV[T util.Numeric](dst *ebiten.Image, x, y, width, height float32, clr color.Color, val, maxV T, showVal bool) {
+func DrawProBarV[T constraints.Integer | constraints.Float](dst *ebiten.Image, x, y, width, height float32, clr color.Color, val, maxV T, showVal bool) {
 	if val < 0 || maxV <= 0 {
 		return
 	}
@@ -42,7 +43,7 @@ func DrawProBarV[T util.Numeric](dst *ebiten.Image, x, y, width, height float32,
 }
 
 // DrawMixProBar draw a mixed progress bar 混合进度条
-func DrawMixProBar[T util.Numeric](dst *ebiten.Image, x, y, width, height float32, clr []color.Color, val []T, maxV T) {
+func DrawMixProBar[T constraints.Integer | constraints.Float](dst *ebiten.Image, x, y, width, height float32, clr []color.Color, val []T, maxV T) {
 	if maxV <= 0 || len(val) == 0 || 0 == len(clr) || len(clr) != len(val) {
 		return
 	}
