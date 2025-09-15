@@ -5,9 +5,9 @@ import (
 	"math"
 	"strconv"
 
-	"github.com/deminzhang/qimen-go/asset"
+	"github.com/deminzhang/go-common/gui"
+	"github.com/deminzhang/qimen-go/assets"
 	"github.com/deminzhang/qimen-go/graphic"
-	"github.com/deminzhang/qimen-go/gui"
 	"github.com/deminzhang/qimen-go/xuan"
 	"github.com/hajimehoshi/ebiten/v2"
 	text "github.com/hajimehoshi/ebiten/v2/text"
@@ -139,7 +139,7 @@ func (m *MeiHua) Update() {
 
 func (m *MeiHua) Draw(dst *ebiten.Image) {
 	m.Mover.Draw(dst)
-	ft14, _ := asset.GetDefaultFontFace(14)
+	ft14, _ := assets.GetDefaultFontFace(14)
 	text.Draw(dst, "梅花易数", ft14, m.X+16, m.Y+16, colorWhite)
 	cx, cy := m.X+26, m.Y+32
 	l := ThisGame.qmGame.Lunar

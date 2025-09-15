@@ -1,4 +1,4 @@
-package asset
+package assets
 
 import (
 	"bytes"
@@ -13,6 +13,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
+
+	"github.com/deminzhang/go-common/asset"
 )
 
 //go:embed **/*
@@ -87,35 +89,35 @@ func GetFontFace(ft *opentype.Font, size float64) (font.Face, error) {
 }
 
 func LoadDefaultFont() (*opentype.Font, error) {
-	ft, ok := loadFonts[DefaultUIFontPath]
+	ft, ok := loadFonts[asset.DefaultUIFontPath]
 	if ok {
 		return ft, nil
 	}
-	return LoadFont(DefaultUIFontPath, true)
+	return LoadFont(asset.DefaultUIFontPath, true)
 }
 
 func GetDefaultFontFace(size float64) (font.Face, error) {
-	ft, ok := loadFonts[DefaultUIFontPath]
+	ft, ok := loadFonts[asset.DefaultUIFontPath]
 	var err error
 	if !ok {
 		ft, err = LoadDefaultFont()
 		if err != nil {
 			return nil, err
 		}
-		loadFonts[DefaultUIFontPath] = ft
+		loadFonts[asset.DefaultUIFontPath] = ft
 	}
 	return GetFontFace(ft, size)
 }
 
 func GetDefaultFontXFace(size float64) (*text.GoXFace, error) {
-	ft, ok := loadFonts[DefaultUIFontPath]
+	ft, ok := loadFonts[asset.DefaultUIFontPath]
 	var err error
 	if !ok {
 		ft, err = LoadDefaultFont()
 		if err != nil {
 			return nil, err
 		}
-		loadFonts[DefaultUIFontPath] = ft
+		loadFonts[asset.DefaultUIFontPath] = ft
 	}
 	ff, err := GetFontFace(ft, size)
 	if err != nil {

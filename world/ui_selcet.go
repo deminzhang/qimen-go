@@ -3,7 +3,7 @@ package world
 import (
 	"fmt"
 	"github.com/6tail/lunar-go/calendar"
-	"github.com/deminzhang/qimen-go/gui"
+	"github.com/deminzhang/go-common/gui"
 	"github.com/hajimehoshi/ebiten/v2"
 	"strconv"
 	"time"

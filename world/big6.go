@@ -5,9 +5,9 @@ import (
 	"strconv"
 
 	"github.com/6tail/lunar-go/LunarUtil"
-	"github.com/deminzhang/qimen-go/asset"
+	"github.com/deminzhang/go-common/gui"
+	"github.com/deminzhang/qimen-go/assets"
 	"github.com/deminzhang/qimen-go/graphic"
-	"github.com/deminzhang/qimen-go/gui"
 	"github.com/deminzhang/qimen-go/util"
 	"github.com/deminzhang/qimen-go/xuan"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -97,7 +97,7 @@ func (m *Big6Show) Update() {
 
 func (m *Big6Show) Draw(dst *ebiten.Image) {
 	m.Mover.Draw(dst)
-	ft14, _ := asset.GetDefaultFontFace(14)
+	ft14, _ := assets.GetDefaultFontFace(14)
 	textOld.Draw(dst, "大六壬", ft14, m.X+16, m.Y+16, colorWhite)
 	cx, cy := m.X+16, m.Y+32+16
 	b6 := ThisGame.qmGame.Big6

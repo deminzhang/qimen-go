@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/6tail/lunar-go/calendar"
+	"github.com/deminzhang/go-common/vec"
 	"github.com/deminzhang/qimen-go/graphic"
 	"github.com/deminzhang/qimen-go/util"
 	"github.com/deminzhang/qimen-go/xuan"
@@ -230,7 +231,7 @@ func (a *Astrolabe) Update() {
 		moon := Bodies[301]
 		moonY, moonX := util.CalRadiansPos(cy, cx, moon.DrawR(), degreesM)
 		moon.drawX, moon.drawY = moonX, moonY
-		v1 := (&util.Vec2[float32]{X: moon.drawX - cx, Y: moon.drawY - cy}).ScaledToLength(sphereR)
+		v1 := (&vec.Vec2[float32]{X: moon.drawX - cx, Y: moon.drawY - cy}).ScaledToLength(sphereR)
 		moon.sphereX = cx + v1.X
 		moon.sphereY = cy + v1.Y
 		if a.Moon == nil {
@@ -271,7 +272,7 @@ func (a *Astrolabe) Update() {
 		switch id {
 		case 10:
 			body.drawX, body.drawY = a.solarX, a.solarY
-			v1 := (&util.Vec2[float32]{X: body.drawX - cx, Y: body.drawY - cy}).ScaledToLength(sphereR)
+			v1 := (&vec.Vec2[float32]{X: body.drawX - cx, Y: body.drawY - cy}).ScaledToLength(sphereR)
 			body.sphereX = cx + v1.X
 			body.sphereY = cy + v1.Y
 
@@ -286,7 +287,7 @@ func (a *Astrolabe) Update() {
 				degrees = 90 - 270 - degreesSO + ost
 			}
 			body.drawY, body.drawX = util.CalRadiansPos(solarY, solarX, body.DrawR(), degrees)
-			v1 := (&util.Vec2[float32]{X: body.drawX - cx, Y: body.drawY - cy}).ScaledToLength(sphereR)
+			v1 := (&vec.Vec2[float32]{X: body.drawX - cx, Y: body.drawY - cy}).ScaledToLength(sphereR)
 			body.sphereX = cx + v1.X
 			body.sphereY = cy + v1.Y
 			//switch id {

@@ -1,10 +1,11 @@
 package world
 
 import (
-	"github.com/deminzhang/qimen-go/gui"
-	"github.com/hajimehoshi/ebiten/v2"
 	"image/color"
 	"strings"
+
+	"github.com/deminzhang/go-common/gui"
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 const (
@@ -40,7 +41,7 @@ func NewUITips(x, y int, textLines []string) *UITips {
 		X: x, Y: y,
 		W: tipsUIWidth, H: tipsUIHeight,
 	}}
-	
+
 	txt := gui.NewTextBox(0, 0, tipsUIWidth-16, tipsUIHeight-16)
 	txt.BGColor = nil
 	txt.UIImage = nil

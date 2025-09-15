@@ -1,8 +1,9 @@
 package util
 
 import (
-	"golang.org/x/exp/constraints"
 	"math"
+
+	"golang.org/x/exp/constraints"
 )
 
 type Numeric interface {

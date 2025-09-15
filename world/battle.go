@@ -1,12 +1,13 @@
 package world
 
 import (
-	"github.com/deminzhang/qimen-go/graphic"
-	"github.com/deminzhang/qimen-go/util"
-	"github.com/deminzhang/qimen-go/xuan"
-	"github.com/hajimehoshi/ebiten/v2"
 	"image/color"
 	"time"
+
+	"github.com/deminzhang/go-common/vec"
+	"github.com/deminzhang/qimen-go/graphic"
+	"github.com/deminzhang/qimen-go/xuan"
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type Unit struct {
@@ -75,7 +76,7 @@ func NewCamp(x, y float32, size int, name string, camp int) *Unit {
 
 func (u *Unit) Update(now, delta int64) {
 	if u.Tx != u.X || u.Ty != u.Y {
-		from := util.Vec2[float32]{X: u.X, Y: u.Y}
+		from := vec.Vec2[float32]{X: u.X, Y: u.Y}
 		newPos := from.MoveTowards(u.Tx, u.Ty, float64(u.Speed))
 		u.X, u.Y = newPos.X, newPos.Y
 		u.Sprite.x = int(u.X) - u.Size/2

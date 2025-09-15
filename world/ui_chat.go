@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/atotto/clipboard"
-	"github.com/deminzhang/qimen-go/gui"
+	"github.com/deminzhang/go-common/gui"
 )
 
 type UIChat struct {
