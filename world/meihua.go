@@ -6,11 +6,9 @@ import (
 	"strconv"
 
 	"github.com/deminzhang/go-common/gui"
-	"github.com/deminzhang/qimen-go/assets"
 	"github.com/deminzhang/qimen-go/graphic"
 	"github.com/deminzhang/qimen-go/xuan"
 	"github.com/hajimehoshi/ebiten/v2"
-	text "github.com/hajimehoshi/ebiten/v2/text"
 )
 
 const (
@@ -139,8 +137,8 @@ func (m *MeiHua) Update() {
 
 func (m *MeiHua) Draw(dst *ebiten.Image) {
 	m.Mover.Draw(dst)
-	ft14, _ := assets.GetDefaultFontFace(14)
-	text.Draw(dst, "梅花易数", ft14, m.X+16, m.Y+16, colorWhite)
+	ft14, _ := GetFontXFace(14)
+	TextDrawV2(dst, "梅花易数", ft14, m.X+16, m.Y+16, colorWhite)
 	cx, cy := m.X+26, m.Y+32
 	l := ThisGame.qmGame.Lunar
 	//yz := l.GetYearZhiExact()
@@ -148,31 +146,31 @@ func (m *MeiHua) Draw(dst *ebiten.Image) {
 	dz := l.GetDayZhiExact()
 	tz := l.GetTimeZhi()
 	//text.Draw(dst, fmt.Sprintf("%s年", yz), ft14, cx+184, cy-16, colorWhite)
-	text.Draw(dst, fmt.Sprintf("%s月", mz), ft14, cx+184, cy, ColorGanZhi(mz))
-	text.Draw(dst, fmt.Sprintf("%s日", dz), ft14, cx+184, cy+16, ColorGanZhi(dz))
-	text.Draw(dst, fmt.Sprintf("%s时", tz), ft14, cx+184, cy+32, ColorGanZhi(tz))
-	text.Draw(dst, "本卦", ft14, cx, cy, colorWhite)
-	text.Draw(dst, "互卦", ft14, cx+64, cy, colorWhite)
-	text.Draw(dst, "变卦", ft14, cx+128, cy, colorWhite)
+	TextDrawV2(dst, fmt.Sprintf("%s月", mz), ft14, cx+184, cy, ColorGanZhi(mz))
+	TextDrawV2(dst, fmt.Sprintf("%s日", dz), ft14, cx+184, cy+16, ColorGanZhi(dz))
+	TextDrawV2(dst, fmt.Sprintf("%s时", tz), ft14, cx+184, cy+32, ColorGanZhi(tz))
+	TextDrawV2(dst, "本卦", ft14, cx, cy, colorWhite)
+	TextDrawV2(dst, "互卦", ft14, cx+64, cy, colorWhite)
+	TextDrawV2(dst, "变卦", ft14, cx+128, cy, colorWhite)
 	cy += 16
-	text.Draw(dst, m.GuaOrigin, ft14, cx, cy, colorWhite)
-	text.Draw(dst, m.GuaProcess, ft14, cx+64, cy, colorWhite)
-	text.Draw(dst, m.GuaChange, ft14, cx+128, cy, colorWhite)
+	TextDrawV2(dst, m.GuaOrigin, ft14, cx, cy, colorWhite)
+	TextDrawV2(dst, m.GuaProcess, ft14, cx+64, cy, colorWhite)
+	TextDrawV2(dst, m.GuaChange, ft14, cx+128, cy, colorWhite)
 	cx += 24
 	cy += 32
 	dis := int(math.Round(float64(meiHuaGuaSize) * 1.25))
-	text.Draw(dst, fmt.Sprintf("%s%s", m.GuaUp, xuan.DiagramsWuxing[m.GuaUp]), ft14, cx+8, cy, color5Xing[xuan.DiagramsWuxing[m.GuaUp]])
-	text.Draw(dst, fmt.Sprintf("%s%s", m.GuaDown, xuan.DiagramsWuxing[m.GuaDown]), ft14, cx+8, cy+dis, color5Xing[xuan.DiagramsWuxing[m.GuaDown]])
-	text.Draw(dst, fmt.Sprintf("%s%s", m.GuaUpProcess, xuan.DiagramsWuxing[m.GuaUpProcess]), ft14, cx+8+64, cy, color5Xing[xuan.DiagramsWuxing[m.GuaUpProcess]])
-	text.Draw(dst, fmt.Sprintf("%s%s", m.GuaDownProcess, xuan.DiagramsWuxing[m.GuaDownProcess]), ft14, cx+8+64, cy+dis, color5Xing[xuan.DiagramsWuxing[m.GuaDownProcess]])
+	TextDrawV2(dst, fmt.Sprintf("%s%s", m.GuaUp, xuan.DiagramsWuxing[m.GuaUp]), ft14, cx+8, cy, color5Xing[xuan.DiagramsWuxing[m.GuaUp]])
+	TextDrawV2(dst, fmt.Sprintf("%s%s", m.GuaDown, xuan.DiagramsWuxing[m.GuaDown]), ft14, cx+8, cy+dis, color5Xing[xuan.DiagramsWuxing[m.GuaDown]])
+	TextDrawV2(dst, fmt.Sprintf("%s%s", m.GuaUpProcess, xuan.DiagramsWuxing[m.GuaUpProcess]), ft14, cx+8+64, cy, color5Xing[xuan.DiagramsWuxing[m.GuaUpProcess]])
+	TextDrawV2(dst, fmt.Sprintf("%s%s", m.GuaDownProcess, xuan.DiagramsWuxing[m.GuaDownProcess]), ft14, cx+8+64, cy+dis, color5Xing[xuan.DiagramsWuxing[m.GuaDownProcess]])
 	if m.ChangeYaoIdx > 3 {
-		text.Draw(dst, "用", ft14, cx-40, cy, colorWhite)
-		text.Draw(dst, "体", ft14, cx-40, cy+dis, colorWhite)
-		text.Draw(dst, fmt.Sprintf("%s%s", m.GuaUpChange, xuan.DiagramsWuxing[m.GuaUpChange]), ft14, cx+8+128, cy, color5Xing[xuan.DiagramsWuxing[m.GuaUpChange]])
+		TextDrawV2(dst, "用", ft14, cx-40, cy, colorWhite)
+		TextDrawV2(dst, "体", ft14, cx-40, cy+dis, colorWhite)
+		TextDrawV2(dst, fmt.Sprintf("%s%s", m.GuaUpChange, xuan.DiagramsWuxing[m.GuaUpChange]), ft14, cx+8+128, cy, color5Xing[xuan.DiagramsWuxing[m.GuaUpChange]])
 	} else {
-		text.Draw(dst, "体", ft14, cx-40, cy, colorWhite)
-		text.Draw(dst, "用", ft14, cx-40, cy+dis, colorWhite)
-		text.Draw(dst, fmt.Sprintf("%s%s", m.GuaDownChange, xuan.DiagramsWuxing[m.GuaDownChange]), ft14, cx+8+128, cy+dis, color5Xing[xuan.DiagramsWuxing[m.GuaDownChange]])
+		TextDrawV2(dst, "体", ft14, cx-40, cy, colorWhite)
+		TextDrawV2(dst, "用", ft14, cx-40, cy+dis, colorWhite)
+		TextDrawV2(dst, fmt.Sprintf("%s%s", m.GuaDownChange, xuan.DiagramsWuxing[m.GuaDownChange]), ft14, cx+8+128, cy+dis, color5Xing[xuan.DiagramsWuxing[m.GuaDownChange]])
 	}
 
 	for _, sprite := range m.GuaSprite {

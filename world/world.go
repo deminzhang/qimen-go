@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"log"
 
+	"github.com/deminzhang/go-common/asset"
 	"github.com/deminzhang/go-common/gui"
 	"github.com/deminzhang/qimen-go/assets"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -17,7 +18,7 @@ var (
 )
 
 func init() {
-	face, err := assets.GetDefaultFontFace(14)
+	face, err := asset.GetDefaultFontFace(14)
 	if err != nil {
 		return
 	}
@@ -25,11 +26,11 @@ func init() {
 }
 
 func GetFontFace(size float64) (font.Face, error) {
-	return assets.GetDefaultFontFace(size)
+	return asset.GetDefaultFontFace(size)
 }
 
 func GetFontXFace(size float64) (*text.GoXFace, error) {
-	return assets.GetDefaultFontXFace(size)
+	return asset.GetDefaultFontXFace(size)
 }
 
 //	func TextDrawV1(dst *ebiten.Image, text string, face font.Face, x, y int, clr color.Color){
@@ -43,11 +44,11 @@ func TextDrawV2(dst *ebiten.Image, txt string, xface *text.GoXFace, x, y int, cl
 }
 
 func setWindow() {
-	icon16, err := assets.LoadImage("images/icon_16x16.png")
+	icon16, err := asset.LoadImage(assets.FS, "images/icon_16x16.png")
 	if err != nil {
 		log.Fatal("loading icon_16: %w", err)
 	}
-	icon32, err := assets.LoadImage("images/icon_32x32.png")
+	icon32, err := asset.LoadImage(assets.FS, "images/icon_32x32.png")
 	if err != nil {
 		log.Fatal("loading icon_32: %w", err)
 	}

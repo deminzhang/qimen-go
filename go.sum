@@ -9,8 +9,6 @@ github.com/atotto/clipboard v0.1.4/go.mod h1:ZY9tmq7sm5xIbd9bOK4onWV4S6X0u6GY7Vn
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/deminzhang/go-common v0.0.0-20250915013202-bbb78ca8fc48 h1:4QwPQT7/5QUh0LKZ0KzVqcLgr6xT7YoELUQ+zwkd2Js=
-github.com/deminzhang/go-common v0.0.0-20250915013202-bbb78ca8fc48/go.mod h1:Rmj1P0AOuUdiUBomZJXTjLQ3W40y8AWHrS6HJ+TLde4=
 github.com/deminzhang/go-common v0.0.0-20250915021055-804f05ab10a1 h1:nGD4p1ZODgTmV8PUJR+MbAab8F+EAWY19oEjt6kVuVE=
 github.com/deminzhang/go-common v0.0.0-20250915021055-804f05ab10a1/go.mod h1:Rmj1P0AOuUdiUBomZJXTjLQ3W40y8AWHrS6HJ+TLde4=
 github.com/dustin/go-humanize v1.0.0 h1:VSnTsYCnlFHaM2/igO1h6X3HA71jcobQuxemgkq4zYo=
