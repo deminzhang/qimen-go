@@ -142,8 +142,8 @@ func NewGame() *Game {
 	if _, ok := util.Args2Map()["dev"]; ok {
 		Dev = true
 		gui.SetBorderDebug(true)
-		UIShowChat()
 	}
+	UIShowChat()
 	u := UIShowQiMen()
 	solar := calendar.NewSolarFromDate(time.Now())
 	pan := u.Apply(solar)

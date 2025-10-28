@@ -1,3 +1,5 @@
+#重命名为config.env使用
+
 #DeepSeek
 AI_API_URL=https://api.deepseek.com/chat/completions
 AI_MODEL=deepseek-chat #聊天
