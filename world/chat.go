@@ -50,7 +50,7 @@ func (c *Chat) ApplyChat(role, content string) {
 func (c *Chat) SendChat(role, content string) {
 	outFunc := c.outFunc
 	c.ApplyChat(role, content)
-	err := c.sendAIRequest(ChatURL, APIKey)
+	err := c.sendAIRequest(DeepSeekChatURL, APIKey)
 	if err != nil {
 		outFunc("error: %s\n", err.Error())
 		println("error: " + err.Error())
@@ -142,11 +142,11 @@ func (c *Chat) handleStreamResponse(resp *http.Response) error {
 			var thinking int64
 			for _, choice := range choices {
 				delta := choice.(map[string]interface{})["delta"].(map[string]interface{})
-				msg := delta["content"].(string)
 				if role == "" {
 					role = delta["role"].(string)
 					outFunc(role + ": ")
 				}
+				msg := delta["content"].(string)
 				switch msg {
 				case "<think>":
 					thinking = time.Now().Unix()
@@ -233,7 +233,7 @@ var chat *Chat
 func SendChat(str string) {
 	if chat == nil {
 		chat = NewChat("deepseek-chat", UIChatLog) //deepseek官方
-		chat.SetModel("deepseek-r1:7b")            //Ollama 本地
+		// chat.SetModel("deepseek-r1:7b")            //Ollama 本地
 		//chat.ApplyChat("system", "You are a helpful assistant.")
 		chat.ApplyChat("system", "假如你是一个玄学大师,精通八字命理,奇门遁甲,大六壬,梅花易数,星盘解读.")
 	}
