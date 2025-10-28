@@ -87,6 +87,9 @@ func NewUIChat() *UIChat {
 			msg = " 命令模式(help查看命令)"
 		} else {
 			msg = " 聊天模式(AI)"
+			if GetChat().APIKey == "" {
+				msg += "\n 请先设置APIKey 在config.env中"
+			}
 		}
 		textBoxLog.AppendTextLn(msg)
 	})

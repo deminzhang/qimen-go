@@ -1,0 +1,16 @@
+#DeepSeek
+AI_API_URL=https://api.deepseek.com/chat/completions
+AI_MODEL=deepseek-chat #聊天
+#AI_MODEL=deepseek-reasoner #深度
+#AI_MODEL=deepseek-coder
+AI_API_KEY=
+
+#本地 Ollama
+#AI_API_URL=http://127.0.0.1:11434/v1/chat/completions
+#AI_MODEL=deepseek-r1:7b
+#AI_API_KEY=
+
+#OpenAI
+#AI_API_URL=https://api.openai.com/v1/chat/completions
+#AI_MODEL=gpt-3.5-turbo
+#AI_API_KEY=

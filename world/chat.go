@@ -7,29 +7,39 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
 
 const (
-	//DeepSeekChatURL https://api-docs.deepseek.com/zh-cn/
-	DeepSeekChatURL = "https://api.deepseek.com/chat/completions" //官方 DeepSeek
-	DeepSeekAPIKey  = ""                                          // Replace with your API key
-
-	//ChatURL
-	//https://github.com/datawhalechina/handy-ollama/blob/main/docs/C4/1.%20Ollama%20API%20%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97.md
-	ChatURL = "http://10.100.136.238:11434/v1/chat/completions" //本地 Ollama
-	APIKey  = ""                                                // Replace with your API key
+// DeepSeekChatURL https://api-docs.deepseek.com/zh-cn/
+// DeepSeekChatURL = "https://api.deepseek.com/chat/completions" //官方 DeepSeek
+// ChatURL
+// https://github.com/datawhalechina/handy-ollama/blob/main/docs/C4/1.%20Ollama%20API%20%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97.md
+// ChatURL = "http://10.100.136.238:11434/v1/chat/completions" //本地 Ollama
 )
 
 type Chat struct {
-	Payload map[string]interface{}
+	ChatURL string
+	Model   string
+	APIKey  string
+
+	Stream  bool
+	Payload map[string]any
 	outFunc func(fmt string, a ...any)
 }
 
-func NewChat(model string, outFunc func(fmt string, a ...any)) *Chat {
+func NewChat(outFunc func(fmt string, a ...any)) *Chat {
+	url := os.Getenv("AI_API_URL")
+	model := os.Getenv("AI_MODEL")
+	apiKey := os.Getenv("AI_API_KEY")
 	return &Chat{
-		Payload: map[string]interface{}{
+		ChatURL: url,
+		Model:   model,
+		APIKey:  apiKey,
+
+		Payload: map[string]any{
 			"model":    model,
 			"messages": []map[string]string{},
 			//"stream": false, //非流式 一次性返回
@@ -50,7 +60,13 @@ func (c *Chat) ApplyChat(role, content string) {
 func (c *Chat) SendChat(role, content string) {
 	outFunc := c.outFunc
 	c.ApplyChat(role, content)
-	err := c.sendAIRequest(DeepSeekChatURL, APIKey)
+	if c.APIKey == "" {
+		errMsg := "请先设置APIKey 在config.env中"
+		println(errMsg)
+		outFunc("error: %s\n", errMsg)
+		return
+	}
+	err := c.sendAIRequest(c.ChatURL, c.APIKey)
 	if err != nil {
 		outFunc("error: %s\n", err.Error())
 		println("error: " + err.Error())
@@ -232,11 +248,18 @@ var chat *Chat
 
 func SendChat(str string) {
 	if chat == nil {
-		chat = NewChat("deepseek-chat", UIChatLog) //deepseek官方
+		chat = NewChat(UIChatLog) //deepseek官方
 		// chat.SetModel("deepseek-r1:7b")            //Ollama 本地
 		//chat.ApplyChat("system", "You are a helpful assistant.")
 		chat.ApplyChat("system", "假如你是一个玄学大师,精通八字命理,奇门遁甲,大六壬,梅花易数,星盘解读.")
 	}
 	chat.ApplyChat("system", fmt.Sprintf("当前时间是: %s", time.Now().Format(time.DateTime)))
 	chat.SendChat("user", str)
+}
+
+func GetChat() *Chat {
+	if chat == nil {
+		chat = NewChat(UIChatLog)
+	}
+	return chat
 }
