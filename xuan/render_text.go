@@ -481,27 +481,48 @@ func RenderBaZi(lunar *calendar.Lunar, gender int, daYun, xiaoYun []string, shen
 			label, cols[0], cols[1], cols[2], cols[3], cols[4], cols[5]))
 	}
 
+	nayiDY := "-"
+	if dyGan != "" && dyZhi != "" {
+		nayiDY = LunarUtil.NAYIN[dyGan+dyZhi]
+	}
+	nayiLN := "-"
+	if lnGan != "" && lnZhi != "" {
+		nayiLN = LunarUtil.NAYIN[lnGan+lnZhi]
+	}
 	sb.WriteString(fmt.Sprintf("%-8s %-8s %-8s %-8s %-8s %-8s %-8s\n", "纳音",
 		LunarUtil.NAYIN[bz.GetYearGan()+bz.GetYearZhi()],
 		LunarUtil.NAYIN[bz.GetMonthGan()+bz.GetMonthZhi()],
 		LunarUtil.NAYIN[bz.GetDayGan()+bz.GetDayZhi()],
 		LunarUtil.NAYIN[bz.GetTimeGan()+bz.GetTimeZhi()],
-		LunarUtil.NAYIN[dyGan+dyZhi],
-		LunarUtil.NAYIN[lnGan+lnZhi]))
+		nayiDY, nayiLN))
 
+	xkDY := "-"
+	if dyGan != "" && dyZhi != "" {
+		xkDY = LunarUtil.GetXunKong(dyGan + dyZhi)
+	}
+	xkLN := "-"
+	if lnGan != "" && lnZhi != "" {
+		xkLN = LunarUtil.GetXunKong(lnGan + lnZhi)
+	}
 	sb.WriteString(fmt.Sprintf("%-8s %-8s %-8s %-8s %-8s %-8s %-8s\n", "空亡",
 		lunar.GetYearXunKongExact(), lunar.GetMonthXunKongExact(),
 		lunar.GetDayXunKongExact(), lunar.GetTimeXunKong(),
-		LunarUtil.GetXunKong(dyGan+dyZhi),
-		LunarUtil.GetXunKong(lnGan+lnZhi)))
+		xkDY, xkLN))
 
+	diShiDY := "-"
+	if dyZhi != "" {
+		diShiDY = ZhangSheng12[soul][dyZhi]
+	}
+	diShiLN := "-"
+	if lnZhi != "" {
+		diShiLN = ZhangSheng12[soul][lnZhi]
+	}
 	sb.WriteString(fmt.Sprintf("%-8s %-8s %-8s %-8s %-8s %-8s %-8s\n", "地势",
 		ZhangSheng12[soul][bz.GetYearZhi()],
 		ZhangSheng12[soul][bz.GetMonthZhi()],
 		ZhangSheng12[soul][bz.GetDayZhi()]+"(自坐)",
 		ZhangSheng12[soul][bz.GetTimeZhi()],
-		ZhangSheng12[soul][dyZhi],
-		ZhangSheng12[soul][lnZhi]))
+		diShiDY, diShiLN))
 
 	sb.WriteString(fmt.Sprintf("%-8s %-8s", "\n神煞", "年:"+strings.Join(shenSha[0], ",")))
 	sb.WriteString(fmt.Sprintf("\n%8s %-8s", "", "月:"+strings.Join(shenSha[1], ",")))
