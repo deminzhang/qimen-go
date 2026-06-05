@@ -520,7 +520,8 @@ func (a *Astrolabe) GetNASAData(tid int, sts, ets string) map[string]*observeDat
 	//QUANTITIES='1,3,20,23,24,29'
 	//Date__(UT)__HR:MN     R.A._____(ICRF)_____DEC  dRA*cosD d(DEC)/dt             delta      deldot     S-O-T /r     S-T-O  Cnst
 
-	resp, err := http.Get(urls)
+	httpClient := &http.Client{Timeout: 30 * time.Second}
+	resp, err := httpClient.Get(urls)
 	if err != nil {
 		log.Printf("Error sending GET request: %s\n", err.Error())
 		return nil

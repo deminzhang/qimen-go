@@ -3,11 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
-	"strconv"
-	"strings"
-	"time"
 
 	"github.com/6tail/lunar-go/calendar"
+	"github.com/deminzhang/qimen-go/util"
 	"github.com/deminzhang/qimen-go/xuan"
 )
 
@@ -20,47 +18,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	// 解析时间
 	timeStr := os.Args[1]
-	var solar *calendar.Solar
-	if strings.Contains(timeStr, ":") {
-		t, err := time.Parse("2006-1-2 15:04", timeStr)
-		if err != nil {
-			t, err = time.Parse("2006-01-02 15:04", timeStr)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "时间格式错误: %v\n", err)
-				os.Exit(1)
-			}
-		}
-		solar = calendar.NewSolar(t.Year(), int(t.Month()), t.Day(), t.Hour(), t.Minute(), 0)
-	} else {
-		t, err := time.Parse("2006-1-2", timeStr)
-		if err != nil {
-			t, err = time.Parse("2006-01-02", timeStr)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "时间格式错误: %v\n", err)
-				os.Exit(1)
-			}
-		}
-		solar = calendar.NewSolar(t.Year(), int(t.Month()), t.Day(), 12, 0, 0)
+	solar, err := util.ParseTime(timeStr)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
 	}
 
-	// 解析性别
-	gender := 1 // 默认男
-	if len(os.Args) > 2 {
-		switch os.Args[2] {
-		case "男", "1":
-			gender = 1
-		case "女", "0":
-			gender = 0
-		default:
-			if v, err := strconv.Atoi(os.Args[2]); err == nil {
-				gender = v
-			} else {
-				fmt.Fprintf(os.Stderr, "未知性别: %s (男/女)\n", os.Args[2])
-				os.Exit(1)
-			}
-		}
+	gender, err := util.ParseGender(os.Args[2])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
 	}
 
 	lunar := calendar.NewLunarFromSolar(solar)
@@ -75,7 +43,7 @@ func main() {
 	daYuns := yun.GetDaYun()
 	var daYunStrs []string
 	for _, dy := range daYuns {
-		if dy.GetIndex() > 0 { // 跳过0岁小运
+		if dy.GetIndex() > 0 {
 			daYunStrs = append(daYunStrs, fmt.Sprintf("%s(%d-%d)",
 				dy.GetGanZhi(), dy.GetStartYear(), dy.GetEndYear()))
 		}
@@ -113,12 +81,9 @@ func main() {
 
 	output := xuan.RenderBaZi(lunar, gender, daYunStrs, xiaoYunStrs, shenShaList, curDYGan, curDYzhi, lnGan, lnZhi)
 
-	// 写到文件
 	filename := fmt.Sprintf("bazi_%s_%s.txt", solar.ToYmd(), map[int]string{0: "女", 1: "男"}[gender])
-	if err := os.WriteFile(filename, []byte(output), 0644); err != nil {
-		fmt.Fprintf(os.Stderr, "写入文件失败: %v\n", err)
+	if err := util.WriteResultFile(filename, output); err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
-
-	fmt.Printf("排盘成功! 输出文件: %s\n", filename)
 }
