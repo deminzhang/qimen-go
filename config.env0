@@ -2,9 +2,7 @@
 
 #DeepSeek
 AI_API_URL=https://api.deepseek.com/chat/completions
-AI_MODEL=deepseek-chat #聊天
-#AI_MODEL=deepseek-reasoner #深度
-#AI_MODEL=deepseek-coder
+AI_MODEL=deepseek-v4-flash
 AI_API_KEY=
 
 #本地 Ollama
