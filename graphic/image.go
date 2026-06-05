@@ -1,12 +1,15 @@
 package graphic
 
 import (
-	"github.com/deminzhang/qimen-go/asset"
+	"image/color"
+	"math"
+
+	"github.com/deminzhang/go-common/asset"
 	"github.com/deminzhang/qimen-go/util"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/text"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
-	"image/color"
+	"golang.org/x/exp/constraints"
 )
 
 func NewRectImage(size int) *ebiten.Image {
@@ -156,54 +159,61 @@ func NewMoonImage(size int) *ebiten.Image {
 	cover.DrawImage(moon, op)
 	return cover
 }
+func TextDrawV2[T constraints.Integer | constraints.Float](dst *ebiten.Image, txt string, xface *text.GoXFace, x, y T, clr color.Color) {
+	op := &text.DrawOptions{}
+	op.GeoM.Translate(float64(x), float64(y))
+	op.ColorScale.ScaleWithColor(clr)
+	text.Draw(dst, txt, xface, op)
+}
 
 // 火星
 func NewMarsImage(size int) *ebiten.Image {
 	img := ebiten.NewImage(size, size)
-	ft, _ := asset.GetDefaultFontFace(float64(size))
-	text.Draw(img, "火", ft, 0, size, color.White)
+	ft, _ := asset.GetDefaultFontXFace(float64(size))
+	TextDrawV2(img, "火", ft, 0, size, color.White)
 	return img
 }
 
 // 木星
 func NewJupiterImage(size int) *ebiten.Image {
 	img := ebiten.NewImage(size, size)
-	ft, _ := asset.GetDefaultFontFace(float64(size))
-	text.Draw(img, "木", ft, 0, size, color.White)
+	ft, _ := asset.GetDefaultFontXFace(float64(size))
+	TextDrawV2(img, "木", ft, 0, size, color.White)
 	return img
 }
 
 // 土星
 func NewSaturnImage(size int) *ebiten.Image {
 	img := ebiten.NewImage(size, size)
-	ft, _ := asset.GetDefaultFontFace(float64(size))
-	text.Draw(img, "土", ft, 0, size, color.White)
+	ft, _ := asset.GetDefaultFontXFace(float64(size))
+	TextDrawV2(img, "土", ft, 0, size, color.White)
 	return img
 }
 
 // 水星
 func NewMercuryImage(size int) *ebiten.Image {
 	img := ebiten.NewImage(size, size)
-	ft, _ := asset.GetDefaultFontFace(float64(size))
-	text.Draw(img, "水", ft, 0, size, color.White)
+	ft, _ := asset.GetDefaultFontXFace(float64(size))
+	TextDrawV2(img, "水", ft, 0, size, color.White)
 	return img
 }
 
 // 金星
 func NewVenusImage(size int) *ebiten.Image {
 	img := ebiten.NewImage(size, size)
-	ft, _ := asset.GetDefaultFontFace(float64(size))
-	text.Draw(img, "金", ft, 0, size, color.White)
+	ft, _ := asset.GetDefaultFontXFace(float64(size))
+	TextDrawV2(img, "金", ft, 0, size, color.White)
 	return img
 }
 
 func NewTextImage(txt string, size int) *ebiten.Image {
 	img := ebiten.NewImage(size, size)
-	ft, _ := asset.GetDefaultFontFace(float64(size))
-	text.Draw(img, txt, ft, 0, size, color.White)
+	ft, _ := asset.GetDefaultFontXFace(float64(size))
+	TextDrawV2(img, txt, ft, 0, size, color.White)
 	return img
 }
 
+// 营帐
 func NewCampImage(size int) *ebiten.Image {
 	img := ebiten.NewImage(size, size)
 	c := color.White
@@ -225,10 +235,11 @@ func NewCampImage(size int) *ebiten.Image {
 	return img
 }
 
+// 兵
 func NewArmyImage(name string, size, action int) *ebiten.Image {
 	img := ebiten.NewImage(size, size)
-	ft, _ := asset.GetDefaultFontFace(float64(size))
-	text.Draw(img, name, ft, 0, size*7/8, color.White)
+	ft, _ := asset.GetDefaultFontXFace(float64(size))
+	TextDrawV2(img, name, ft, 0, size*7/8, color.White)
 	switch action {
 	case 1:
 		vector.StrokeLine(img, 1, float32(size)*3/4, float32(size), float32(size)/4, 1, color.White, true) //横兵
@@ -237,3 +248,61 @@ func NewArmyImage(name string, size, action int) *ebiten.Image {
 	}
 	return img
 }
+
+// 心形
+func NewHeartImage(size int) *ebiten.Image {
+	img := ebiten.NewImage(size, size)
+	//用心形函数绘制心形
+	matrix := make([][]bool, size)
+	for i := range matrix {
+		matrix[i] = make([]bool, size)
+	}
+	minX, minY, maxX, maxY := size, size, 0, 0
+	for t := 0.0; t < 2*math.Pi; t += 0.01 {
+		x := 16 * math.Pow(math.Sin(t), 3)
+		y := 13*math.Cos(t) - 5*math.Cos(2*t) - 2*math.Cos(3*t) - math.Cos(4*t)
+		xPos := int((x + 20) / 40 * float64(size))
+		//yPos := int((y + 20) / 40 * float64(size)) //心尖向上
+		// 上下翻转y坐标
+		yPos := int((-y + 20) / 40 * float64(size)) //心尖向下
+		if xPos >= 0 && xPos < size && yPos >= 0 && yPos < size {
+			matrix[xPos][yPos] = true
+			if xPos < minX {
+				minX = xPos
+			}
+			if yPos < minY {
+				minY = yPos
+			}
+			if xPos > maxX {
+				maxX = xPos
+			}
+			if yPos > maxY {
+				maxY = yPos
+			}
+		}
+	}
+	// 填充内部
+	for i := minX; i <= maxX; i++ {
+		left, right := -1, -1
+		for j := minY; j <= maxY; j++ {
+			if matrix[i][j] {
+				if left == -1 {
+					left = j
+				}
+				right = j
+			}
+		}
+		if left != -1 && right != -1 {
+			for k := left; k <= right; k++ {
+				img.Set(i, k, color.White)
+			}
+		}
+	}
+	return img
+}
+
+// TODO
+// 四角星
+// 五角星
+// 圆孤
+// 扇形

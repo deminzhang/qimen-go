@@ -1,12 +1,16 @@
 package world
 
 import (
-	"github.com/deminzhang/qimen-go/asset"
-	"github.com/deminzhang/qimen-go/gui"
-	"github.com/hajimehoshi/ebiten/v2"
-	"golang.org/x/image/font"
 	"image"
+	"image/color"
 	"log"
+
+	"github.com/deminzhang/go-common/asset"
+	"github.com/deminzhang/go-common/gui"
+	"github.com/deminzhang/qimen-go/assets"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"golang.org/x/image/font"
 )
 
 var (
@@ -25,12 +29,26 @@ func GetFontFace(size float64) (font.Face, error) {
 	return asset.GetDefaultFontFace(size)
 }
 
+func GetFontXFace(size float64) (*text.GoXFace, error) {
+	return asset.GetDefaultFontXFace(size)
+}
+
+//	func TextDrawV1(dst *ebiten.Image, text string, face font.Face, x, y int, clr color.Color){
+//			"github.com/hajimehoshi/ebiten/v2/text".Draw(dst, text, face, x, y, clr)
+//		}
+func TextDrawV2(dst *ebiten.Image, txt string, xface *text.GoXFace, x, y int, clr color.Color) {
+	op := &text.DrawOptions{}
+	op.GeoM.Translate(float64(x), float64(y))
+	op.ColorScale.ScaleWithColor(clr)
+	text.Draw(dst, txt, xface, op)
+}
+
 func setWindow() {
-	icon16, err := asset.LoadImage("images/icon_16x16.png")
+	icon16, err := asset.LoadImage(assets.FS, "images/icon_16x16.png")
 	if err != nil {
 		log.Fatal("loading icon_16: %w", err)
 	}
-	icon32, err := asset.LoadImage("images/icon_32x32.png")
+	icon32, err := asset.LoadImage(assets.FS, "images/icon_32x32.png")
 	if err != nil {
 		log.Fatal("loading icon_32: %w", err)
 	}

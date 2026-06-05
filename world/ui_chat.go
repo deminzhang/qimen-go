@@ -2,8 +2,10 @@ package world
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/atotto/clipboard"
-	"github.com/deminzhang/qimen-go/gui"
+	"github.com/deminzhang/go-common/gui"
 )
 
 type UIChat struct {
@@ -26,24 +28,31 @@ func UIHideChat() {
 		uiChat = nil
 	}
 }
+func UIChatLogLn(msg string, a ...any) {
+	if uiChat != nil {
+		uiChat.ChatLogLn(msg, a...)
+	}
+}
 func UIChatLog(msg string, a ...any) {
 	if uiChat != nil {
 		uiChat.ChatLog(msg, a...)
+	} else {
+		print(msg)
 	}
 }
 
 func NewUIChat() *UIChat {
 	p := &UIChat{
 		BaseUI: gui.BaseUI{Visible: true,
-			X: 0, Y: ScreenHeight - 250, W: 350, H: 250,
+			X: 0, Y: ScreenHeight - 250, W: 550, H: 250,
 		},
 		showChatUI: false,
 	}
-	textBoxLog := gui.NewTextBox(16, 0, 270, 180)
-	inputBoxChat := gui.NewInputBox(16, 190, 270, 32)
+	textBoxLog := gui.NewTextBox(16, 0, 470, 180)
+	inputBoxChat := gui.NewInputBox(16, 190, 470, 24)
 
-	checkBoxGM := gui.NewCheckBox(290, 200, "令")
-	btnChatSend := gui.NewButton(290, 230, 32, 16, "发")
+	checkBoxGM := gui.NewCheckBox(490, 200, "令")
+	btnChatSend := gui.NewButton(490, 230, 32, 16, "发")
 
 	btnChatSwitch := gui.NewButton(0, 230, 32, 16, "隐")
 	btnClear := gui.NewButton(32, 230, 32, 16, "清")
@@ -52,10 +61,10 @@ func NewUIChat() *UIChat {
 	p.AddChildren(btnChatSwitch, btnClear, btnCopy,
 		textBoxLog,
 		inputBoxChat,
-		//checkBoxGM,
+		checkBoxGM,
 		btnChatSend)
 
-	inputBoxChat.DefaultText = "输入信息指令.."
+	inputBoxChat.DefaultText = "输入内容发送.."
 
 	inputBoxChat.SetOnPressEnter(func(i *gui.InputBox) {
 		if !p.showChatUI {
@@ -66,15 +75,23 @@ func NewUIChat() *UIChat {
 		} else {
 			i.SetFocused(true)
 		}
+		if i.TextField.IsFocused() {
+			i.TextField.Blur()
+		} else {
+			i.TextField.Focus()
+		}
 	})
 	checkBoxGM.SetOnCheckChanged(func(c *gui.CheckBox) {
-		msg := "debug command"
+		var msg string
 		if c.Checked() {
-			msg += " (On)"
+			msg = " 命令模式(help查看命令)"
 		} else {
-			msg += " (Off)"
+			msg = " 聊天模式(AI)"
+			if GetChat().APIKey == "" {
+				msg += "\n 请先设置APIKey 在config.env中"
+			}
 		}
-		textBoxLog.AppendLine(msg)
+		textBoxLog.AppendTextLn(msg)
 	})
 	checkBoxGM.SetChecked(true)
 	btnChatSend.SetOnClick(func() {
@@ -82,21 +99,20 @@ func NewUIChat() *UIChat {
 		if i.Text() != "" {
 			i.SetFocused(false)
 			if checkBoxGM.Checked() { //调试命令
-				textBoxLog.AppendLine("cmd: " + i.Text())
-				//sendGMCmd(i.Text())
+				textBoxLog.AppendTextLn("cmd: " + i.Text())
+				parseCmd(i.Text())
 			} else { //聊天
-				textBoxLog.AppendLine("me:" + i.Text())
-				//sendChat(World.self, i.Text)
+				p.ChatLogLn("me: %s\n", i.Text())
+				go SendChat(i.Text())
 			}
 			i.AppendTextHistory(i.Text())
 			i.SetText("")
 		} else {
 			i.SetFocused(false)
-			textBoxLog.AppendLine("no input msg")
+			textBoxLog.AppendTextLn("no input msg")
 		}
 	})
-	btnChatSwitch.SetOnClick(func() {
-		p.showChatUI = !p.showChatUI
+	resetView := func() {
 		if p.showChatUI {
 			btnChatSwitch.Text = "隐"
 		} else {
@@ -108,6 +124,10 @@ func NewUIChat() *UIChat {
 		checkBoxGM.Visible = p.showChatUI
 		btnClear.Visible = p.showChatUI
 		btnCopy.Visible = p.showChatUI
+	}
+	btnChatSwitch.SetOnClick(func() {
+		p.showChatUI = !p.showChatUI
+		resetView()
 	})
 	btnClear.SetOnClick(func() {
 		textBoxLog.Text = ""
@@ -118,6 +138,7 @@ func NewUIChat() *UIChat {
 
 	p.textBoxLog = textBoxLog
 	uiChat = p
+	resetView()
 	return p
 }
 
@@ -129,9 +150,41 @@ func (p *UIChat) OnClose() {
 	uiChat = nil
 }
 
+func (p *UIChat) ChatLogLn(msg string, a ...any) {
+	if len(a) > 0 {
+		msg = fmt.Sprintf(msg, a...)
+	}
+	p.textBoxLog.AppendTextLn(msg)
+}
 func (p *UIChat) ChatLog(msg string, a ...any) {
 	if len(a) > 0 {
 		msg = fmt.Sprintf(msg, a...)
 	}
-	p.textBoxLog.AppendLine(msg)
+	p.textBoxLog.AppendText(msg)
+}
+
+func parseCmd(str string) {
+	arr := strings.Split(str, " ")
+	var args []string
+	for _, ss := range arr {
+		if len(strings.TrimSpace(ss)) > 0 {
+			args = append(args, strings.TrimSpace(ss))
+		}
+	}
+	switch strings.ToLower(args[0]) {
+	case strings.ToLower("help"):
+		UIChatLogLn("help: show help")
+		UIChatLogLn("showBattle: 显战斗")
+		UIChatLogLn("hideBattle: 隐战斗")
+		UIChatLogLn("showWave: 显示引力波")
+		UIChatLogLn("hideWave: 隐引力波")
+	case strings.ToLower("showBattle"):
+		ThisGame.showBattle = true
+	case strings.ToLower("hideBattle"):
+		ThisGame.showBattle = false
+	case strings.ToLower("showWave"):
+		ThisGame.showWave = true
+	case strings.ToLower("hideWave"):
+		ThisGame.showWave = false
+	}
 }

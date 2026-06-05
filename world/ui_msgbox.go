@@ -1,7 +1,7 @@
 package world
 
 import (
-	"github.com/deminzhang/qimen-go/gui"
+	"github.com/deminzhang/go-common/gui"
 )
 
 const (

@@ -2,14 +2,6 @@ package world
 
 import (
 	"fmt"
-	"github.com/6tail/lunar-go/calendar"
-	"github.com/deminzhang/qimen-go/graphic"
-	"github.com/deminzhang/qimen-go/qimen"
-	"github.com/deminzhang/qimen-go/util"
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/text"
-	"github.com/hajimehoshi/ebiten/v2/vector"
-	_ "github.com/mattn/go-sqlite3"
 	"image/color"
 	"io"
 	"log"
@@ -22,7 +14,14 @@ import (
 	"strings"
 	"sync"
 	"time"
-	_ "xorm.io/core"
+
+	"github.com/6tail/lunar-go/calendar"
+	"github.com/deminzhang/go-common/vec"
+	"github.com/deminzhang/qimen-go/graphic"
+	"github.com/deminzhang/qimen-go/util"
+	"github.com/deminzhang/qimen-go/xuan"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 const (
@@ -33,7 +32,7 @@ const (
 	outCircleR  = 240
 	outCircleW  = 16
 	outCircleR0 = outCircleR + outCircleW/2
-	sphereR     = outCircleR - outCircleW*4
+	sphereR     = outCircleR - outCircleW*1.5
 
 	DataTimeMin        = "2006-01-02 15:04"
 	DateTimeNASA       = "2006-Jan-02 15:04"
@@ -45,6 +44,8 @@ const (
 
 	DataStartYear = 1600 //NASA数据支持开始年份
 	DataEndYear   = 2500 //NASA数据支持结束年份
+	//NASAURL 获取NASA天文数据,可能需翻墙
+	NASAURL = "https://ssd.jpl.nasa.gov/api/horizons.api?format=text&COMMAND='%d'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='500@399'&START_TIME='%s'&STOP_TIME='%s'&STEP_SIZE='%s'&QUANTITIES='1,20,23,24,29'"
 )
 
 // 建星是太阳位置,星座是太阳上升,所以星座相当建星是指定地支时
@@ -210,7 +211,7 @@ func (a *Astrolabe) Update() {
 			a.Y += float32(dy)
 			a.dirty = true
 		}
-		ThisGame.AddSprite(a.Earth)
+		ThisGame.StrokeManager.AddSprite(a.Earth)
 	}
 	a.Earth.MoveTo(int(cx-8), int(cy-8))
 	//计算太阳位置 以时间计角度
@@ -230,7 +231,7 @@ func (a *Astrolabe) Update() {
 		moon := Bodies[301]
 		moonY, moonX := util.CalRadiansPos(cy, cx, moon.DrawR(), degreesM)
 		moon.drawX, moon.drawY = moonX, moonY
-		v1 := (&util.Vec2[float32]{X: moon.drawX - cx, Y: moon.drawY - cy}).ScaledToLength(sphereR)
+		v1 := (&vec.Vec2[float32]{X: moon.drawX - cx, Y: moon.drawY - cy}).ScaledToLength(sphereR)
 		moon.sphereX = cx + v1.X
 		moon.sphereY = cy + v1.Y
 		if a.Moon == nil {
@@ -271,7 +272,7 @@ func (a *Astrolabe) Update() {
 		switch id {
 		case 10:
 			body.drawX, body.drawY = a.solarX, a.solarY
-			v1 := (&util.Vec2[float32]{X: body.drawX - cx, Y: body.drawY - cy}).ScaledToLength(sphereR)
+			v1 := (&vec.Vec2[float32]{X: body.drawX - cx, Y: body.drawY - cy}).ScaledToLength(sphereR)
 			body.sphereX = cx + v1.X
 			body.sphereY = cy + v1.Y
 
@@ -286,7 +287,7 @@ func (a *Astrolabe) Update() {
 				degrees = 90 - 270 - degreesSO + ost
 			}
 			body.drawY, body.drawX = util.CalRadiansPos(solarY, solarX, body.DrawR(), degrees)
-			v1 := (&util.Vec2[float32]{X: body.drawX - cx, Y: body.drawY - cy}).ScaledToLength(sphereR)
+			v1 := (&vec.Vec2[float32]{X: body.drawX - cx, Y: body.drawY - cy}).ScaledToLength(sphereR)
 			body.sphereX = cx + v1.X
 			body.sphereY = cy + v1.Y
 			//switch id {
@@ -345,8 +346,8 @@ func (a *Astrolabe) calGongLocation() {
 		a.ConstellationLoc[i-1] = SegmentPos{lx1, ly1, lx2, ly2, int(x), int(y)}
 	}
 	for i := 1; i <= 28; i++ {
-		xiu := qimen.Xiu28[i]
-		degrees := a.tzRA0 + qimen.XiuAngle[xiu]
+		xiu := xuan.Xiu28[i]
+		degrees := a.tzRA0 + xuan.XiuAngle[xiu]
 		r := float64(outCircleR0 - outCircleW)
 		ly1, lx1 := util.CalRadiansPos(cy, cx, float32(r-outCircleW/2), degrees)
 		ly2, lx2 := util.CalRadiansPos(cy, cx, float32(r+outCircleW/2), degrees)
@@ -358,7 +359,8 @@ func (a *Astrolabe) DataQuerying() bool {
 	return a.dataQuerying != 0
 }
 func (a *Astrolabe) Draw(dst *ebiten.Image) {
-	ft, _ := GetFontFace(12)
+	xf, _ := GetFontXFace(12)
+
 	cx, cy := a.X, a.Y
 	sX, sY := a.solarX, a.solarY
 	//外圈
@@ -369,8 +371,6 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 	vector.StrokeCircle(dst, cx, cy, r, w, colorGroundGateCircle, true) //星宿
 	r -= w
 	vector.StrokeCircle(dst, cx, cy, r, w, colorPowerCircle, true) //天球
-	r -= w
-	vector.StrokeCircle(dst, cx, cy, r, w, colorGroundGateCircle, true) //宫位
 	//十字线
 	horizons := float32(0) //TODO 地平线按太阳视角调整
 	vector.StrokeLine(dst, cx-outCircleR, cy-horizons, cx+outCircleR, cy-horizons, 1, colorCross, true)
@@ -378,29 +378,29 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 	//春分点 RA0
 	tzY, tzX := util.CalRadiansPos(cy, cx, outCircleR/2, a.tzRA0)
 	vector.StrokeLine(dst, cx, cy, tzX, tzY, 1, colorOrbits, true)
-	text.Draw(dst, "春分", ft, int(tzX), int(tzY), colorLeader)                                                        //春分点
-	text.Draw(dst, fmt.Sprintf("%s月", ThisGame.qmGame.Lunar.GetYueXiang()), ft, int(cx-16), int(cy-25), colorLeader) //月相
+	TextDrawV2(dst, "春分", xf, int(tzX), int(tzY), colorLeader)                                                        //春分点
+	TextDrawV2(dst, fmt.Sprintf("%s月", ThisGame.qmGame.Lunar.GetYueXiang()), xf, int(cx-16), int(cy-25), colorLeader) //月相
 
 	//画12宫
 	for i := 0; i < 12; i++ {
 		l := a.ConstellationLoc[i]
 		vector.StrokeLine(dst, l.Lx1, l.Ly1, l.Lx2, l.Ly2, 1, colorGongSplit, true) //星宫
 		//text.Draw(dst, qimen.ConstellationSymbol[i], ft, l.X-6, l.Y+6, colorJiang)  //星座符号 需要字体支持
-		text.Draw(dst, qimen.ConstellationShort[i], ft, l.X-6, l.Y+6, colorJiang) //星座
+		TextDrawV2(dst, xuan.ConstellationShort[i], xf, l.X-6, l.Y+6, colorJiang) //星座
 		l = a.AstrolabeLoc[i]
 		vector.StrokeLine(dst, l.Lx1, l.Ly1, l.Lx2, l.Ly2, 1, colorGongSplit, true) //宫
 		//text.Draw(dst, fmt.Sprintf("%d", i+1), ft, l.X-4, l.Y+4, colorJiang)        //宫位
-		degrees := float64(i+1)*30 - 90
-		r := float64(outCircleR0 - outCircleW*2)
+		//degrees := float64(i+1)*30 - 90
+		//r := float64(outCircleR0 - outCircleW*2)
 		//gongName := qimen.AstrolabeGong[i] //宫名
-		gongName := qimen.AstrolabeGong74[i] //政余名
-		DrawRotateText(dst, float64(cx-4), float64(cy+4), r, degrees-10, gongName, 12, colorJiang)
+		//gongName := xuan.AstrolabeGong74[i] //政余名
+		//DrawRotateText(dst, float64(cx-4), float64(cy+4), r, degrees-10, gongName, 12, colorJiang)
 	}
 	//画28星宿
 	for i := 1; i <= 28; i++ {
 		l := a.XiuLoc[i-1]
 		vector.StrokeLine(dst, l.Lx1, l.Ly1, l.Lx2, l.Ly2, 1, colorGongSplit, true) //星宿
-		text.Draw(dst, qimen.Xiu28[i], ft, l.X-4, l.Y+4, colorJiang)                //星宿
+		TextDrawV2(dst, xuan.Xiu28[i], xf, l.X-4, l.Y+4, colorJiang)                //星宿
 	}
 	//画星体
 	for _, id := range Draws {
@@ -420,7 +420,7 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 			vector.StrokeCircle(dst, obj.sphereX, obj.sphereY, 2, .5, obj.color, true) // sphere
 
 			//text.Draw(dst, qimen.StarSymbol[obj.nameCN], ft, int(obj.sphereX-8), int(obj.sphereY-8), obj.color) //星体符号需要字体支持
-			text.Draw(dst, obj.nameCN, ft, int(obj.sphereX), int(obj.sphereY), obj.color)
+			TextDrawV2(dst, obj.nameCN, xf, int(obj.sphereX), int(obj.sphereY), obj.color)
 		}
 		if obj.Id == 10 { //日
 			if a.Sun != nil {
@@ -442,7 +442,7 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 				if a.Moon != nil {
 					a.Moon.Draw(dst)
 				}
-				text.Draw(dst, ob.nameCN, ft, int(ob.sphereX), int(ob.sphereY), ob.color)
+				TextDrawV2(dst, ob.nameCN, xf, int(ob.sphereX), int(ob.sphereY), ob.color)
 			} else {
 				my, mx := util.CalRadiansPos(obj.drawY, obj.drawX, ob.DrawR(), float32(rand.Intn(360)))
 				vector.DrawFilledCircle(dst, mx, my, 1, obj.color, true) //satellite
@@ -452,9 +452,9 @@ func (a *Astrolabe) Draw(dst *ebiten.Image) {
 	a.DrawGravity(dst)
 	switch a.dataQuerying {
 	case 1:
-		text.Draw(dst, "正在查询..", ft, int(cx-32), int(cy-10), color.White)
+		TextDrawV2(dst, "正在查询..", xf, int(cx-32), int(cy-10), color.White)
 	case 2:
-		text.Draw(dst, "正在观星..", ft, int(cx-32), int(cy-10), color.White)
+		TextDrawV2(dst, "正在观星..", xf, int(cx-32), int(cy-10), color.White)
 	}
 }
 func (a *Astrolabe) DrawGravity(dst *ebiten.Image) {
@@ -516,16 +516,13 @@ func (a *Astrolabe) GetEphemeris(tid int, s *calendar.Solar) *ObserveData {
 }
 
 func (a *Astrolabe) GetNASAData(tid int, sts, ets string) map[string]*observeDataSrc {
-	urls := fmt.Sprintf("https://ssd.jpl.nasa.gov/api/horizons.api?"+
-		"format=text&COMMAND='%d'&OBJ_DATA='YES'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='500@399'"+
-		"&START_TIME='%s'&STOP_TIME='%s'&STEP_SIZE='%s'&QUANTITIES='1,20,23,24,29'",
-		tid, sts, ets, url.QueryEscape(NASADataStepSize))
+	urls := fmt.Sprintf(NASAURL, tid, sts, ets, url.QueryEscape(NASADataStepSize))
 	//QUANTITIES='1,3,20,23,24,29'
 	//Date__(UT)__HR:MN     R.A._____(ICRF)_____DEC  dRA*cosD d(DEC)/dt             delta      deldot     S-O-T /r     S-T-O  Cnst
 
 	resp, err := http.Get(urls)
 	if err != nil {
-		log.Printf("Error sending GET request: %v\n", err)
+		log.Printf("Error sending GET request: %s\n", err.Error())
 		return nil
 	}
 	if resp.StatusCode != http.StatusOK {

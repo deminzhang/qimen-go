@@ -1,6 +1,10 @@
 package world
 
-import "xorm.io/xorm"
+import (
+	_ "github.com/mattn/go-sqlite3"
+	_ "xorm.io/core"
+	"xorm.io/xorm"
+)
 
 var db *xorm.Engine
 

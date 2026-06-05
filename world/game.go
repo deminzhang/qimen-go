@@ -2,13 +2,14 @@ package world
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/6tail/lunar-go/calendar"
-	"github.com/deminzhang/qimen-go/gui"
-	"github.com/deminzhang/qimen-go/qimen"
+	"github.com/deminzhang/go-common/gui"
 	"github.com/deminzhang/qimen-go/util"
+	"github.com/deminzhang/qimen-go/xuan"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"time"
 )
 
 var (
@@ -20,13 +21,17 @@ var (
 type Game struct {
 	count     int
 	uiQM      *UIQiMen
-	stars     *StarEffect
 	astrolabe *Astrolabe
 	qiMen     *QMShow
 	char8     *Char8Pan
-	qmGame    *qimen.QMGame
+	qmGame    *xuan.QMGame
 	meiHua    *MeiHua
 	big6      *Big6Show
+	battle    *Battle
+
+	StrokeManager *StrokeManager
+	stars         *StarEffect
+	waves         *WaveComponent
 
 	autoMinute    bool
 	showMeiHua    bool
@@ -34,14 +39,19 @@ type Game struct {
 	showBig6      bool
 	showChar8     bool
 	showAstrolabe bool
+	showBattle    bool
+	showWave      bool
 
-	StrokeManager
+	Components map[string]IComponent
 }
 
 func (g *Game) Update() error {
 	g.count = (g.count + 1) % 60
 
 	g.qiMen.Update()
+	if ThisGame.showBattle {
+		g.battle.Update()
+	}
 
 	g.char8.UI.Visible = g.showChar8
 	if g.showChar8 {
@@ -58,6 +68,9 @@ func (g *Game) Update() error {
 	if g.showAstrolabe {
 		g.astrolabe.Update()
 	}
+	if g.showWave {
+		g.waves.Update()
+	}
 	//g.stars.Update()
 	//g.stars.SetPos(g.astrolabe.GetSolarPos())
 	//if g.autoMinute && !g.astrolabe.DataQuerying() {
@@ -67,17 +80,27 @@ func (g *Game) Update() error {
 			g.qmGame = g.uiQM.NextMinute()
 		}
 	}
+
 	g.StrokeManager.Update()
+	for _, c := range g.Components {
+		c.Update()
+	}
 
 	gui.Update()
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
+	if g.showWave {
+		g.waves.Draw(screen)
+	}
+	g.qiMen.Draw(screen)
+	if g.showBattle {
+		g.battle.Draw(screen)
+	}
 	if g.showAstrolabe {
 		g.astrolabe.Draw(screen)
 	}
-	g.qiMen.Draw(screen)
 	//g.stars.Draw(screen)
 	if g.showMeiHua {
 		g.meiHua.Draw(screen)
@@ -87,6 +110,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 	if g.showChar8 {
 		g.char8.Draw(screen)
+	}
+	for _, c := range g.Components {
+		c.Draw(screen)
 	}
 	gui.Draw(screen)
 	if Dev {
@@ -116,8 +142,8 @@ func NewGame() *Game {
 	if _, ok := util.Args2Map()["dev"]; ok {
 		Dev = true
 		gui.SetBorderDebug(true)
-		UIShowChat()
 	}
+	UIShowChat()
 	u := UIShowQiMen()
 	solar := calendar.NewSolarFromDate(time.Now())
 	pan := u.Apply(solar)
@@ -127,23 +153,35 @@ func NewGame() *Game {
 	g := &Game{
 		uiQM:      u,
 		qmGame:    pan,
-		stars:     NewStarEffect(float32(ScreenWidth/2), 217),
 		qiMen:     NewQiMenShow(450, 500),
 		meiHua:    NewMeiHua(1130, 170),
 		big6:      NewBig6(880, 170),
 		char8:     NewChar8Pan(880, 314),
 		astrolabe: NewAstrolabe(1650, 450),
+		battle:    NewBattle(),
 
 		showQiMen:     true,
 		showMeiHua:    true,
 		showBig6:      true,
 		showChar8:     true,
-		showAstrolabe: true,
-
-		StrokeManager: StrokeManager{
+		showAstrolabe: false,
+		Components:    make(map[string]IComponent),
+		StrokeManager: &StrokeManager{
 			strokes: make(map[*Stroke]struct{}),
 		},
+
+		stars: NewStarEffect(float32(ScreenWidth/2), 217),
+		waves: NewWaveComponent(),
 	}
+	OnNewGame(g)
 
 	return g
+}
+
+var OnNewGameFuncs []func(*Game)
+
+func OnNewGame(g *Game) {
+	for _, f := range OnNewGameFuncs {
+		f(g)
+	}
 }
