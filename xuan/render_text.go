@@ -489,13 +489,6 @@ func RenderBaZi(lunar *calendar.Lunar, gender int, daYun, xiaoYun []string, shen
 	if lnGan != "" && lnZhi != "" {
 		nayiLN = LunarUtil.NAYIN[lnGan+lnZhi]
 	}
-	sb.WriteString(fmt.Sprintf("%-8s %-8s %-8s %-8s %-8s %-8s %-8s\n", "纳音",
-		LunarUtil.NAYIN[bz.GetYearGan()+bz.GetYearZhi()],
-		LunarUtil.NAYIN[bz.GetMonthGan()+bz.GetMonthZhi()],
-		LunarUtil.NAYIN[bz.GetDayGan()+bz.GetDayZhi()],
-		LunarUtil.NAYIN[bz.GetTimeGan()+bz.GetTimeZhi()],
-		nayiDY, nayiLN))
-
 	xkDY := "-"
 	if dyGan != "" && dyZhi != "" {
 		xkDY = LunarUtil.GetXunKong(dyGan + dyZhi)
@@ -504,11 +497,6 @@ func RenderBaZi(lunar *calendar.Lunar, gender int, daYun, xiaoYun []string, shen
 	if lnGan != "" && lnZhi != "" {
 		xkLN = LunarUtil.GetXunKong(lnGan + lnZhi)
 	}
-	sb.WriteString(fmt.Sprintf("%-8s %-8s %-8s %-8s %-8s %-8s %-8s\n", "空亡",
-		lunar.GetYearXunKongExact(), lunar.GetMonthXunKongExact(),
-		lunar.GetDayXunKongExact(), lunar.GetTimeXunKong(),
-		xkDY, xkLN))
-
 	diShiDY := "-"
 	if dyZhi != "" {
 		diShiDY = ZhangSheng12[soul][dyZhi]
@@ -517,12 +505,27 @@ func RenderBaZi(lunar *calendar.Lunar, gender int, daYun, xiaoYun []string, shen
 	if lnZhi != "" {
 		diShiLN = ZhangSheng12[soul][lnZhi]
 	}
+	sb.WriteString(fmt.Sprintf("%-8s %-8s %-8s %-8s %-8s %-8s %-8s\n", "纳音",
+		LunarUtil.NAYIN[bz.GetYearGan()+bz.GetYearZhi()],
+		LunarUtil.NAYIN[bz.GetMonthGan()+bz.GetMonthZhi()],
+		LunarUtil.NAYIN[bz.GetDayGan()+bz.GetDayZhi()],
+		LunarUtil.NAYIN[bz.GetTimeGan()+bz.GetTimeZhi()],
+		nayiDY,
+		nayiLN))
+
+	sb.WriteString(fmt.Sprintf("%-8s %-8s %-8s %-8s %-8s %-8s %-8s\n", "空亡",
+		lunar.GetYearXunKongExact(), lunar.GetMonthXunKongExact(),
+		lunar.GetDayXunKongExact(), lunar.GetTimeXunKong(),
+		xkDY,
+		xkLN))
+
 	sb.WriteString(fmt.Sprintf("%-8s %-8s %-8s %-8s %-8s %-8s %-8s\n", "地势",
 		ZhangSheng12[soul][bz.GetYearZhi()],
 		ZhangSheng12[soul][bz.GetMonthZhi()],
 		ZhangSheng12[soul][bz.GetDayZhi()]+"(自坐)",
 		ZhangSheng12[soul][bz.GetTimeZhi()],
-		diShiDY, diShiLN))
+		diShiDY,
+		diShiLN))
 
 	sb.WriteString(fmt.Sprintf("%-8s %-8s", "\n神煞", "年:"+strings.Join(shenSha[0], ",")))
 	sb.WriteString(fmt.Sprintf("\n%8s %-8s", "", "月:"+strings.Join(shenSha[1], ",")))
