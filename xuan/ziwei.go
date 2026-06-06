@@ -118,34 +118,34 @@ const (
 var MingGongTable = [13][12]int{
 	{}, // 占位
 	/*正月*/ {2, 1, 0, 11, 10, 9, 8, 7, 6, 5, 4, 3},
-	/*二月*/ {3, 2, 1, 0, 11, 10, 9, 8, 7, 6, 5, 4},
-	/*三月*/ {4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6, 5},
-	/*四月*/ {5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6},
-	/*五月*/ {6, 5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7},
-	/*六月*/ {7, 6, 5, 4, 3, 2, 1, 0, 11, 10, 9, 8},
+	/*二月*/ {1, 0, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2},
+	/*三月*/ {0, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
+	/*四月*/ {11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0},
+	/*五月*/ {10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 11},
+	/*六月*/ {9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 11, 10},
 	/*七月*/ {8, 7, 6, 5, 4, 3, 2, 1, 0, 11, 10, 9},
-	/*八月*/ {9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 11, 10},
-	/*九月*/ {10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 11},
-	/*十月*/ {11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0},
-	/*冬月*/ {0, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
-	/*腊月*/ {1, 0, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2},
+	/*八月*/ {7, 6, 5, 4, 3, 2, 1, 0, 11, 10, 9, 8},
+	/*九月*/ {6, 5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7},
+	/*十月*/ {5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6},
+	/*冬月*/ {4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6, 5},
+	/*腊月*/ {3, 2, 1, 0, 11, 10, 9, 8, 7, 6, 5, 4},
 }
 
 // 身宫表 [月][时辰]→宫位索引
 var ShenGongTable = [13][12]int{
 	{}, // 占位
-	/*正月*/ {10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 11},
-	/*二月*/ {11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0},
-	/*三月*/ {0, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
-	/*四月*/ {1, 0, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2},
-	/*五月*/ {2, 1, 0, 11, 10, 9, 8, 7, 6, 5, 4, 3},
-	/*六月*/ {3, 2, 1, 0, 11, 10, 9, 8, 7, 6, 5, 4},
-	/*七月*/ {4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6, 5},
-	/*八月*/ {5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6},
-	/*九月*/ {6, 5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7},
-	/*十月*/ {7, 6, 5, 4, 3, 2, 1, 0, 11, 10, 9, 8},
-	/*冬月*/ {8, 7, 6, 5, 4, 3, 2, 1, 0, 11, 10, 9},
-	/*腊月*/ {9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 11, 10},
+	/*正月*/ {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1},
+	/*二月*/ {3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 2},
+	/*三月*/ {4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 2, 3},
+	/*四月*/ {5, 6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 4},
+	/*五月*/ {6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 4, 5},
+	/*六月*/ {7, 8, 9, 10, 11, 0, 1, 2, 3, 4, 5, 6},
+	/*七月*/ {8, 9, 10, 11, 0, 1, 2, 3, 4, 5, 6, 7},
+	/*八月*/ {9, 10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 8},
+	/*九月*/ {10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
+	/*十月*/ {11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+	/*冬月*/ {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
+	/*腊月*/ {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0},
 }
 
 // ============ 五行局表 ============
@@ -286,8 +286,8 @@ func CalcZiWei(yearGan, yearZhi string, month, day int, hourZhi string, gender i
 	// 紫微星
 	c.ZiWeiIdx = calcZiWeiStar(c.WuXingJu, day)
 
-	// 天府星
-	c.TianFuIdx = ZiWeiToTianFu[c.ZiWeiIdx]
+	// 天府星（紫微对宫）
+	c.TianFuIdx = (12 - c.ZiWeiIdx) % 12
 
 	// 阴阳年
 	yangGans := []string{"甲", "丙", "戊", "庚", "壬"}
@@ -315,13 +315,35 @@ func CalcZiWei(yearGan, yearZhi string, month, day int, hourZhi string, gender i
 }
 
 func calcZiWeiStar(wx WuXingJu, day int) int {
-	if day > 30 {
-		day = 30
+	// iztro 算法：局数除日数，商数宫前走
+	val := WuXingJuNums[wx]
+	offset := 0
+	remainder := -1
+	quotient := 0
+
+	for remainder != 0 {
+		divisor := day + offset
+		quotient = divisor / val
+		remainder = divisor % val
+		if remainder == 0 {
+			break
+		}
+		offset++
 	}
-	if day < 1 {
-		day = 1
+
+	quotient %= 12
+	ziweiIdx := quotient - 1
+
+	if offset%2 == 0 {
+		ziweiIdx = (ziweiIdx + offset) % 12
+	} else {
+		ziweiIdx = (ziweiIdx - offset + 12*10) % 12
 	}
-	return ZiWeiStarTable[int(wx)][day]
+
+	if ziweiIdx < 0 {
+		ziweiIdx += 12
+	}
+	return ziweiIdx
 }
 
 func (c *ZiWeiChart) setupZhuXing() {
@@ -334,26 +356,34 @@ func (c *ZiWeiChart) setupZhuXing() {
 	}
 
 	zwIdx := c.ZiWeiIdx
-	for starIdx := 0; starIdx < StarCount; starIdx++ {
-		pos := ZhuXingTable[zwIdx][starIdx]
-		if pos < 0 || pos >= 12 {
-			continue
-		}
-		c.Palaces[pos].ZhuXing = append(c.Palaces[pos].ZhuXing, Star{Name: ZhuXingNames[starIdx]})
-		c.Palaces[pos].ZhuXing = append(c.Palaces[pos].ZhuXing, Star{Name: ZhuXingNames[starIdx]})
+	tfIdx := (12 - zwIdx) % 12 // 天府在对宫
+	c.TianFuIdx = tfIdx
+
+	// 紫微星系（逆时针）：紫微,天机,空,太阳,武曲,天同,空,空,廉贞
+	ziweiGroup := []struct {
+		name string
+		off  int
+	}{
+		{"紫微", 0}, {"天机", 1}, {"太阳", 3},
+		{"武曲", 4}, {"天同", 5}, {"廉贞", 8},
+	}
+	for _, g := range ziweiGroup {
+		pos := (zwIdx - g.off + 12*10) % 12
+		c.Palaces[pos].ZhuXing = append(c.Palaces[pos].ZhuXing, Star{Name: g.name})
 	}
 
-	// 去重
-	for i := range c.Palaces {
-		seen := make(map[string]bool)
-		unique := make([]Star, 0)
-		for _, s := range c.Palaces[i].ZhuXing {
-			if !seen[s.Name] {
-				seen[s.Name] = true
-				unique = append(unique, s)
-			}
-		}
-		c.Palaces[i].ZhuXing = unique
+	// 天府星系（顺时针）：天府,太阴,贪狼,巨门,天相,天梁,七杀,空,空,空,破军
+	tianfuGroup := []struct {
+		name string
+		off  int
+	}{
+		{"天府", 0}, {"太阴", 1}, {"贪狼", 2},
+		{"巨门", 3}, {"天相", 4}, {"天梁", 5},
+		{"七杀", 6}, {"破军", 10},
+	}
+	for _, g := range tianfuGroup {
+		pos := (tfIdx + g.off) % 12
+		c.Palaces[pos].ZhuXing = append(c.Palaces[pos].ZhuXing, Star{Name: g.name})
 	}
 }
 
