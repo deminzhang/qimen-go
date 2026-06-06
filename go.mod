@@ -7,11 +7,23 @@ require (
 	github.com/atotto/clipboard v0.1.4
 	github.com/deminzhang/go-common v0.0.0-20250915021055-804f05ab10a1
 	github.com/hajimehoshi/ebiten/v2 v2.8.8
-	github.com/mattn/go-sqlite3 v1.14.24
 	golang.org/x/exp v0.0.0-20250911091902-df9299821621
 	golang.org/x/image v0.38.0
+	modernc.org/sqlite v1.51.0
 	xorm.io/core v0.7.3
 	xorm.io/xorm v1.3.9
+)
+
+require (
+	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/google/uuid v1.6.0 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mattn/go-sqlite3 v1.14.24 // indirect
+	github.com/ncruces/go-strftime v1.0.0 // indirect
+	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
+	modernc.org/libc v1.72.3 // indirect
+	modernc.org/mathutil v1.7.1 // indirect
+	modernc.org/memory v1.11.0 // indirect
 )
 
 require (
@@ -31,7 +43,7 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.22 // indirect
 	github.com/syndtr/goleveldb v1.0.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/sys v0.42.0 // indirect
 	golang.org/x/text v0.35.0 // indirect
 	xorm.io/builder v0.3.11-0.20220531020008-1bd24a7dc978 // indirect
 )

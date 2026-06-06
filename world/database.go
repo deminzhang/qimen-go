@@ -1,7 +1,7 @@
 package world
 
 import (
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 	_ "xorm.io/core"
 	"xorm.io/xorm"
 )
@@ -11,7 +11,7 @@ var db *xorm.Engine
 func init() {
 	var err error
 	//db, err = xorm.NewEngine("sqlite3", "file::memory:?cache=shared")
-	db, err = xorm.NewEngine("sqlite3", NASADataFile)
+	db, err = xorm.NewEngine("sqlite", NASADataFile)
 	if err != nil {
 		panic(err)
 	}
