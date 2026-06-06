@@ -179,31 +179,6 @@ var ZiWeiStarTable = [7][31]int{
 // ============ 十四主星安星表 ============
 // 十四主星落宫表 [紫微星位置索引][星曜索引]→宫位索引(0-11)
 // 星曜顺序：紫微,天机,太阳,武曲,天同,廉贞,天府,太阴,贪狼,巨门,天相,天梁,七杀,破军
-var ZhuXingTable = [12][StarCount]int{
-	/*紫微在寅0*/ {0, 2, 4, 6, 8, 10, 0, 2, 4, 6, 8, 10, -1, -1},
-	/*紫微在卯1*/ {1, 3, 5, 7, 9, 11, 1, 3, 5, 7, 9, 11, -1, -1},
-	/*紫微在辰2*/ {2, 4, 6, 8, 10, 0, 2, 4, 6, 8, 10, 0, -1, -1},
-	/*紫微在巳3*/ {3, 5, 7, 9, 11, 1, 3, 5, 7, 9, 11, 1, -1, -1},
-	/*紫微在午4*/ {4, 6, 8, 10, 0, 2, 4, 6, 8, 10, 0, 2, -1, -1},
-	/*紫微在未5*/ {5, 7, 9, 11, 1, 3, 5, 7, 9, 11, 1, 3, -1, -1},
-	/*紫微在申6*/ {6, 8, 10, 0, 2, 4, 6, 8, 10, 0, 2, 4, -1, -1},
-	/*紫微在酉7*/ {7, 9, 11, 1, 3, 5, 7, 9, 11, 1, 3, 5, -1, -1},
-	/*紫微在戌8*/ {8, 10, 0, 2, 4, 6, 8, 10, 0, 2, 4, 6, -1, -1},
-	/*紫微在亥9*/ {9, 11, 1, 3, 5, 7, 9, 11, 1, 3, 5, 7, -1, -1},
-	/*紫微在子10*/ {10, 0, 2, 4, 6, 8, 10, 0, 2, 4, 6, 8, -1, -1},
-	/*紫微在丑11*/ {11, 1, 3, 5, 7, 9, 11, 1, 3, 5, 7, 9, -1, -1},
-}
-
-// 杀破狼特殊标记：七杀=紫微对宫，破军=紫微对宫+1之类
-// 简化处理：七杀在紫微的夫妻宫(紫微宫位+0 vs -1)，这里用简表
-// 对于常见流派：紫微12位置，七杀固定：寅午戌在紫微对宫，申子辰也在对宫
-
-// 七杀/破军/天府系安置规则：
-// 天府 = 紫微对宫（紫微位置+6 mod 12）
-// 太阴 = 天府-2, 贪狼=天府-4, 巨门=天府-6, 天相=天府-8, 天梁=天府-10, 七杀=天府对宫
-// 破军 = 紫微-3 (紫微退三位)
-// 这里使用完整的ZhuXingTable
-
 // ============ 四化表 ============
 // 四化表 [年干索引][星曜索引]→四化类型
 var SiHuaTable = [10][StarCount]SiHua{
@@ -226,16 +201,7 @@ var DaXianQiLing = map[WuXingJu]int{
 
 // 大限顺逆表 [阴阳][性别]
 // 阴年: 乙丁己辛癸, 阳年: 甲丙戊庚壬
-var DaXianShunNi = [2][2]int{
-	{1, -1},  // 阳年生男顺、阳年生女逆
-	{-1, 1}, // 阴年生男逆、阴年生女顺
-}
 
-// ============ 紫微位置 → 天府位置 ============
-var ZiWeiToTianFu = map[int]int{
-	0: 6, 1: 5, 2: 4, 3: 3, 4: 2, 5: 1,
-	6: 0, 7: 11, 8: 10, 9: 9, 10: 8, 11: 7,
-}
 
 // ============ 紫微斗数排盘 ============
 
@@ -359,31 +325,12 @@ func (c *ZiWeiChart) setupZhuXing() {
 	tfIdx := (12 - zwIdx) % 12 // 天府在对宫
 	c.TianFuIdx = tfIdx
 
-	// 紫微星系（逆时针）：紫微,天机,空,太阳,武曲,天同,空,空,廉贞
-	ziweiGroup := []struct {
-		name string
-		off  int
-	}{
-		{"紫微", 0}, {"天机", 1}, {"太阳", 3},
-		{"武曲", 4}, {"天同", 5}, {"廉贞", 8},
-	}
-	for _, g := range ziweiGroup {
-		pos := (zwIdx - g.off + 12*10) % 12
-		c.Palaces[pos].ZhuXing = append(c.Palaces[pos].ZhuXing, Star{Name: g.name})
-	}
-
-	// 天府星系（顺时针）：天府,太阴,贪狼,巨门,天相,天梁,七杀,空,空,空,破军
-	tianfuGroup := []struct {
-		name string
-		off  int
-	}{
-		{"天府", 0}, {"太阴", 1}, {"贪狼", 2},
-		{"巨门", 3}, {"天相", 4}, {"天梁", 5},
-		{"七杀", 6}, {"破军", 10},
-	}
-	for _, g := range tianfuGroup {
-		pos := (tfIdx + g.off) % 12
-		c.Palaces[pos].ZhuXing = append(c.Palaces[pos].ZhuXing, Star{Name: g.name})
+	for starIdx := 0; starIdx < StarCount; starIdx++ {
+		pos := getStarPos(starIdx, zwIdx, tfIdx)
+		if pos < 0 || pos >= 12 {
+			continue
+		}
+		c.Palaces[pos].ZhuXing = append(c.Palaces[pos].ZhuXing, Star{Name: ZhuXingNames[starIdx]})
 	}
 }
 
@@ -392,12 +339,15 @@ func (c *ZiWeiChart) setupSiHua(ganIdx int) {
 		return
 	}
 	zwIdx := c.ZiWeiIdx
+	tfIdx := (12 - zwIdx) % 12
+
 	for starIdx := 0; starIdx < StarCount; starIdx++ {
 		sh := SiHuaTable[ganIdx][starIdx]
 		if sh == 0 {
 			continue
 		}
-		pos := ZhuXingTable[zwIdx][starIdx]
+		// 用算法确定星曜位置（和 setupZhuXing 一致）
+		pos := getStarPos(starIdx, zwIdx, tfIdx)
 		if pos < 0 || pos >= 12 {
 			continue
 		}
@@ -408,6 +358,24 @@ func (c *ZiWeiChart) setupSiHua(ganIdx int) {
 			}
 		}
 	}
+}
+
+// getStarPos 根据算法返回星曜所在宫位索引
+func getStarPos(starIdx, zwIdx, tfIdx int) int {
+	// 星曜索引: 紫微0,天机1,太阳2,武曲3,天同4,廉贞5,天府6,
+	//          太阴7,贪狼8,巨门9,天相10,天梁11,七杀12,破军13
+	// 紫微星系（逆时针）-1 表示跳过（该索引不是紫微系）
+	ziweiOffsets := []int{0, 1, 3, 4, 5, 8, -1, -1, -1, -1, -1, -1, -1, -1}
+	// 天府星系（顺时针）-1 表示跳过（该索引不是天府系）
+	tianfuOffsets := []int{-1, -1, -1, -1, -1, -1, 0, 1, 2, 3, 4, 5, 6, 10}
+
+	if starIdx < len(ziweiOffsets) && ziweiOffsets[starIdx] >= 0 {
+		return (zwIdx - ziweiOffsets[starIdx] + 12*10) % 12
+	}
+	if starIdx < len(tianfuOffsets) && tianfuOffsets[starIdx] >= 0 {
+		return (tfIdx + tianfuOffsets[starIdx]) % 12
+	}
+	return -1
 }
 
 func (c *ZiWeiChart) setupDaXian(ganIdx int) {
@@ -435,18 +403,17 @@ func formatAgeRange(start, end int) string {
 	if end > 120 {
 		end = 120
 	}
-	startStr := ""
-	endStr := ""
-	if start < 10 {
-		startStr = string(rune('0'+start)) + "岁"
-	} else {
-		startStr = string(rune('0'+start/10)) + string(rune('0'+start%10)) + "岁"
+	return itoa(start) + "岁-" + itoa(end) + "岁"
+}
+
+func itoa(n int) string {
+	if n == 0 {
+		return "0"
 	}
-	if end < 10 {
-		endStr = string(rune('0'+end)) + "岁"
-	} else {
-		endStr = string(rune('0'+end/10)) + string(rune('0'+end%10)) + "岁"
+	buf := make([]byte, 0, 3)
+	for n > 0 {
+		buf = append([]byte{byte('0' + n%10)}, buf...)
+		n /= 10
 	}
-	return startStr + "-" + endStr
-	// 简化版，直接返回字符串
+	return string(buf)
 }
