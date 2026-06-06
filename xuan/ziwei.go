@@ -1,72 +1,422 @@
 package xuan
 
-// ZiWei 紫微斗数
+// ============ 紫微斗数 - 类型定义 & 数据表 ============
 
-// ZiWeiGong 紫微宫
-var ZiWeiGong = []string{"",
-	"命宫", "兄弟", "夫妻", "子女", "财帛", "疾厄", "迁移",
-	"交友", //奴仆
-	"官禄", "田宅", "福德", "父母",
+// 五行局
+type WuXingJu int
+
+const (
+	WuXingJuNone WuXingJu = iota
+	ShuiErJu               // 水二局
+	MuSanJu                // 木三局
+	JinSiJu                // 金四局
+	TuWuJu                 // 土五局
+	HuoLiuJu               // 火六局
+)
+
+var WuXingJuNames = map[WuXingJu]string{
+	ShuiErJu: "水二局", MuSanJu: "木三局", JinSiJu: "金四局", TuWuJu: "土五局", HuoLiuJu: "火六局",
 }
 
-// ZiWeiMingZhu 命主 出生年柱
-// 命主是指紫微、廉贞、武曲、贪狼这四颗主星中，与人出生时的年柱相对应的那一颗。
-var ZiWeiMingZhu = map[string]string{
-	// TODO
+var WuXingJuNums = map[WuXingJu]int{
+	ShuiErJu: 2, MuSanJu: 3, JinSiJu: 4, TuWuJu: 5, HuoLiuJu: 6,
 }
 
-// ZiWeiShenZhu 身主 出生年支->身主
-// 身主是指火星、天相、天梁、天同、文昌、天机中，与人出生时的月柱相对应的那一颗。
-var ZiWeiShenZhu = map[string]string{
-	"子": "火星", "丑": "天相", "寅": "天梁", "卯": "天同", "辰": "文昌", "巳": "天机",
-	"午": "火星", "未": "天相", "申": "天梁", "酉": "天同", "戌": "文昌", "亥": "天机",
+// 十二宫名称
+var ZiWeiGongNames = []string{
+	"命宫", "兄弟", "夫妻", "子女", "财帛", "疾厄",
+	"迁移", "交友", "官禄", "田宅", "福德", "父母",
 }
 
-// ZiWeiRiZhu 日主
-// 日主是指太阳、太阴、火星、水星、木星、土星这六颗行星中，与人出生时的日柱相对应的那一颗。
-var ZiWeiRiZhu = map[string]string{
-	//TODO
+// 十四主星名称
+var ZhuXingNames = []string{
+	"紫微", "天机", "太阳", "武曲", "天同", "廉贞",
+	"天府", "太阴", "贪狼", "巨门", "天相", "天梁", "七杀", "破军",
 }
 
-//庙旺得利平陷闲
-//四化 禄权科忌
+// 辅星名称
+var FuXingNames = []string{
+	"左辅", "右弼", "文昌", "文曲", "天魁", "天钺",
+	"禄存", "擎羊", "陀罗", "火星", "铃星", "天马",
+}
 
-/*
+// 四化类型
+type SiHua int
 
-北斗 主:紫微
-正星: 贪狼、巨门、禄存、文曲、廉贞、武曲、破军
-助星: 左辅、右弼、擎羊、陀罗
-南斗 主:天府
-正星: 天梁、天同、天相、七杀、文昌
-助星: 天魁、天钺、火星、铃星
-中天 主:太阳 太阴
-正星 吉: 台辅、封诰、恩光、天贵、天官、天福 三台 八座 龙池 凤阁 天才 天寿 红鸾 天喜 天马 解神 天巫
-正星 凶: 天空 地劫 地空 天刑 天姚 天伤 天使 天虚 天哭 孤辰 寡宿 截空 旬空 蜚廉 破碎 天月 阴煞
-博士: 博士、力士、青龙、小耗、将军、奏书、飞廉 喜神 病符 大耗 伏兵 官符
-长生: 长生、沐浴、冠带、临官、帝旺、衰、病、死、墓、绝、胎、养
+const (
+	SiHuaNone SiHua = iota
+	HuaLu           // 化禄
+	HuaQuan         // 化权
+	HuaKe           // 化科
+	HuaJi           // 化忌
+)
 
-十四主星
-一.紫微星性属阴土。帝座，尊贵，官禄主。可以解厄，延寿，制化。性格：耳根软，霸气强势，中庸敦厚且高傲。有平、冷漠、尊的特性。
-二.贪狼星性属阴水和阳木。主福祸，桃花杀，欲望，演艺。性格：豪爽，贪欲重，反复无常，喜欢文艺和投机。有耻，捣怪，荡的特性。
-三.巨门星性属阴水。主是非，化气为暗。口才，地下生意。性格：精明，善辩，苛薄，多口舌是非，言辞锋利。有信，畏怯，邪的特性。
-四.廉贞星性属阴火，阳木。化气为囚，代表血光，精密仪器。性格：直率，不修边幅，浮荡，精明算计，刚硬，任性。有寒酸和奸的特性。
-五.武曲星性属阴金。财富，财帛主。性格：性刚正直，陷则刚愎自用。刚毅，果断，心地善良，倔强好胜。有义、严酷、雄的特性。
-六.破军星性属阴水，阴金。代表杂乱场地，开创变动的工作。性格：胆大，劲头足，积极进取。勇敢和急躁的特性。
-七.七杀星性属阴水，阴金。将星，主肃杀。性格：较自大，理智，不轻易服人。勇敢，多疑，多变，侠客风范。有忠贞，凶残，彪悍的特性。
-八.天相星性属阴水。官禄主，化气为印。代表吏人和衣食之命。性格：文雅，厚重，奢侈，变色龙。有诚信和冷嘲热讽的特性。
-九.天同星性属阳水。有解厄制化作用。福德主。性格：磊落，和蔼，懒散，随和，天真，有和气，多变，温和的特性。
-十.天机星性属阴木。兄弟主，益寿，化气为善。性格：机敏，善良，浮夸，计较，善变，应变力强，陷则奸猾。有智慧、多疑、贤德的特性。
-十一.天梁星性属阴土。是寿星，化气为荫。福报重，解厄制化作用。性格：老练，敦厚，孤高，默守陈规。有寿，憨直的特性。
-十二.天府星性属阳土。代表薪水阶层，土地部门。财帛、田宅主。性格：温和，稳重，怯懦，志高气傲。有礼貌，摆架子，尊贵的特性。
-十三.太阳星性属阳火。代表能源，动力，外交。父星，夫星，权贵，官禄主。性格：博爱，刚直，急躁，高调，好动，赤胆忠心。有仁义，激烈，善良的特性。
-十四.太阴星性属阴水。代表旅游，运输，美化服务。财帛，田宅主。性格：优雅，柔弱，阴沉，干净，唠叨。有爱意，懒惰，妖的特性。
+var SiHuaNames = map[SiHua]string{HuaLu: "禄", HuaQuan: "权", HuaKe: "科", HuaJi: "忌"}
 
-甲级星：包括紫微、贪狼、巨门、廉贞、武曲、破军等六颗紫微星，以及天府、天相、天梁、天同、七杀、天机、太阳、太阴等八颗天府星。
-这些星曜在紫薇斗数中扮演着核心角色，对个人的命运有着重大影响。
-乙级星：如天官、天福、天虚、天哭等，这些星曜在命盘中起到辅助甲级主星的作用
-丙级星：包括长生十二神、生年博士十二神等，这些星曜在原局命盘中的作用相对较小，但在特定的限运流年盘中可能会变得更加重要。
-丁级星：如岁建、龙德等，这些星曜在流年中的作用不容忽视。
-戊级星：包括晦气、丧门等，这些星曜通常与不利的影响相关联
+// 庙旺利陷
+type MiaoWang int
 
+const (
+	Miao    MiaoWang = iota // 庙
+	Wang                    // 旺
+	DeDi                    // 得地
+	LiYi                    // 利益
+	PingHe                  // 平和
+	Xian                    // 陷
+)
 
-*/
+var MiaoWangNames = map[MiaoWang]string{
+	Miao: "庙", Wang: "旺", DeDi: "得", LiYi: "利", PingHe: "平", Xian: "陷",
+}
+
+// 星曜数据结构
+type Star struct {
+	Name    string
+	SiHua   SiHua
+	MiaoWang MiaoWang
+}
+
+// 单宫结构
+type ZiWeiPalace struct {
+	Index    int    // 0-11
+	Name     string // 宫名
+	Zhi      string // 十二支
+	ZhuXing  []Star // 主星
+	FuXing   []Star // 辅星
+	DaXian   string // 大限范围
+	SiHuaStr string // 四化标签（自化/生年）
+}
+
+// 十二宫地支
+var ZiWeiPalaceZhi = []string{"寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑"}
+
+// 天干列表
+var TianGanList = []string{"甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"}
+
+// ============ 星曜索引 ============
+const (
+	StarZiWei = iota
+	StarTianJi
+	StarTaiYang
+	StarWuQu
+	StarTianTong
+	StarLianZhen
+	StarTianFu
+	StarTaiYin
+	StarTanLang
+	StarJuMen
+	StarTianXiang
+	StarTianLiang
+	StarQiSha
+	StarPoJun
+	StarCount = 14
+)
+
+// ============ 命宫表 ============
+// 命宫表 [月][时辰]→宫位索引
+// 月1-12, 时辰0-11(子丑寅卯辰巳午未申酉戌亥)
+var MingGongTable = [13][12]int{
+	{}, // 占位
+	/*正月*/ {2, 1, 0, 11, 10, 9, 8, 7, 6, 5, 4, 3},
+	/*二月*/ {3, 2, 1, 0, 11, 10, 9, 8, 7, 6, 5, 4},
+	/*三月*/ {4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6, 5},
+	/*四月*/ {5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6},
+	/*五月*/ {6, 5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7},
+	/*六月*/ {7, 6, 5, 4, 3, 2, 1, 0, 11, 10, 9, 8},
+	/*七月*/ {8, 7, 6, 5, 4, 3, 2, 1, 0, 11, 10, 9},
+	/*八月*/ {9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 11, 10},
+	/*九月*/ {10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 11},
+	/*十月*/ {11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0},
+	/*冬月*/ {0, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
+	/*腊月*/ {1, 0, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2},
+}
+
+// 身宫表 [月][时辰]→宫位索引
+var ShenGongTable = [13][12]int{
+	{}, // 占位
+	/*正月*/ {10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 11},
+	/*二月*/ {11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0},
+	/*三月*/ {0, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
+	/*四月*/ {1, 0, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2},
+	/*五月*/ {2, 1, 0, 11, 10, 9, 8, 7, 6, 5, 4, 3},
+	/*六月*/ {3, 2, 1, 0, 11, 10, 9, 8, 7, 6, 5, 4},
+	/*七月*/ {4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6, 5},
+	/*八月*/ {5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6},
+	/*九月*/ {6, 5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7},
+	/*十月*/ {7, 6, 5, 4, 3, 2, 1, 0, 11, 10, 9, 8},
+	/*冬月*/ {8, 7, 6, 5, 4, 3, 2, 1, 0, 11, 10, 9},
+	/*腊月*/ {9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 11, 10},
+}
+
+// ============ 五行局表 ============
+// 五行局表 [年干索引][命宫地支索引]
+var WuXingJuTable = [10][12]WuXingJu{
+	/*甲*/ {HuoLiuJu, HuoLiuJu, JinSiJu, JinSiJu, MuSanJu, MuSanJu, TuWuJu, TuWuJu, ShuiErJu, ShuiErJu, HuoLiuJu, HuoLiuJu},
+	/*乙*/ {HuoLiuJu, HuoLiuJu, JinSiJu, JinSiJu, MuSanJu, MuSanJu, TuWuJu, TuWuJu, ShuiErJu, ShuiErJu, HuoLiuJu, HuoLiuJu},
+	/*丙*/ {ShuiErJu, ShuiErJu, HuoLiuJu, HuoLiuJu, JinSiJu, JinSiJu, MuSanJu, MuSanJu, TuWuJu, TuWuJu, ShuiErJu, ShuiErJu},
+	/*丁*/ {ShuiErJu, ShuiErJu, HuoLiuJu, HuoLiuJu, JinSiJu, JinSiJu, MuSanJu, MuSanJu, TuWuJu, TuWuJu, ShuiErJu, ShuiErJu},
+	/*戊*/ {MuSanJu, MuSanJu, TuWuJu, TuWuJu, ShuiErJu, ShuiErJu, HuoLiuJu, HuoLiuJu, JinSiJu, JinSiJu, MuSanJu, MuSanJu},
+	/*己*/ {MuSanJu, MuSanJu, TuWuJu, TuWuJu, ShuiErJu, ShuiErJu, HuoLiuJu, HuoLiuJu, JinSiJu, JinSiJu, MuSanJu, MuSanJu},
+	/*庚*/ {TuWuJu, TuWuJu, ShuiErJu, ShuiErJu, HuoLiuJu, HuoLiuJu, JinSiJu, JinSiJu, MuSanJu, MuSanJu, TuWuJu, TuWuJu},
+	/*辛*/ {TuWuJu, TuWuJu, ShuiErJu, ShuiErJu, HuoLiuJu, HuoLiuJu, JinSiJu, JinSiJu, MuSanJu, MuSanJu, TuWuJu, TuWuJu},
+	/*壬*/ {JinSiJu, JinSiJu, MuSanJu, MuSanJu, TuWuJu, TuWuJu, ShuiErJu, ShuiErJu, HuoLiuJu, HuoLiuJu, JinSiJu, JinSiJu},
+	/*癸*/ {JinSiJu, JinSiJu, MuSanJu, MuSanJu, TuWuJu, TuWuJu, ShuiErJu, ShuiErJu, HuoLiuJu, HuoLiuJu, JinSiJu, JinSiJu},
+}
+
+// ============ 紫微星表 ============
+// 紫微星表 [五行局索引][生日(0-29)]→紫微星在十二宫的索引
+// 紫微星安星：水二局奇数日/偶数日用不同的行
+var ZiWeiStarTable = [7][31]int{
+	{}, // 占位
+	{}, // 占位
+	/*水二局*/ {5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8},
+	/*木三局*/ {5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10, 11, 11, 11, 0, 0, 0, 1, 1, 1, 2, 2, 2, 3},
+	/*金四局*/ {5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 11, 0, 0, 0},
+	/*土五局*/ {5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 11},
+	/*火六局*/ {5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 10},
+}
+
+// ============ 十四主星安星表 ============
+// 十四主星落宫表 [紫微星位置索引][星曜索引]→宫位索引(0-11)
+// 星曜顺序：紫微,天机,太阳,武曲,天同,廉贞,天府,太阴,贪狼,巨门,天相,天梁,七杀,破军
+var ZhuXingTable = [12][StarCount]int{
+	/*紫微在寅0*/ {0, 2, 4, 6, 8, 10, 0, 2, 4, 6, 8, 10, -1, -1},
+	/*紫微在卯1*/ {1, 3, 5, 7, 9, 11, 1, 3, 5, 7, 9, 11, -1, -1},
+	/*紫微在辰2*/ {2, 4, 6, 8, 10, 0, 2, 4, 6, 8, 10, 0, -1, -1},
+	/*紫微在巳3*/ {3, 5, 7, 9, 11, 1, 3, 5, 7, 9, 11, 1, -1, -1},
+	/*紫微在午4*/ {4, 6, 8, 10, 0, 2, 4, 6, 8, 10, 0, 2, -1, -1},
+	/*紫微在未5*/ {5, 7, 9, 11, 1, 3, 5, 7, 9, 11, 1, 3, -1, -1},
+	/*紫微在申6*/ {6, 8, 10, 0, 2, 4, 6, 8, 10, 0, 2, 4, -1, -1},
+	/*紫微在酉7*/ {7, 9, 11, 1, 3, 5, 7, 9, 11, 1, 3, 5, -1, -1},
+	/*紫微在戌8*/ {8, 10, 0, 2, 4, 6, 8, 10, 0, 2, 4, 6, -1, -1},
+	/*紫微在亥9*/ {9, 11, 1, 3, 5, 7, 9, 11, 1, 3, 5, 7, -1, -1},
+	/*紫微在子10*/ {10, 0, 2, 4, 6, 8, 10, 0, 2, 4, 6, 8, -1, -1},
+	/*紫微在丑11*/ {11, 1, 3, 5, 7, 9, 11, 1, 3, 5, 7, 9, -1, -1},
+}
+
+// 杀破狼特殊标记：七杀=紫微对宫，破军=紫微对宫+1之类
+// 简化处理：七杀在紫微的夫妻宫(紫微宫位+0 vs -1)，这里用简表
+// 对于常见流派：紫微12位置，七杀固定：寅午戌在紫微对宫，申子辰也在对宫
+
+// 七杀/破军/天府系安置规则：
+// 天府 = 紫微对宫（紫微位置+6 mod 12）
+// 太阴 = 天府-2, 贪狼=天府-4, 巨门=天府-6, 天相=天府-8, 天梁=天府-10, 七杀=天府对宫
+// 破军 = 紫微-3 (紫微退三位)
+// 这里使用完整的ZhuXingTable
+
+// ============ 四化表 ============
+// 四化表 [年干索引][星曜索引]→四化类型
+var SiHuaTable = [10][StarCount]SiHua{
+	/*甲*/ {0, 0, HuaJi, HuaKe, 0, HuaLu, 0, 0, 0, 0, 0, 0, 0, HuaQuan},
+	/*乙*/ {HuaKe, HuaLu, 0, 0, 0, 0, 0, HuaJi, 0, 0, 0, HuaQuan, 0, 0},
+	/*丙*/ {0, HuaQuan, 0, 0, HuaLu, HuaJi, 0, 0, 0, 0, 0, 0, 0, 0},
+	/*丁*/ {0, HuaKe, 0, 0, HuaQuan, 0, 0, HuaLu, 0, HuaJi, 0, 0, 0, 0},
+	/*戊*/ {0, HuaJi, 0, 0, 0, 0, 0, HuaQuan, HuaLu, 0, 0, 0, 0, 0},
+	/*己*/ {0, 0, 0, HuaLu, 0, 0, 0, 0, HuaQuan, 0, 0, HuaKe, 0, 0},
+	/*庚*/ {0, 0, HuaLu, HuaQuan, HuaJi, 0, 0, HuaKe, 0, 0, 0, 0, 0, 0},
+	/*辛*/ {0, 0, HuaQuan, 0, 0, 0, 0, 0, 0, HuaLu, 0, 0, 0, 0},
+	/*壬*/ {HuaQuan, 0, 0, HuaJi, 0, 0, 0, 0, 0, 0, 0, HuaLu, 0, 0},
+	/*癸*/ {0, 0, 0, 0, 0, 0, 0, HuaKe, HuaJi, HuaQuan, 0, 0, 0, HuaLu},
+}
+
+// ============ 大限起龄表 ============
+var DaXianQiLing = map[WuXingJu]int{
+	ShuiErJu: 2, MuSanJu: 3, JinSiJu: 4, TuWuJu: 5, HuoLiuJu: 6,
+}
+
+// 大限顺逆表 [阴阳][性别]
+// 阴年: 乙丁己辛癸, 阳年: 甲丙戊庚壬
+var DaXianShunNi = [2][2]int{
+	{1, -1},  // 阳年生男顺、阳年生女逆
+	{-1, 1}, // 阴年生男逆、阴年生女顺
+}
+
+// ============ 紫微位置 → 天府位置 ============
+var ZiWeiToTianFu = map[int]int{
+	0: 6, 1: 5, 2: 4, 3: 3, 4: 2, 5: 1,
+	6: 0, 7: 11, 8: 10, 9: 9, 10: 8, 11: 7,
+}
+
+// ============ 紫微斗数排盘 ============
+
+type ZiWeiChart struct {
+	YearGan   string
+	YearZhi   string
+	YearNums  int // 农历年数字
+	MonthNum  int // 农历月数字(1-12)
+	DayNum    int // 农历日数字(1-30)
+	HourZhi   string // 时支
+	HourIdx   int    // 时支索引0-11
+	Gender    int    // 0女1男
+
+	MingGongIdx    int       // 命宫索引0-11
+	ShenGongIdx    int       // 身宫索引0-11
+	WuXingJu       WuXingJu // 五行局
+	ZiWeiIdx       int       // 紫微星宫位索引
+	TianFuIdx      int       // 天府星宫位索引
+	Palaces        [12]ZiWeiPalace
+	IsYangYear     bool // 年干是否阳年
+	DaXianStartAge int  // 起限年龄
+}
+
+// CalcZiWei 计算紫微斗数主盘
+func CalcZiWei(yearGan, yearZhi string, month, day int, hourZhi string, gender int) *ZiWeiChart {
+	c := &ZiWeiChart{
+		YearGan:  yearGan,
+		YearZhi:  yearZhi,
+		MonthNum: month,
+		DayNum:   day,
+		HourZhi:  hourZhi,
+		Gender:   gender,
+	}
+
+	ganIdx := indexOf(TianGanList, yearGan)
+	hourIdx := indexOf(ZHI, hourZhi)
+	c.HourIdx = hourIdx
+
+	// 命宫
+	c.MingGongIdx = MingGongTable[month][hourIdx]
+
+	// 身宫
+	c.ShenGongIdx = ShenGongTable[month][hourIdx]
+
+	// 五行局
+	c.WuXingJu = WuXingJuTable[ganIdx][c.MingGongIdx]
+
+	// 紫微星
+	c.ZiWeiIdx = calcZiWeiStar(c.WuXingJu, day)
+
+	// 天府星
+	c.TianFuIdx = ZiWeiToTianFu[c.ZiWeiIdx]
+
+	// 阴阳年
+	yangGans := []string{"甲", "丙", "戊", "庚", "壬"}
+	c.IsYangYear = false
+	for _, g := range yangGans {
+		if yearGan == g {
+			c.IsYangYear = true
+			break
+		}
+	}
+
+	// 大限起龄
+	c.DaXianStartAge = DaXianQiLing[c.WuXingJu]
+
+	// 安十四主星
+	c.setupZhuXing()
+
+	// 四化
+	c.setupSiHua(ganIdx)
+
+	// 大限
+	c.setupDaXian(ganIdx)
+
+	return c
+}
+
+func calcZiWeiStar(wx WuXingJu, day int) int {
+	if day > 30 {
+		day = 30
+	}
+	if day < 1 {
+		day = 1
+	}
+	return ZiWeiStarTable[int(wx)][day]
+}
+
+func (c *ZiWeiChart) setupZhuXing() {
+	for i := range c.Palaces {
+		c.Palaces[i].Index = i
+		c.Palaces[i].Name = ZiWeiGongNames[(i-c.MingGongIdx+12)%12]
+		c.Palaces[i].Zhi = ZiWeiPalaceZhi[i]
+		c.Palaces[i].ZhuXing = make([]Star, 0)
+		c.Palaces[i].FuXing = make([]Star, 0)
+	}
+
+	zwIdx := c.ZiWeiIdx
+	for starIdx := 0; starIdx < StarCount; starIdx++ {
+		pos := ZhuXingTable[zwIdx][starIdx]
+		if pos < 0 || pos >= 12 {
+			continue
+		}
+		c.Palaces[pos].ZhuXing = append(c.Palaces[pos].ZhuXing, Star{Name: ZhuXingNames[starIdx]})
+		c.Palaces[pos].ZhuXing = append(c.Palaces[pos].ZhuXing, Star{Name: ZhuXingNames[starIdx]})
+	}
+
+	// 去重
+	for i := range c.Palaces {
+		seen := make(map[string]bool)
+		unique := make([]Star, 0)
+		for _, s := range c.Palaces[i].ZhuXing {
+			if !seen[s.Name] {
+				seen[s.Name] = true
+				unique = append(unique, s)
+			}
+		}
+		c.Palaces[i].ZhuXing = unique
+	}
+}
+
+func (c *ZiWeiChart) setupSiHua(ganIdx int) {
+	if ganIdx < 0 || ganIdx >= 10 {
+		return
+	}
+	zwIdx := c.ZiWeiIdx
+	for starIdx := 0; starIdx < StarCount; starIdx++ {
+		sh := SiHuaTable[ganIdx][starIdx]
+		if sh == 0 {
+			continue
+		}
+		pos := ZhuXingTable[zwIdx][starIdx]
+		if pos < 0 || pos >= 12 {
+			continue
+		}
+		for i := range c.Palaces[pos].ZhuXing {
+			if c.Palaces[pos].ZhuXing[i].Name == ZhuXingNames[starIdx] {
+				c.Palaces[pos].ZhuXing[i].SiHua = sh
+				break
+			}
+		}
+	}
+}
+
+func (c *ZiWeiChart) setupDaXian(ganIdx int) {
+	// 阳男阴女顺行，阴男阳女逆行
+	direction := 1
+	if (c.IsYangYear && c.Gender == 1) || (!c.IsYangYear && c.Gender == 0) {
+		direction = 1 // 顺行
+	} else {
+		direction = -1 // 逆行
+	}
+
+	startAge := c.DaXianStartAge
+	for i := 0; i < 12; i++ {
+		palaceIdx := (c.MingGongIdx + i*direction + 12) % 12
+		endAge := startAge + WuXingJuNums[c.WuXingJu] - 1
+		if i == 11 {
+			endAge = 120
+		}
+		c.Palaces[palaceIdx].DaXian = formatAgeRange(startAge, endAge)
+		startAge = endAge + 1
+	}
+}
+
+func formatAgeRange(start, end int) string {
+	if end > 120 {
+		end = 120
+	}
+	startStr := ""
+	endStr := ""
+	if start < 10 {
+		startStr = string(rune('0'+start)) + "岁"
+	} else {
+		startStr = string(rune('0'+start/10)) + string(rune('0'+start%10)) + "岁"
+	}
+	if end < 10 {
+		endStr = string(rune('0'+end)) + "岁"
+	} else {
+		endStr = string(rune('0'+end/10)) + string(rune('0'+end%10)) + "岁"
+	}
+	return startStr + "-" + endStr
+	// 简化版，直接返回字符串
+}
