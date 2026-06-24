@@ -41,13 +41,13 @@ func InitReverseTables() {
 	}
 	for month := 1; month <= 12; month++ {
 		for hour := 0; hour < 12; hour++ {
-			gong := MingGongTable[month][hour]
+			gong := fix12((month - 1) - hour)
 			MingGongMap[gong] = append(MingGongMap[gong], GongEntry{Month: month, Hour: hour})
 		}
 	}
 	for month := 1; month <= 12; month++ {
 		for hour := 0; hour < 12; hour++ {
-			gong := ShenGongTable[month][hour]
+			gong := fix12((month - 1) + hour)
 			ShenGongMap[gong] = append(ShenGongMap[gong], GongEntry{Month: month, Hour: hour})
 		}
 	}
@@ -132,10 +132,8 @@ func GenerateCandidates(q *ZiWeiQuery) []Candidate {
 					}
 
 					// 验证紫微星位置
-					yZhi := string([]rune(gan)[1])
-					hZhi := ZHI[hour]
-
-					c := CalcZiWei(yg, yZhi, month, day, hZhi, q.Gender)
+					solarStr := fmt.Sprintf("%d-%02d-%02d", trySolar.GetYear(), trySolar.GetMonth(), trySolar.GetDay())
+					c := CalcZiWei(solarStr, hour, q.Gender)
 					if c.ZiWeiIdx != q.ZiWeiGong {
 						continue
 					}

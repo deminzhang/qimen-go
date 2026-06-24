@@ -1,5 +1,12 @@
 package xuan
 
+import (
+	"fmt"
+	"time"
+
+	"github.com/6tail/lunar-go/calendar"
+)
+
 // ============ 紫微斗数 - 类型定义 & 数据表 ============
 
 // 五行局
@@ -112,42 +119,6 @@ const (
 	StarCount = 14
 )
 
-// ============ 命宫表 ============
-// 命宫表 [月][时辰]→宫位索引
-// 月1-12, 时辰0-11(子丑寅卯辰巳午未申酉戌亥)
-var MingGongTable = [13][12]int{
-	{}, // 占位
-	/*正月*/ {2, 1, 0, 11, 10, 9, 8, 7, 6, 5, 4, 3},
-	/*二月*/ {1, 0, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2},
-	/*三月*/ {0, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
-	/*四月*/ {11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0},
-	/*五月*/ {10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 11},
-	/*六月*/ {9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 11, 10},
-	/*七月*/ {8, 7, 6, 5, 4, 3, 2, 1, 0, 11, 10, 9},
-	/*八月*/ {7, 6, 5, 4, 3, 2, 1, 0, 11, 10, 9, 8},
-	/*九月*/ {6, 5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7},
-	/*十月*/ {5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6},
-	/*冬月*/ {4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6, 5},
-	/*腊月*/ {3, 2, 1, 0, 11, 10, 9, 8, 7, 6, 5, 4},
-}
-
-// 身宫表 [月][时辰]→宫位索引
-var ShenGongTable = [13][12]int{
-	{}, // 占位
-	/*正月*/ {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1},
-	/*二月*/ {3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 2},
-	/*三月*/ {4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 2, 3},
-	/*四月*/ {5, 6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 4},
-	/*五月*/ {6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 4, 5},
-	/*六月*/ {7, 8, 9, 10, 11, 0, 1, 2, 3, 4, 5, 6},
-	/*七月*/ {8, 9, 10, 11, 0, 1, 2, 3, 4, 5, 6, 7},
-	/*八月*/ {9, 10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 8},
-	/*九月*/ {10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
-	/*十月*/ {11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
-	/*冬月*/ {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
-	/*腊月*/ {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0},
-}
-
 // ============ 五行局表 ============
 // 五行局表 [年干索引][命宫地支索引]
 var WuXingJuTable = [10][12]WuXingJu{
@@ -174,6 +145,22 @@ var ZiWeiStarTable = [7][31]int{
 	/*金四局*/ {5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 11, 0, 0, 0},
 	/*土五局*/ {5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 11},
 	/*火六局*/ {5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 10},
+}
+
+// 修正12宫索引
+func fix12(idx int) int {
+	if idx < 0 {
+		return fix12(idx + 12)
+	}
+	return idx % 12
+}
+
+// fixIndex 通用索引修正（支持任意模数）
+func fixIndex(idx, mod int) int {
+	if idx < 0 {
+		return fixIndex(idx+mod, mod)
+	}
+	return idx % mod
 }
 
 // ============ 十四主星安星表 ============
@@ -226,28 +213,57 @@ type ZiWeiChart struct {
 }
 
 // CalcZiWei 计算紫微斗数主盘
-func CalcZiWei(yearGan, yearZhi string, month, day int, hourZhi string, gender int) *ZiWeiChart {
+// 输入格式与iztro的bySolar保持一致：阳历日期+时辰索引
+// solarDateStr: 公历日期 "2006-01-02"
+// timeIndex: 时辰索引 0~12 (0=早子时0:00-1:00, 1=丑…11=亥, 12=晚子时23:00-0:00)
+// gender: 0=女 1=男
+func CalcZiWei(solarDateStr string, timeIndex int, gender int) *ZiWeiChart {
+	// 解析公历日期
+	solar, err := parseSolarDate(solarDateStr)
+	if err != nil {
+		return nil
+	}
+	lunar := calendar.NewLunarFromSolar(solar)
+
+	// 年柱干支
+	ganZhiYear := lunar.GetYearInGanZhiExact()
+	yearGan := string([]rune(ganZhiYear)[0])
+	yearZhi := string([]rune(ganZhiYear)[1])
+
+	// 农历月日
+	month := lunar.GetMonth()
+	day := lunar.GetDay()
+
+	// 时支（timeIndex → hourZhi）
+	hourZhi := zhiFromTimeIndex(timeIndex)
+	hourIdx := timeIndex
+	if timeIndex >= 12 {
+		hourIdx = 0 // 晚子时按子时算
+	}
+
 	c := &ZiWeiChart{
 		YearGan:  yearGan,
 		YearZhi:  yearZhi,
 		MonthNum: month,
 		DayNum:   day,
 		HourZhi:  hourZhi,
+		HourIdx:  hourIdx,
 		Gender:   gender,
 	}
 
 	ganIdx := indexOf(TianGanList, yearGan)
-	hourIdx := indexOf(ZHI, hourZhi)
-	c.HourIdx = hourIdx
 
-	// 命宫
-	c.MingGongIdx = MingGongTable[month][hourIdx]
+	// 命宫（寅起正月顺数至生月，再从月上逆数至生时）—— 与iztro算法一致
+	monthIdx := month - 1 // month 1-indexed → 0-based宫位索引
+	c.MingGongIdx = fix12(monthIdx - hourIdx)
 
-	// 身宫
-	c.ShenGongIdx = ShenGongTable[month][hourIdx]
+	// 身宫（寅起正月顺数至生月，再从月上顺数至生时）
+	c.ShenGongIdx = fix12(monthIdx + hourIdx)
 
-	// 五行局
-	c.WuXingJu = WuXingJuTable[ganIdx][c.MingGongIdx]
+	// 五行局（纳音公式：命宫天干+命宫地支，与iztro一致）
+	soulGan := getSoulHeavenlyStem(yearGan, c.MingGongIdx)
+	soulZhi := ZiWeiPalaceZhi[c.MingGongIdx]
+	c.WuXingJu = calcWuXingJuByNaYin(soulGan, soulZhi)
 
 	// 紫微星
 	c.ZiWeiIdx = calcZiWeiStar(c.WuXingJu, day)
@@ -315,7 +331,7 @@ func calcZiWeiStar(wx WuXingJu, day int) int {
 func (c *ZiWeiChart) setupZhuXing() {
 	for i := range c.Palaces {
 		c.Palaces[i].Index = i
-		c.Palaces[i].Name = ZiWeiGongNames[(i-c.MingGongIdx+12)%12]
+		c.Palaces[i].Name = ZiWeiGongNames[(c.MingGongIdx-i+12)%12]
 		c.Palaces[i].Zhi = ZiWeiPalaceZhi[i]
 		c.Palaces[i].ZhuXing = make([]Star, 0)
 		c.Palaces[i].FuXing = make([]Star, 0)
@@ -417,3 +433,114 @@ func itoa(n int) string {
 	}
 	return string(buf)
 }
+
+// ============ iztro兼容辅助函数 ============
+
+// parseSolarDate 解析公历日期字符串
+func parseSolarDate(s string) (*calendar.Solar, error) {
+	for _, layout := range []string{"2006-01-02", "2006-1-2", "2006/01/02", "2006/1/2"} {
+		t, err := time.Parse(layout, s)
+		if err == nil {
+			return calendar.NewSolar(t.Year(), int(t.Month()), t.Day(), 12, 0, 0), nil
+		}
+	}
+	return nil, fmt.Errorf("日期格式错误: %s", s)
+}
+
+// zhiFromTimeIndex 时辰索引→地支字符串
+// timeIndex 0~12：0=早子时, 1=丑…11=亥, 12=晚子时
+func zhiFromTimeIndex(ti int) string {
+	if ti < 0 || ti > 12 {
+		return ""
+	}
+	dizhi := []string{"子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"}
+	if ti == 12 {
+		return "子" // 晚子时仍是子
+	}
+	return dizhi[ti]
+}
+
+// getSoulHeavenlyStem 根据年干和命宫索引计算命宫天干（五虎遁）
+func getSoulHeavenlyStem(yearGan string, mingGongIdx int) string {
+	// 五虎遁：年干→寅宫天干
+	tigerRule := map[string]string{
+		"甲": "丙", "乙": "戊", "丙": "庚", "丁": "壬", "戊": "甲",
+		"己": "丙", "庚": "戊", "辛": "庚", "壬": "壬", "癸": "甲",
+	}
+	startGan, ok := tigerRule[yearGan]
+	if !ok {
+		return ""
+	}
+
+	// 从寅宫(0)起startGan，顺数到命宫位置
+	ganList := TianGanList
+	startIdx := -1
+	for i, g := range ganList {
+		if g == startGan {
+			startIdx = i
+			break
+		}
+	}
+	if startIdx < 0 {
+		return ""
+	}
+
+	soulGanIdx := (startIdx + mingGongIdx) % 10
+	return ganList[soulGanIdx]
+}
+
+// calcWuXingJuByNaYin 纳音五行→五行局
+// 天干取数：甲乙1 丙丁2 戊己3 庚辛4 壬癸5
+// 地支取数：子午丑未1 寅申卯酉2 辰戌巳亥3
+// 干支数相加，超过5减去5，得1木3局 2金4局 3水2局 4火6局 5土5局
+func calcWuXingJuByNaYin(gan, zhi string) WuXingJu {
+	var ganNum, zhiNum int
+
+	switch gan {
+	case "甲", "乙":
+		ganNum = 1
+	case "丙", "丁":
+		ganNum = 2
+	case "戊", "己":
+		ganNum = 3
+	case "庚", "辛":
+		ganNum = 4
+	case "壬", "癸":
+		ganNum = 5
+	default:
+		return WuXingJuNone
+	}
+
+	switch zhi {
+	case "子", "午", "丑", "未":
+		zhiNum = 1
+	case "寅", "申", "卯", "酉":
+		zhiNum = 2
+	case "辰", "戌", "巳", "亥":
+		zhiNum = 3
+	default:
+		return WuXingJuNone
+	}
+
+	sum := ganNum + zhiNum
+	for sum > 5 {
+		sum -= 5
+	}
+
+	switch sum {
+	case 1:
+		return MuSanJu  // 1木→木三局
+	case 2:
+		return JinSiJu  // 2金→金四局
+	case 3:
+		return ShuiErJu // 3水→水二局
+	case 4:
+		return HuoLiuJu // 4火→火六局
+	case 5:
+		return TuWuJu  // 5土→土五局
+	default:
+		return WuXingJuNone
+	}
+}
+
+
