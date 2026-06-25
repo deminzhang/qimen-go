@@ -38,8 +38,12 @@ func GetFontXFace(size float64) (*text.GoXFace, error) {
 //		}
 func TextDrawV2(dst *ebiten.Image, txt string, xface *text.GoXFace, x, y int, clr color.Color) {
 	op := &text.DrawOptions{}
-	op.GeoM.Translate(float64(x), float64(y))
+	m := xface.Metrics()
+	// text/v2 的 y 是文字框顶(top)，而调用方传入的是基线(baseline)位置
+	// 减去 HAscent 恢复基线语义，避免 text/v2 迁移后的整体下沉
+	op.GeoM.Translate(float64(x), float64(y)-m.HAscent)
 	op.ColorScale.ScaleWithColor(clr)
+	op.LineSpacing = m.HAscent + m.HDescent
 	text.Draw(dst, txt, xface, op)
 }
 
