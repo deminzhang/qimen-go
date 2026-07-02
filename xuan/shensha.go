@@ -54,7 +54,7 @@ func CalcShenSha(bz *calendar.EightChar, flowZhu ...string) [][]string {
 			ss[i] = append(ss[i], "福星贵")
 		}
 	}
-	//大极贵人: 日支见它支(甲乙见子午 丙丁见卯酉 戊已见四库 庚辛见寅亥 壬癸见巳申)
+//大极贵人: 日干见它支(甲乙见子午 丙丁见卯酉 戊已见四库 庚辛见寅亥 壬癸见巳申)
 	for i, zhi := range zhiA {
 		if slices.Contains([]string{"子", "午"}, zhi) && slices.Contains([]string{"甲", "乙"}, ganD) ||
 			slices.Contains([]string{"卯", "酉"}, zhi) && slices.Contains([]string{"丙", "丁"}, ganD) ||
@@ -64,33 +64,33 @@ func CalcShenSha(bz *calendar.EightChar, flowZhu ...string) [][]string {
 			ss[i] = append(ss[i], "大极贵")
 		}
 	}
-	//天官贵人: 日支见它支(甲未 乙辰 丙巳 丁寅 戊丑 己戌 庚亥 辛申 壬酉 癸午)
+//天官贵人: 日干见它支(甲未 乙辰 丙巳 丁寅 戊丑 己戌 庚亥 辛申 壬酉 癸午)
 	for i, zhi := range zhiA {
-		if slices.Contains([]string{"甲未", "乙辰", "丙巳", "丁寅", "戊丑", "己戌", "庚亥", "辛申", "壬酉", "癸午"}, zhiD+zhi) {
+		if slices.Contains([]string{"甲未", "乙辰", "丙巳", "丁寅", "戊丑", "己戌", "庚亥", "辛申", "壬酉", "癸午"}, ganD+zhi) {
 			ss[i] = append(ss[i], "天官贵")
 		}
 	}
-	//国印贵人: 日支见它支(甲戌 乙亥、丙丑、丁寅、戊寅、己寅、庚辰、辛巳、壬未、癸申)
+//国印贵人: 日干见它支(甲戌 乙亥 丙丑 丁寅 戊寅 己寅 庚辰 辛巳 壬未 癸申)
 	for i, zhi := range zhiA {
-		if slices.Contains([]string{"甲戌", "乙亥", "乙亥", "丙丑", "丁寅", "戊寅", "己寅", "庚辰", "辛巳", "壬未", "癸申"}, zhiD+zhi) {
+		if slices.Contains([]string{"甲戌", "乙亥", "乙亥", "丙丑", "丁寅", "戊寅", "己寅", "庚辰", "辛巳", "壬未", "癸申"}, ganD+zhi) {
 			ss[i] = append(ss[i], "国印贵")
 		}
 	}
 	//天厨贵人: 年/日干见它食神禄支(甲巳 乙午 丙巳 丁午 戊申 己酉 庚亥 辛子 壬寅 癸卯)
 	for i, zhi := range zhiA {
-		if util.Contains([]string{"甲巳", "乙午", "丙巳", "丁午", "戊申", "己酉", "庚亥", "辛子", "壬寅", "癸卯"}, zhiY+zhi, zhiD+zhi) {
+		if util.Contains([]string{"甲巳", "乙午", "丙巳", "丁午", "戊申", "己酉", "庚亥", "辛子", "壬寅", "癸卯"}, ganY+zhi, ganD+zhi) {
 			ss[i] = append(ss[i], "天厨贵")
 		}
 	}
 	//文昌贵人：日干见它支(甲巳 乙午 丙申 丁酉 戊申 己酉 庚亥 辛子 壬寅 癸卯)
 	for i, zhi := range zhiA {
-		if slices.Contains([]string{"甲巳", "乙午", "丙申", "丁酉", "戊申", "己酉", "庚亥", "辛子", "壬寅", "癸卯"}, zhiD+zhi) {
+		if slices.Contains([]string{"甲巳", "乙午", "丙申", "丁酉", "戊申", "己酉", "庚亥", "辛子", "壬寅", "癸卯"}, ganD+zhi) {
 			ss[i] = append(ss[i], "文昌贵")
 		}
 	}
 	//玉堂贵人：日干见它支(甲未 乙辰 丙巳 丁酉 戊戌 己卯 庚丑 辛申 壬寅 癸午)
 	for i, zhi := range zhiA {
-		if slices.Contains([]string{"甲未", "乙辰", "丙巳", "丁酉", "戊戌", "己卯", "庚丑", "辛申", "壬寅", "癸午"}, zhiD+zhi) {
+		if slices.Contains([]string{"甲未", "乙辰", "丙巳", "丁酉", "戊戌", "己卯", "庚丑", "辛申", "壬寅", "癸午"}, ganD+zhi) {
 			ss[i] = append(ss[i], "玉堂贵")
 		}
 	}
@@ -123,7 +123,7 @@ func CalcShenSha(bz *calendar.EightChar, flowZhu ...string) [][]string {
 	}
 	//金匮贵人：年/日干见它支(甲辰 乙巳 丙未 丁申 戊未 己申 庚戌 辛亥 壬子 癸丑)
 	for i, zhi := range zhiA {
-		if util.Contains([]string{"甲辰", "乙巳", "丙未", "丁申", "戊未", "己申", "庚戌", "辛亥", "壬子", "癸丑"}, zhiY+zhi, zhiD+zhi) {
+		if util.Contains([]string{"甲辰", "乙巳", "丙未", "丁申", "戊未", "己申", "庚戌", "辛亥", "壬子", "癸丑"}, ganY+zhi, ganD+zhi) {
 			ss[i] = append(ss[i], "金匮贵")
 		}
 	}
@@ -225,13 +225,13 @@ func CalcShenSha(bz *calendar.EightChar, flowZhu ...string) [][]string {
 	}
 	//禄神: 日干见它支(甲寅 乙卯 丙巳 丁午 戊巳 己午 庚申 辛酉 壬亥 癸子)
 	for i, zhi := range zhiA {
-		if slices.Contains([]string{"甲寅", "乙卯", "丙巳", "丁午", "戊巳", "己午", "庚申", "辛酉", "壬亥", "癸子"}, zhiD+zhi) {
+		if slices.Contains([]string{"甲寅", "乙卯", "丙巳", "丁午", "戊巳", "己午", "庚申", "辛酉", "壬亥", "癸子"}, ganD+zhi) {
 			ss[i] = append(ss[i], "禄神")
 		}
 	}
-	//暗禄: 日干见它支(甲亥 乙戌 丙申 丁未 戊申 己未 庚巳 辛辰 癸丑)
+	//暗禄: 日干见它支(甲亥 乙戌 丙申 丁未 戊申 己未 庚巳 辛辰 壬丑 癸丑)
 	for i, zhi := range zhiA {
-		if slices.Contains([]string{"甲亥", "乙戌", "丙申", "丁未", "戊申", "己未", "庚巳", "辛辰", "癸丑"}, zhiD+zhi) {
+		if slices.Contains([]string{"甲亥", "乙戌", "丙申", "丁未", "戊申", "己未", "庚巳", "辛辰", "壬丑", "癸丑"}, ganD+zhi) {
 			ss[i] = append(ss[i], "暗禄")
 		}
 	}
@@ -254,9 +254,9 @@ func CalcShenSha(bz *calendar.EightChar, flowZhu ...string) [][]string {
 			ss[i] = append(ss[i], "夹禄")
 		}
 	}
-	//金羊禄: 日支查他支 (甲辰 乙巳 丙未 丁申 戊未 己申 庚戌 辛亥 壬丑 癸寅)
+	//金羊禄: 日干见它支 (甲辰 乙巳 丙未 丁申 戊未 己申 庚戌 辛亥 壬丑 癸寅)
 	for i, zhi := range zhiA {
-		if slices.Contains([]string{"甲辰", "乙巳", "丙未", "丁申", "戊未", "己申", "庚戌", "辛亥", "壬丑", "癸寅"}, zhiD+zhi) {
+		if slices.Contains([]string{"甲辰", "乙巳", "丙未", "丁申", "戊未", "己申", "庚戌", "辛亥", "壬丑", "癸寅"}, ganD+zhi) {
 			ss[i] = append(ss[i], "金羊禄")
 		}
 	}
@@ -280,10 +280,10 @@ func CalcShenSha(bz *calendar.EightChar, flowZhu ...string) [][]string {
 		ss[2] = append(ss[2], "九丑")
 	}
 	//四废: 月支三会见官官杀杀 春 寅卯辰月 见 庚申/辛酉日 夏 巳午未月 见 壬子/癸亥日 秋 申酉戌月 见 甲寅/乙卯日 冬 亥子丑月 见 丙午/丁巳日
-	if (slices.Contains([]string{"寅", "卯", "辰"}, zhiM) && slices.Contains([]string{"庚申", "辛酉"}, zhiD)) ||
-		(slices.Contains([]string{"巳", "午", "未"}, zhiM) && slices.Contains([]string{"壬子", "癸亥"}, zhiD)) ||
-		(slices.Contains([]string{"申", "酉", "戌"}, zhiM) && slices.Contains([]string{"甲寅", "乙卯"}, zhiD)) ||
-		(slices.Contains([]string{"亥", "子", "丑"}, zhiM) && slices.Contains([]string{"丙午", "丁巳"}, zhiD)) {
+	if (slices.Contains([]string{"寅", "卯", "辰"}, zhiM) && slices.Contains([]string{"庚申", "辛酉"}, zhuD)) ||
+		(slices.Contains([]string{"巳", "午", "未"}, zhiM) && slices.Contains([]string{"壬子", "癸亥"}, zhuD)) ||
+		(slices.Contains([]string{"申", "酉", "戌"}, zhiM) && slices.Contains([]string{"甲寅", "乙卯"}, zhuD)) ||
+		(slices.Contains([]string{"亥", "子", "丑"}, zhiM) && slices.Contains([]string{"丙午", "丁巳"}, zhuD)) {
 		ss[2] = append(ss[2], "四废")
 	}
 	//十恶大败: 日柱(甲辰、乙巳、丙申、丁亥、戊戌、己丑、庚辰、辛巳、壬申、癸亥)
@@ -300,9 +300,9 @@ func CalcShenSha(bz *calendar.EightChar, flowZhu ...string) [][]string {
 
 	//亡神: 年/日支见它支 三合见仲位前一位(申子辰见亥 寅午戌见巳 巳酉丑见申 亥卯未见寅)
 	for i, zhi := range zhiA {
-		if (slices.Contains([]string{"亥", "子", "辰"}, zhi) && slices.Contains(ganYD, "申")) ||
-			(slices.Contains([]string{"申", "子", "辰"}, zhi) && slices.Contains(ganYD, "巳")) ||
-			(slices.Contains([]string{"寅", "午", "戌"}, zhi) && slices.Contains(ganYD, "亥")) {
+		if (slices.Contains([]string{"亥", "子", "辰"}, zhi) && slices.Contains(zhiYD, "申")) ||
+			(slices.Contains([]string{"申", "子", "辰"}, zhi) && slices.Contains(zhiYD, "巳")) ||
+			(slices.Contains([]string{"寅", "午", "戌"}, zhi) && slices.Contains(zhiYD, "亥")) {
 			ss[i] = append(ss[i], "亡神")
 		}
 	}
@@ -354,7 +354,7 @@ func CalcShenSha(bz *calendar.EightChar, flowZhu ...string) [][]string {
 	}
 	//红艳: 日干见它支(甲午 乙申 丙寅 丁未 戊午 己辰 庚酉 辛戌 壬子 癸申)
 	for i, zhi := range zhiA {
-		if slices.Contains([]string{"甲午", "乙申", "丙寅", "丁未", "戊午", "己辰", "庚酉", "辛戌", "壬子", "癸申"}, zhiD+zhi) {
+		if slices.Contains([]string{"甲午", "乙申", "丙寅", "丁未", "戊午", "己辰", "庚酉", "辛戌", "壬子", "癸申"}, ganD+zhi) {
 			ss[i] = append(ss[i], "红艳")
 		}
 	}
