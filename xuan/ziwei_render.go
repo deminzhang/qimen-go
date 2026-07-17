@@ -23,51 +23,76 @@ func RenderZiWei(c *ZiWeiChart) string {
 	sb.WriteString(fmt.Sprintf("大限起龄: %d岁\n", c.DaXianStartAge))
 	sb.WriteString(sep + "\n\n")
 
-	// 绘制十二宫表格
-	// 紫微斗数盘面常用布局
-	//       巳        午        未        申
-	//     ───────┬───────┬───────┬───────
-	//    辰       │        │        │       酉
-	//    ────────┼───────┼───────┼────────
-	//    卯       │        │        │       戌
-	//    ────────┼───────┼───────┼────────
-	//    寅       │        │        │       亥
-	//    ────────┴───────┴───────┴────────
-	//       丑        子        亥        戌(重复标注原理)
-
-	// 简化布局：12宫列表
-
-	// 按飞盘顺序输出
-	// 巳(3),午(4),未(5),申(6),酉(7),戌(8),亥(9),子(10),丑(11),寅(0),卯(1),辰(2)
 	order := []int{3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 2}
 
 	for _, idx := range order {
 		p := c.Palaces[idx]
-		sb.WriteString(fmt.Sprintf("┌─%s─%s─┐\n", p.Zhi, p.Name))
+		bodyMark := ""
+		if p.IsBodyPalace {
+			bodyMark = "【身】"
+		}
+		sb.WriteString(fmt.Sprintf("┌─%s─%s%s─┐\n", p.Zhi, p.Name, bodyMark))
 
-		// 主星
-		starLine := ""
+		// 主星 + (四化庙旺)
+		var starParts []string
 		for _, s := range p.ZhuXing {
-			shStr := ""
+			part := s.Name
+			suffix := ""
 			if s.SiHua != SiHuaNone {
-				shStr = SiHuaNames[s.SiHua]
+				suffix += SiHuaNames[s.SiHua]
 			}
-			starLine += s.Name + shStr + " "
+			if s.MiaoWang != MiaoWangNone {
+				suffix += MiaoWangNames[s.MiaoWang]
+			}
+			if suffix != "" {
+				part += "(" + suffix + ")"
+			}
+			starParts = append(starParts, part)
 		}
+		starLine := strings.Join(starParts, " ")
 		if starLine == "" {
-			starLine = "无主星"
+			starLine = "-"
 		}
-		sb.WriteString(fmt.Sprintf("│ %s\n", strings.TrimSpace(starLine)))
+		sb.WriteString(fmt.Sprintf("│ 主: %s\n", starLine))
 
-		// 大限
+		// 辅星
+		var fuParts []string
+		for _, s := range p.FuXing {
+			part := s.Name
+			if s.MiaoWang != MiaoWangNone {
+				part += "(" + MiaoWangNames[s.MiaoWang] + ")"
+			}
+			fuParts = append(fuParts, part)
+		}
+		fuLine := strings.Join(fuParts, " ")
+		if fuLine == "" {
+			fuLine = "-"
+		}
+		sb.WriteString(fmt.Sprintf("│ 辅: %s\n", fuLine))
+
+		// 杂耀
+		var zaParts []string
+		for _, s := range p.ZaYao {
+			zaParts = append(zaParts, s.Name)
+		}
+		zaLine := strings.Join(zaParts, " ")
+		if zaLine == "" {
+			zaLine = "-"
+		}
+		sb.WriteString(fmt.Sprintf("│ 杂: %s\n", zaLine))
+
+		// 长生/博士/岁前/将前
+		sb.WriteString(fmt.Sprintf("│ %s %s %s %s\n", p.ChangSheng, p.BoShi, p.SuiQian, p.JiangQian))
+
+		// 大限 + 小限
 		sb.WriteString(fmt.Sprintf("│ 大限: %s\n", p.DaXian))
+		if p.XiaoXianAges != "" {
+			sb.WriteString(fmt.Sprintf("│ 小限: %s\n", p.XiaoXianAges))
+		}
 
-		sb.WriteString("└─────────┘\n")
-		sb.WriteString("\n")
+		sb.WriteString("└───────────────┘\n\n")
 	}
 
-	// 四化总结
 	sb.WriteString(sep + "\n")
-	// 注意：这里写的是身宫那行
 	return sb.String()
 }

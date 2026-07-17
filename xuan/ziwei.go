@@ -41,10 +41,9 @@ var ZhuXingNames = []string{
 	"天府", "太阴", "贪狼", "巨门", "天相", "天梁", "七杀", "破军",
 }
 
-// 辅星名称
 var FuXingNames = []string{
 	"左辅", "右弼", "文昌", "文曲", "天魁", "天钺",
-	"禄存", "擎羊", "陀罗", "火星", "铃星", "天马",
+	"禄存", "天马", "擎羊", "陀罗", "火星", "铃星", "地空", "地劫",
 }
 
 // 四化类型
@@ -64,12 +63,13 @@ var SiHuaNames = map[SiHua]string{HuaLu: "禄", HuaQuan: "权", HuaKe: "科", Hu
 type MiaoWang int
 
 const (
-	Miao    MiaoWang = iota // 庙
-	Wang                    // 旺
-	DeDi                    // 得地
-	LiYi                    // 利益
-	PingHe                  // 平和
-	Xian                    // 陷
+	MiaoWangNone MiaoWang = iota // 无
+	Miao                         // 庙
+	Wang                         // 旺
+	DeDi                         // 得地
+	LiYi                         // 利益
+	PingHe                       // 平和
+	Xian                         // 陷
 )
 
 var MiaoWangNames = map[MiaoWang]string{
@@ -85,15 +85,20 @@ type Star struct {
 
 // 单宫结构
 type ZiWeiPalace struct {
-	Index    int    // 0-11
-	Name     string // 宫名
-	Zhi      string // 十二支
-	ZhuXing  []Star // 主星
-	FuXing   []Star // 辅星
-	DaXian   string // 大限范围
-	SiHuaStr string // 四化标签（自化/生年）
+	Index        int    // 0-11
+	Name         string // 宫名
+	Zhi          string // 十二支
+	ZhuXing      []Star // 主星
+	FuXing       []Star // 辅星
+	ZaYao        []Star // 杂耀
+	ChangSheng   string // 长生十二神
+	BoShi        string // 博士十二神
+	SuiQian      string // 岁前十二神
+	JiangQian    string // 将前十二神
+	DaXian       string // 大限范围
+	XiaoXianAges string // 小限年龄列表
+	IsBodyPalace bool   // 是否身宫
 }
-
 // 十二宫地支
 var ZiWeiPalaceZhi = []string{"寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑"}
 
@@ -241,6 +246,17 @@ func CalcZiWei(solarDateStr string, timeIndex int, gender int) *ZiWeiChart {
 		hourIdx = 0 // 晚子时按子时算
 	}
 
+	// 晚子时至次日子时（对齐 iztro dayDivide='forward'）
+	if timeIndex == 12 {
+		ly := calendar.NewLunarYear(lunar.GetYear())
+		lm := ly.GetMonth(month)
+		maxDays := lm.GetDayCount()
+		day = day + 1
+		if day > maxDays {
+			day -= maxDays
+		}
+	}
+
 	c := &ZiWeiChart{
 		YearGan:  yearGan,
 		YearZhi:  yearZhi,
@@ -280,8 +296,7 @@ func CalcZiWei(solarDateStr string, timeIndex int, gender int) *ZiWeiChart {
 			break
 		}
 	}
-
-	// 大限起龄
+	// 大限起龄（iztro: 局数=起运年龄）
 	c.DaXianStartAge = DaXianQiLing[c.WuXingJu]
 
 	// 安十四主星
@@ -290,8 +305,20 @@ func CalcZiWei(solarDateStr string, timeIndex int, gender int) *ZiWeiChart {
 	// 四化
 	c.setupSiHua(ganIdx)
 
-	// 大限
+	// 大限（iztro: 每宫10年）
 	c.setupDaXian(ganIdx)
+
+	// 小限
+	c.setupXiaoXian()
+
+	// 安辅星
+	c.setupFuXing()
+
+	// 安杂耀
+	c.setupZaYao(solarDateStr, timeIndex)
+
+	// 安长生十二神/博士十二神/岁前十二神/将前十二神
+	c.setupDecorative()
 
 	return c
 }
@@ -329,24 +356,28 @@ func calcZiWeiStar(wx WuXingJu, day int) int {
 }
 
 func (c *ZiWeiChart) setupZhuXing() {
-	for i := range c.Palaces {
+	for i := range 12 {
 		c.Palaces[i].Index = i
 		c.Palaces[i].Name = ZiWeiGongNames[(c.MingGongIdx-i+12)%12]
 		c.Palaces[i].Zhi = ZiWeiPalaceZhi[i]
 		c.Palaces[i].ZhuXing = make([]Star, 0)
 		c.Palaces[i].FuXing = make([]Star, 0)
+		c.Palaces[i].ZaYao = make([]Star, 0)
+		c.Palaces[i].IsBodyPalace = (i == c.ShenGongIdx)
 	}
 
 	zwIdx := c.ZiWeiIdx
 	tfIdx := (12 - zwIdx) % 12 // 天府在对宫
 	c.TianFuIdx = tfIdx
-
-	for starIdx := 0; starIdx < StarCount; starIdx++ {
+	for starIdx := range StarCount {
 		pos := getStarPos(starIdx, zwIdx, tfIdx)
 		if pos < 0 || pos >= 12 {
 			continue
 		}
-		c.Palaces[pos].ZhuXing = append(c.Palaces[pos].ZhuXing, Star{Name: ZhuXingNames[starIdx]})
+		c.Palaces[pos].ZhuXing = append(c.Palaces[pos].ZhuXing, Star{
+			Name:     ZhuXingNames[starIdx],
+			MiaoWang: getZhuXingBrightness(starIdx, pos),
+		})
 	}
 }
 
@@ -395,23 +426,68 @@ func getStarPos(starIdx, zwIdx, tfIdx int) int {
 }
 
 func (c *ZiWeiChart) setupDaXian(ganIdx int) {
-	// 阳男阴女顺行，阴男阳女逆行
-	direction := 1
-	if (c.IsYangYear && c.Gender == 1) || (!c.IsYangYear && c.Gender == 0) {
-		direction = 1 // 顺行
-	} else {
-		direction = -1 // 逆行
+	// iztro 算法：每宫固定管10年，阳男阴女顺行
+	// idx = GENDER[gender]==yinYang ? fixIndex(soulIndex+i) : fixIndex(soulIndex-i)
+	yearZhiYinYang := zhiStdIndex(c.YearZhi) % 2 // 0=阳,1=阴
+	genderYinYang := 0
+	if c.Gender == 0 {
+		genderYinYang = 1 // 女=阴
+	}
+	shunXing := (yearZhiYinYang == genderYinYang) // 同阴阳→顺行(iztro)
+
+	startAge := WuXingJuNums[c.WuXingJu] // 局数=起运年龄
+	for i := range 12 {
+		var palaceIdx int
+		if shunXing {
+			palaceIdx = fix12(c.MingGongIdx + i)
+		} else {
+			palaceIdx = fix12(c.MingGongIdx - i)
+		}
+		ageStart := startAge + 10*i
+		ageEnd := ageStart + 9
+		if ageEnd > 120 {
+			ageEnd = 120
+		}
+		c.Palaces[palaceIdx].DaXian = formatAgeRange(ageStart, ageEnd)
+	}
+}
+
+// setupXiaoXian 安小限（iztro getHoroscope ages）
+func (c *ZiWeiChart) setupXiaoXian() {
+	// getAgeIndex: 寅午戌→辰(2), 申子辰→戌(8), 巳酉丑→未(5), 亥卯未→丑(11)
+	var ageIdx int
+	switch c.YearZhi {
+	case "寅", "午", "戌":
+		ageIdx = zhiToIndex("辰") // 2
+	case "申", "子", "辰":
+		ageIdx = zhiToIndex("戌") // 8
+	case "巳", "酉", "丑":
+		ageIdx = zhiToIndex("未") // 5
+	case "亥", "卯", "未":
+		ageIdx = zhiToIndex("丑") // 11
 	}
 
-	startAge := c.DaXianStartAge
-	for i := 0; i < 12; i++ {
-		palaceIdx := (c.MingGongIdx + i*direction + 12) % 12
-		endAge := startAge + WuXingJuNums[c.WuXingJu] - 1
-		if i == 11 {
-			endAge = 120
+	// male→forward, female→backward
+	for i := range 12 {
+		var ageList []int
+		for j := range 10 {
+			ageList = append(ageList, 12*j+i+1)
 		}
-		c.Palaces[palaceIdx].DaXian = formatAgeRange(startAge, endAge)
-		startAge = endAge + 1
+		var idx int
+		if c.Gender == 1 { // male
+			idx = fix12(ageIdx + i)
+		} else {
+			idx = fix12(ageIdx - i)
+		}
+		// 格式化年龄列表
+		s := ""
+		for k, a := range ageList {
+			if k > 0 {
+				s += ","
+			}
+			s += itoa(a)
+		}
+		c.Palaces[idx].XiaoXianAges = s
 	}
 }
 
