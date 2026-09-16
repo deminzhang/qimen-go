@@ -31,7 +31,7 @@ func CalcShenSha(bz *calendar.EightChar, flowZhu ...string) [][]string {
 	//贵人(天乙 福星 大极 天官 国印 天厨 文昌 玉堂 金匮)
 	//天乙贵人: 年/日干见它支(甲戊并牛羊，乙己鼠猴乡，丙丁猪鸡位，壬癸兔蛇藏，庚辛逢虎马，此是贵人方)
 	for i, zhi := range zhiA {
-		if (slices.Contains([]string{"午", "未"}, zhi) && util.Contains(ganYD, "甲", "戊")) ||
+		if (slices.Contains([]string{"丑", "未"}, zhi) && util.Contains(ganYD, "甲", "戊")) ||
 			(slices.Contains([]string{"子", "申"}, zhi) && util.Contains(ganYD, "乙", "己")) ||
 			(slices.Contains([]string{"亥", "酉"}, zhi) && util.Contains(ganYD, "丙", "丁")) ||
 			(slices.Contains([]string{"卯", "巳"}, zhi) && util.Contains(ganYD, "壬", "癸")) ||
